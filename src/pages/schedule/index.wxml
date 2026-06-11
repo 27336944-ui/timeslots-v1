@@ -1,0 +1,51 @@
+
+<scroll-view class="page" scroll-y refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onRefresh">
+  <view class="date-header">
+    <view class="date-nav">
+      <view class="nav-btn" bindtap="prevDay">‹</view>
+      <text class="date-text">{{dateStr}}</text>
+      <view class="nav-btn" bindtap="nextDay">›</view>
+    </view>
+    <view class="view-tabs">
+      <text class="view-tab active">日</text>
+      <text class="view-tab" bindtap="showComingSoon">周</text>
+      <text class="view-tab" bindtap="showComingSoon">月</text>
+    </view>
+  </view>
+
+  <view class="timeline">
+    <view wx:for="{{hourGroups}}" wx:key="hour" class="hour-row" data-hour="{{item.hour}}" bindtap="toggleHour">
+      <view class="hour-marker">
+        <text class="hour-label {{item.blocks.length > 0 ? 'has-blocks' : ''}}">{{item.label}}</text>
+        <view class="hour-line"></view>
+      </view>
+      <view class="hour-body {{expandedHours[item.hour] ? 'expanded' : ''}}">
+        <block wx:if="{{expandedHours[item.hour] && item.blocks.length > 0}}">
+          <view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="id" class="block-card {{block.categoryClass}}" data-id="{{block.id}}" bindtap="onBlockTap">
+            <view class="block-left">
+              <view class="block-time">
+                {{block.localStart}}-{{block.localEnd}}
+              </view>
+              <text class="block-title">{{block.title}}</text>
+              <view wx:if="{{block.location}}" class="block-meta">{{block.location}}</view>
+            </view>
+            <view class="block-right">
+              <view wx:if="{{block.priorityLabel !== '中'}}" class="priority-dot {{'priority-' + block.priority}}"></view>
+            </view>
+          </view>
+        </block>
+        <block wx:elif="{{expandedHours[item.hour] && item.blocks.length === 0}}">
+          <text class="empty-hint">空闲</text>
+        </block>
+        <block wx:else>
+          <text class="empty-hint"></text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading && hourGroups.length === 0}}" class="loading-hint">加载中...</view>
+  <view wx:elif="{{error && hourGroups.length === 0}}" class="error-hint">{{error}}</view>
+
+  <view class="fab" bindtap="onCreateTap">+</view>
+</scroll-view>

@@ -1,0 +1,6 @@
+<view
+  class="ts-tag ts-tag--{{variant}} {{active ? 'ts-tag--active' : ''}}"
+  bindtap="onTap"
+>
+  <text>{{text}}</text>
+</view>

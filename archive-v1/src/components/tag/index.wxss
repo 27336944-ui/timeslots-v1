@@ -1,0 +1,35 @@
+/* Tag 标签组 */
+.ts-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.ts-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 28rpx;
+  line-height: 40rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid transparent;
+  transition: all 200ms ease;
+}
+.ts-tag--active {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  font-weight: 500;
+}
+.ts-tag--work.ts-tag--active {
+  background: #dbeafe;
+  color: var(--semantic-work);
+}
+.ts-tag--life.ts-tag--active {
+  background: #d1fae5;
+  color: var(--semantic-life);
+}
+.ts-tag--private.ts-tag--active {
+  background: #ede9fe;
+  color: var(--semantic-private);
+}

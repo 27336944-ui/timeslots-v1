@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "今日时段",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "block-card": "/components/block-card/index"
+  }
+}

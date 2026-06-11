@@ -1,0 +1,384 @@
+// timeslots-v1 Prisma schema v2
+// 11 entities | 6 enums | @db.* explicit types | double-track soft delete
+// Recovered from AGENTS §6.7 + Batch 1-8 design records (2026-06-07)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================
+// Enums
+// =============================================================
+
+enum TimeBlockStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TimeBlockNature {
+  PRIVATE
+  PUBLIC
+  CIRCLE_ONLY
+}
+
+enum CircleStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum CircleRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum RSVPStatus {
+  CONFIRMED
+  CANCELLED
+  TENTATIVE
+}
+
+enum TransactionType {
+  DEDUCT
+  REFUND
+  GRANT
+  EXPIRE
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// =============================================================
+// 1. User
+// =============================================================
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  openid        String?   @unique @db.VarChar(64)
+  unionid       String?   @db.VarChar(64)
+  nickname      String?   @db.VarChar(50)
+  avatarUrl     String?   @db.VarChar(500)
+  dayStartsAt   String    @default("00:00") @db.VarChar(5)
+  coachSettings Json      @default("{\"tone\":\"professional\",\"weeklyReportDay\":\"SUNDAY\"}")
+  status        String    @default("ACTIVE") @db.VarChar(20)
+
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  timeBlocks    TimeBlock[]
+  circlesOwned  Circle[]
+  circleMembers CircleMember[]
+  taskGroups    TaskGroup[]
+  tasks         Task[]
+  comments      Comment[]
+  rsvps         RSVP[]
+  coachCards    CoachCard[]
+  quota         Quota?
+  quotaTxs      QuotaTransaction[]
+
+  @@index([openid], name: "users_openid_uk")
+  @@index([isDeleted], name: "users_delflag_idx")
+  @@map("users")
+}
+
+// =============================================================
+// 2. TimeBlock
+// =============================================================
+
+model TimeBlock {
+  id                    String          @id @default(uuid()) @db.Uuid
+  userId                String          @db.Uuid
+  title                 String          @db.VarChar(100)
+  summary               String?         @db.Text
+  encryptedDetails      Json?
+  startTime             DateTime        @db.Timestamptz(6)
+  endTime               DateTime        @db.Timestamptz(6)
+  status                TimeBlockStatus @default(ACTIVE)
+  nature                TimeBlockNature @default(PRIVATE)
+  actualDurationMinutes Int?
+  isAIGenerated         Boolean         @default(false)
+  aiTraceId             String?         @db.VarChar(64)
+  isBusy                Boolean         @default(true)
+  taskGroupId           String?         @db.Uuid
+  circleId              String?         @db.Uuid
+
+  isDeleted             Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  deletedAt             DateTime?       @db.Timestamptz(6)
+
+  user                  User            @relation(fields: [userId], references: [id])
+  taskGroup             TaskGroup?      @relation(fields: [taskGroupId], references: [id])
+  circle                Circle?         @relation(fields: [circleId], references: [id])
+  comments              Comment[]
+  rsvps                 RSVP[]
+
+  @@index([userId, startTime, endTime], name: "time_blocks_user_time_idx")
+  @@index([circleId, startTime], name: "time_blocks_circle_time_idx")
+  @@index([taskGroupId, status], name: "time_blocks_group_status_idx")
+  @@index([isDeleted], name: "time_blocks_delflag_idx")
+  @@map("time_blocks")
+}
+
+// =============================================================
+// 3. Circle
+// =============================================================
+
+model Circle {
+  id          String       @id @default(uuid()) @db.Uuid
+  ownerId     String       @db.Uuid
+  name        String       @db.VarChar(50)
+  description String?      @db.Text
+  status      CircleStatus @default(ACTIVE)
+  inviteCode  String       @unique @db.VarChar(20)
+
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?    @db.Timestamptz(6)
+
+  owner       User         @relation(fields: [ownerId], references: [id])
+  members     CircleMember[]
+  timeBlocks  TimeBlock[]
+
+  @@index([ownerId], name: "circles_owner_idx")
+  @@index([isDeleted], name: "circles_delflag_idx")
+  @@map("circles")
+}
+
+// =============================================================
+// 4. CircleMember
+// =============================================================
+
+model CircleMember {
+  id       String     @id @default(uuid()) @db.Uuid
+  circleId String     @db.Uuid
+  userId   String     @db.Uuid
+  role     CircleRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  circle   Circle     @relation(fields: [circleId], references: [id])
+  user     User       @relation(fields: [userId], references: [id])
+
+  @@unique([circleId, userId], name: "circle_members_uk")
+  @@index([userId], name: "circle_members_user_idx")
+  @@index([isDeleted], name: "circle_members_delflag_idx")
+  @@map("circle_members")
+}
+
+// =============================================================
+// 5. TaskGroup
+// =============================================================
+
+model TaskGroup {
+  id     String   @id @default(uuid()) @db.Uuid
+  userId String   @db.Uuid
+  name   String   @db.VarChar(50)
+  color  String   @default("#888888") @db.VarChar(10)
+  notes  String?  @db.Text
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  user       User       @relation(fields: [userId], references: [id])
+  timeBlocks TimeBlock[]
+  tasks      Task[]
+
+  @@index([userId, isDeleted], name: "task_groups_user_delflag_idx")
+  @@map("task_groups")
+}
+
+// =============================================================
+// 5.1 Task (轻量待办，与 TimeBlock 区分：任务无起止时间，只有 dueAt)
+// =============================================================
+
+model Task {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @db.Uuid
+  taskGroupId String?      @db.Uuid
+  title       String       @db.VarChar(200)
+  notes       String?      @db.Text
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority @default(MEDIUM)
+  dueAt       DateTime?    @db.Timestamptz(6)
+  completedAt DateTime?    @db.Timestamptz(6)
+  sortOrder   Int          @default(0)
+
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?    @db.Timestamptz(6)
+
+  user        User         @relation(fields: [userId], references: [id])
+  taskGroup   TaskGroup?   @relation(fields: [taskGroupId], references: [id])
+
+  @@index([userId, status, dueAt], name: "tasks_user_status_due_idx")
+  @@index([userId, dueAt], name: "tasks_user_due_idx")
+  @@index([taskGroupId, sortOrder], name: "tasks_group_order_idx")
+  @@index([isDeleted], name: "tasks_delflag_idx")
+  @@map("tasks")
+}
+
+// =============================================================
+// 6. Comment
+// =============================================================
+
+model Comment {
+  id         String   @id @default(uuid()) @db.Uuid
+  blockId    String   @db.Uuid
+  authorId   String   @db.Uuid
+  content    String   @db.Text
+  parentId   String?  @db.Uuid
+
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  deletedAt  DateTime? @db.Timestamptz(6)
+
+  block      TimeBlock @relation(fields: [blockId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id])
+
+  @@index([blockId], name: "comments_block_idx")
+  @@index([isDeleted], name: "comments_delflag_idx")
+  @@map("comments")
+}
+
+// =============================================================
+// 7. RSVP
+// =============================================================
+
+model RSVP {
+  id         String     @id @default(uuid()) @db.Uuid
+  blockId    String     @db.Uuid
+  attendeeId String     @db.Uuid
+  status     RSVPStatus @default(CONFIRMED)
+  respondedAt DateTime  @default(now())
+
+  isDeleted  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  deletedAt  DateTime?  @db.Timestamptz(6)
+
+  block      TimeBlock  @relation(fields: [blockId], references: [id])
+  attendee   User       @relation(fields: [attendeeId], references: [id])
+
+  @@unique([blockId, attendeeId], name: "rsvps_block_attendee_uk")
+  @@index([isDeleted], name: "rsvps_delflag_idx")
+  @@map("rsvps")
+}
+
+// =============================================================
+// 8. CoachCard
+// =============================================================
+
+model CoachCard {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  weekStart DateTime  @db.Date
+  insights  Json
+  metrics   Json?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  user      User     @relation(fields: [userId], references: [id])
+  feedbacks CoachFeedback[]
+
+  @@unique([userId, weekStart], name: "coach_cards_user_week_uk")
+  @@index([isDeleted], name: "coach_cards_delflag_idx")
+  @@map("coach_cards")
+}
+
+// =============================================================
+// 9. CoachFeedback (RLHF)
+// =============================================================
+
+model CoachFeedback {
+  id        String   @id @default(uuid()) @db.Uuid
+  cardId    String   @db.Uuid
+  rating    Int      @db.SmallInt
+  comment   String?  @db.Text
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  card      CoachCard @relation(fields: [cardId], references: [id])
+
+  @@index([cardId], name: "coach_feedbacks_card_idx")
+  @@index([isDeleted], name: "coach_feedbacks_delflag_idx")
+  @@map("coach_feedbacks")
+}
+
+// =============================================================
+// 10. Quota
+// =============================================================
+
+model Quota {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @db.Uuid
+  permanentPoints Int       @default(0)
+  monthlyPoints   Int       @default(0)
+  monthlyExpireAt DateTime? @db.Timestamptz(6)
+  version         Int       @default(1)
+
+  isDeleted       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime? @db.Timestamptz(6)
+
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@index([isDeleted], name: "quotas_delflag_idx")
+  @@map("quotas")
+}
+
+// =============================================================
+// 11. QuotaTransaction
+// =============================================================
+
+model QuotaTransaction {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @db.Uuid
+  type           TransactionType
+  amount         Int
+  balanceAfter   Int
+  description    String?         @db.VarChar(255)
+  relatedBlockId String?         @db.Uuid
+
+  isDeleted      Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  deletedAt      DateTime?       @db.Timestamptz(6)
+
+  user           User            @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt], name: "quota_txns_user_time_idx")
+  @@index([isDeleted], name: "quota_txns_delflag_idx")
+  @@map("quota_transactions")
+}

@@ -1,0 +1,50 @@
+<view class="schedule-page">
+  <view class="schedule-header">
+    <view>
+      <view class="schedule-header__date">{{dateLabel}}</view>
+      <view class="schedule-header__title">今日日程</view>
+    </view>
+    <view class="schedule-header__add" bindtap="onTapAdd">+</view>
+  </view>
+
+  <view class="schedule-views">
+    <view
+      wx:for="{{viewOptions}}"
+      wx:key="key"
+      class="ts-tag ts-tag--{{item.variant}} {{currentView === item.key ? 'ts-tag--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTapView"
+    >
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="schedule-empty">加载中...</view>
+
+  <view wx:if="{{!loading && hours.length === 0}}" class="schedule-empty">
+    暂无日程 · 点击 + 添加
+  </view>
+
+  <view wx:if="{{!loading && hours.length > 0}}" class="schedule-timeline">
+    <view
+      wx:for="{{hours}}"
+      wx:key="hour"
+      class="schedule-timeline__hour"
+    >
+      <view class="schedule-timeline__label">{{item.label}}</view>
+      <view class="schedule-timeline__events">
+        <view
+          wx:for="{{item.blocks}}"
+          wx:for-item="block"
+          wx:key="id"
+          class="schedule-block schedule-block--{{block.nature}}"
+          data-id="{{block.id}}"
+          bindtap="onTapBlock"
+        >
+          <view class="schedule-block__time">{{block.timeRangeShort}}</view>
+          <view class="schedule-block__title">{{block.title}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

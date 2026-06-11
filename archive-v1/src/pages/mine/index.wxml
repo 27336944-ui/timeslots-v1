@@ -1,0 +1,78 @@
+<view class="mine-page">
+  <view wx:if="{{loading}}" class="mine-loading">加载中...</view>
+
+  <view wx:else>
+    <view class="mine-profile">
+      <view class="mine-profile__avatar">{{avatarLetter}}</view>
+      <view class="mine-profile__name">{{profile.nickname}}</view>
+      <view class="mine-profile__sub">{{profile.subtitle}}</view>
+    </view>
+
+    <view class="mine-quota">
+      <view class="mine-quota__card">
+        <view class="mine-quota__label">永久额度</view>
+        <view class="mine-quota__num">{{quota.permanent}}</view>
+        <view class="mine-quota__sub">注册赠送 1000</view>
+      </view>
+      <view class="mine-quota__card">
+        <view class="mine-quota__label">本月额度</view>
+        <view class="mine-quota__num">{{quota.monthly}}</view>
+        <view class="mine-quota__sub">{{quota.expiresLabel}} 过期</view>
+      </view>
+    </view>
+
+    <view wx:if="{{latestCard}}" class="mine-section">
+      <view class="mine-section__title">AI 教练报告</view>
+      <view
+        class="mine-coach-card"
+        data-id="{{latestCard.id}}"
+        bindtap="onTapCard"
+      >
+        <view class="mine-coach-card__top">
+          <text class="mine-coach-card__type">{{latestCard.type === 'weekly' ? '周报' : '每日复盘'}}</text>
+          <text class="mine-coach-card__score">{{latestCard.focusScore}}%</text>
+        </view>
+        <text class="mine-coach-card__summary">{{latestCard.summary}}</text>
+        <view class="mine-coach-card__insights">
+          <text wx:for="{{latestCard.insights}}" wx:for-item="insight" wx:key="*this" class="mine-coach-card__tag">
+            {{insight}}
+          </text>
+        </view>
+
+        <view class="mine-coach-rating">
+          <view class="mine-coach-rating__title">评分</view>
+          <view class="mine-coach-rating__stars">
+            <view
+              wx:for="{{[1,2,3,4,5]}}"
+              wx:key="*this"
+              class="mine-coach-rating__star {{item <= (latestCard.userRating || 0) ? 'mine-coach-rating__star--active' : ''}}"
+              data-rating="{{item}}"
+              data-id="{{latestCard.id}}"
+              bindtap="onTapFeedback"
+            >
+              ★
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="mine-section">
+      <view class="mine-section__title">设置</view>
+      <view
+        wx:for="{{settings}}"
+        wx:key="id"
+        class="mine-action"
+        data-id="{{item.id}}"
+        bindtap="onTapAction"
+      >
+        <view class="mine-action__icon">{{item.icon}}</view>
+        <view class="mine-action__text">
+          <text class="mine-action__title">{{item.title}}</text>
+          <text class="mine-action__sub">{{item.sub}}</text>
+        </view>
+        <text class="mine-action__arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,104 @@
+<view class="coach-detail-page">
+  <view class="cd-header">
+    <view class="cd-header__back" bindtap="onTapBack">‹ 返回</view>
+    <view class="cd-header__title">AI 教练报告</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="cd-loading">加载中...</view>
+
+  <view wx:else>
+    <view wx:if="{{!card}}" class="cd-empty">
+      <text>暂无教练报告</text>
+      <text class="cd-empty__sub">在「我的」页面点击「生成报告」创建一份</text>
+    </view>
+
+    <view wx:else class="cd-content">
+      <view class="cd-meta">
+        <view class="cd-meta__type">{{card.type === 'weekly' ? '📊 周报' : '📋 每日复盘'}}</view>
+        <view class="cd-meta__date">创建于 {{card.createdAt.slice(0, 10)}}</view>
+      </view>
+
+      <view class="cd-section">
+        <view class="cd-section__title">专注度评分</view>
+        <view class="cd-score-card">
+          <view class="cd-score-card__ring">
+            <text class="cd-score-card__num">{{(card.metrics?.focus.ratio ?? 0) * 100}}%</text>
+          </view>
+          <view class="cd-score-card__info">
+            <text class="cd-score-card__label">{{card.metrics?.focus.isHealthy ? '✅ 健康' : '⚠️ 需要改善'}}</text>
+            <text class="cd-score-card__detail">{{card.metrics?.focus.focusedMinutes ?? 0}} 分钟专注 / {{card.metrics?.focus.totalWorkMinutes ?? 0}} 分钟总工作时长</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="cd-section">
+        <view class="cd-section__title">日程碎片化</view>
+        <view class="cd-metric-row">
+          <text class="cd-metric-row__label">空白间隙次数</text>
+          <text class="cd-metric-row__value">{{card.metrics?.fragmentation.count ?? 0}} 次</text>
+        </view>
+        <view class="cd-metric-row">
+          <text class="cd-metric-row__label">严重程度</text>
+          <text class="cd-metric-row__value cd-metric-row__value--{{card.metrics?.fragmentation.severity}}">{{card.metrics?.fragmentation.severity === 'high' ? '高度碎片化' : card.metrics?.fragmentation.severity === 'medium' ? '中度碎片化' : '低度碎片化'}}</text>
+        </view>
+      </view>
+
+      <view class="cd-section">
+        <view class="cd-section__title">计划与实际偏差</view>
+        <view class="cd-metric-row">
+          <text class="cd-metric-row__label">偏差率</text>
+          <text class="cd-metric-row__value">{{((card.metrics?.deviation.rate ?? 0) * 100).toFixed(0)}}%</text>
+        </view>
+        <view class="cd-metric-row">
+          <text class="cd-metric-row__label">状态</text>
+          <text class="cd-metric-row__value cd-metric-row__value--{{card.metrics?.deviation.isSignificant ? 'warn' : 'ok'}}">{{card.metrics?.deviation.isSignificant ? '⚠️ 显著偏差' : '✅ 正常范围'}}</text>
+        </view>
+      </view>
+
+      <view class="cd-section">
+        <view class="cd-section__title">洞察</view>
+        <view wx:if="{{Object.keys(card.insights || {}).length === 0}}" class="cd-insight-empty">暂无洞察数据</view>
+        <view wx:else class="cd-insights">
+          <view wx:for="{{Object.entries(card.insights || {})}}" wx:key="0" class="cd-insight-item">
+            <text class="cd-insight-item__key">{{item[0]}}</text>
+            <text class="cd-insight-item__val">{{item[1]}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="cd-section">
+        <view class="cd-section__title">评分 & 反馈</view>
+        <view class="cd-stars">
+          <view
+            wx:for="{{[1,2,3,4,5]}}"
+            wx:key="*this"
+            class="cd-star {{item <= rating ? 'cd-star--active' : ''}}"
+            data-value="{{item}}"
+            bindtap="onTapStar"
+          >★</view>
+        </view>
+        <input
+          class="cd-comment-input"
+          placeholder="添加反馈（可选）"
+          value="{{feedbackComment}}"
+          bindinput="onInputComment"
+        />
+        <button class="cd-submit" bindtap="onSubmitFeedback" disabled="{{rating < 1}}">
+          提交评分 ({{rating}}/5)
+        </button>
+      </view>
+
+      <view class="cd-history">
+        <view class="cd-section__title">历史报告</view>
+        <view wx:if="{{cards.length <= 1}}" class="cd-insight-empty">暂无更多历史报告</view>
+        <view wx:else>
+          <view wx:for="{{cards.slice(1)}}" wx:key="id" class="cd-history-item">
+            <text class="cd-history-item__type">{{item.type === 'weekly' ? '周报' : '每日复盘'}}</text>
+            <text class="cd-history-item__date">{{item.createdAt.slice(0, 10)}}</text>
+            <text class="cd-history-item__score">{{((item.metrics?.focus.ratio ?? 0) * 100).toFixed(0)}}%</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

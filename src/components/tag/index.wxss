@@ -1,0 +1,36 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999rpx;
+  padding: 4rpx 16rpx;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+
+.tag-sm { padding: 2rpx 12rpx; font-size: 22rpx; }
+.tag-md { padding: 4rpx 16rpx; font-size: 24rpx; }
+
+
+.tag-default { background: #F0F0F0; color: #666; }
+
+
+.tag-primary { background: #EEF2FF; color: #4A6CF7; }
+
+
+.tag-success { background: #E8F8EE; color: #07C160; }
+
+
+.tag-warning { background: #FFF3E0; color: #FF8C00; }
+
+
+.tag-danger { background: #FDE8EA; color: #EE0A24; }
+
+.tag-text { flex: 1; }
+
+.tag-close {
+  margin-left: 8rpx;
+  padding: 2rpx;
+  font-size: 28rpx;
+  opacity: 0.6;
+}

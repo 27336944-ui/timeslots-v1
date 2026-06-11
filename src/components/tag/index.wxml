@@ -1,0 +1,10 @@
+
+
+<view class="tag tag-{{type}} tag-{{size}}">
+  
+  <text class="tag-text">{{text}}</text>
+  
+  <view wx:if="{{closable}}" class="tag-close" bindtap="onClose">
+    <text>×</text>
+  </view>
+</view>

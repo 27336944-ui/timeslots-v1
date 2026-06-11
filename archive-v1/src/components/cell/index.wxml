@@ -1,0 +1,10 @@
+<view class="ts-cell" bindtap="onTap">
+  <view class="ts-cell__left">
+    <text wx:if="{{icon}}" class="ts-cell__icon">{{icon}}</text>
+    <text>{{title}}</text>
+  </view>
+  <view class="ts-cell__right">
+    <text class="ts-cell__value">{{value}}</text>
+    <text wx:if="{{showArrow}}" class="ts-cell__arrow">›</text>
+  </view>
+</view>

@@ -1,0 +1,26 @@
+{
+  "pages": ["pages/schedule/index", "pages/schedule/detail/index", "pages/mine/index", "pages/index/index"],
+  "window": {
+    "navigationBarTitleText": "timeslots",
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#4A6CF7",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/schedule/index",
+        "text": "日程"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

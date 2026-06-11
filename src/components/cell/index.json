@@ -1,0 +1,9 @@
+/**
+ * @file components/cell/index.json
+ * @description Cell 组件配置：声明为自定义组件
+ * @dataFlow 微信框架读取 → 识别为 Component
+ * @dependsOn 无
+ */
+{
+  "component": true
+}

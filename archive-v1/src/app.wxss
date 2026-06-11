@@ -1,0 +1,29 @@
+@import '/styles/tokens.wxss';
+
+page {
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+view,
+text,
+button,
+input,
+textarea,
+scroll-view {
+  box-sizing: border-box;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  line-height: normal;
+  font-size: inherit;
+}
+button::after {
+  border: none;
+}

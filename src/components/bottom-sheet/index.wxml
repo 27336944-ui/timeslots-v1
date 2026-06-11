@@ -1,0 +1,13 @@
+
+
+<view class="bs-overlay {{visible ? 'bs-overlay-show' : ''}}" catchtap="onOverlayTap">
+  
+  <view class="bs-content {{visible ? 'bs-content-show' : ''}}" style="height:{{height}}" catchtap="onContentTap">
+    
+    <view class="bs-handle">
+      <view class="bs-handle-bar"></view>
+    </view>
+    
+    <slot></slot>
+  </view>
+</view>

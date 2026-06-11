@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  openid    String?  @unique
+  email     String?  @unique
+  nickname  String   @default("用户")
+  avatar    String?
+  password  String?
+
+  isDeleted    Boolean          @default(false)
+  deletedAt    DateTime?        @db.Timestamptz
+  restoreToken String?
+  version      Int              @default(1)
+
+  createdAt DateTime         @default(now()) @db.Timestamptz
+  updatedAt DateTime         @updatedAt @db.Timestamptz
+
+  timeBlocks TimeBlock[]
+  tasks      Task[]
+
+  @@index([openid])
+  @@map("users")
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  goal      String?
+  steps     Json?
+  status    String   @default("pending")
+  priority  String   @default("medium")
+  category  String   @default("life")
+  dueAt     DateTime? @db.Timestamptz
+  completedNote String?
+  retrospective String?
+  improvements  String?
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  user      User       @relation(fields: [userId], references: [id])
+  timeBlocks TimeBlock[]
+
+  @@index([userId])
+  @@index([userId, category])
+  @@map("tasks")
+}
+
+model TimeBlock {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  startTime   DateTime @db.Timestamptz
+  endTime     DateTime @db.Timestamptz
+  status      String   @default("todo")
+  location    String? 
+  description String?
+  priority    String   @default("medium")
+  category    String   @default("life")
+  recurrence  String   @default("none")
+  contacts    String?
+  weather     String?
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  taskId  String?
+  task    Task?   @relation(fields: [taskId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([startTime])
+  @@index([taskId])
+  @@map("time_blocks")
+}
+
+

@@ -1,0 +1,64 @@
+<view class="tasks-page">
+  <view class="tasks-header">
+    <view class="tasks-header__title">任务</view>
+    <view class="tasks-header__add" bindtap="onTapAdd">+</view>
+  </view>
+
+  <view class="tasks-stats">
+    <view class="tasks-stats__card">
+      <text class="tasks-stats__num">{{stats.today}}</text>
+      <text class="tasks-stats__label">今日</text>
+    </view>
+    <view class="tasks-stats__card">
+      <text class="tasks-stats__num">{{stats.week}}</text>
+      <text class="tasks-stats__label">本周</text>
+    </view>
+    <view class="tasks-stats__card tasks-stats__card--warn">
+      <text class="tasks-stats__num">{{stats.overdue}}</text>
+      <text class="tasks-stats__label">逾期</text>
+    </view>
+    <view class="tasks-stats__card">
+      <text class="tasks-stats__num">{{stats.total}}</text>
+      <text class="tasks-stats__label">总计</text>
+    </view>
+  </view>
+
+  <view class="tasks-groups">
+    <view
+      wx:for="{{groups}}"
+      wx:key="id"
+      class="tasks-group-card"
+      data-key="{{item.id}}"
+      bindtap="onTapGroup"
+    >
+      <view class="tasks-group-card__top">
+        <text class="tasks-group-card__name">{{item.name}}</text>
+        <text class="tasks-group-card__count">{{item.count}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="tasks-list tasks-list--loading">
+    <view class="tasks-empty">加载中...</view>
+  </view>
+
+  <view wx:else class="tasks-list">
+    <view wx:if="{{tasks.length === 0}}" class="tasks-empty">
+      暂无任务 · 点击 + 添加
+    </view>
+    <view
+      wx:for="{{tasks}}"
+      wx:key="id"
+      class="tasks-item"
+      data-id="{{item.id}}"
+    >
+      <view class="tasks-item__dot tasks-item__dot--{{item.status === 'done' ? 'done' : 'open'}}"></view>
+      <view class="tasks-item__body">
+        <text class="tasks-item__title">{{item.title}}</text>
+        <text wx:if="{{item.dueAt}}" class="tasks-item__meta">
+          截止 {{item.dueAt.slice(0, 10)}}
+        </text>
+      </view>
+    </view>
+  </view>
+</view>

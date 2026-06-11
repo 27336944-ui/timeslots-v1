@@ -1,0 +1,149 @@
+<view class="page">
+  <block wx:if="{{mode === 'create' || mode === 'edit'}}">
+    <view class="form-group">
+      <view class="form-item">
+        <view class="form-label">标题</view>
+        <input class="form-input" value="{{formTitle}}" bindinput="onTitleInput" placeholder="日程标题" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">日期</view>
+        <picker mode="date" value="{{formDate}}" bindchange="onDateChange">
+          <view class="form-picker">
+            <text class="{{formDate ? 'form-picker-text' : 'form-picker-hint'}}">{{formDate || '选择日期'}}</text>
+            <text class="form-picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">开始时间</view>
+        <picker mode="time" value="{{formStartTime}}" bindchange="onStartTimeChange">
+          <view class="form-picker">
+            <text class="{{formStartTime ? 'form-picker-text' : 'form-picker-hint'}}">{{formStartTime || '选择开始时间'}}</text>
+            <text class="form-picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">结束时间</view>
+        <picker mode="time" value="{{formEndTime}}" bindchange="onEndTimeChange">
+          <view class="form-picker">
+            <text class="{{formEndTime ? 'form-picker-text' : 'form-picker-hint'}}">{{formEndTime || '选择结束时间'}}</text>
+            <text class="form-picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">地点</view>
+        <input class="form-input" value="{{formLocation}}" bindinput="onLocationInput" placeholder="日程地点" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">备注</view>
+        <textarea class="form-textarea" value="{{formDescription}}" bindinput="onDescriptionInput" placeholder="添加备注" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">分类</view>
+        <view class="form-btn-group">
+          <view class="form-btn {{formCategory === 'work' ? 'active-work' : ''}}" bindtap="onCategoryChange" data-value="work">工作</view>
+          <view class="form-btn {{formCategory === 'life' ? 'active-life' : ''}}" bindtap="onCategoryChange" data-value="life">生活</view>
+          <view class="form-btn {{formCategory === 'private' ? 'active-private' : ''}}" bindtap="onCategoryChange" data-value="private">私有</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">优先级</view>
+        <view class="form-btn-group">
+          <view class="form-btn form-btn-sm {{formPriority === 'high' ? 'active-high' : ''}}" bindtap="onPriorityChange" data-value="high">高</view>
+          <view class="form-btn form-btn-sm {{formPriority === 'medium' ? 'active-medium' : ''}}" bindtap="onPriorityChange" data-value="medium">中</view>
+          <view class="form-btn form-btn-sm {{formPriority === 'low' ? 'active-low' : ''}}" bindtap="onPriorityChange" data-value="low">低</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">周期</view>
+        <view class="form-btn-group form-btn-group-wrap">
+          <view class="form-btn form-btn-sm {{formRecurrence === 'none' ? 'active-none' : ''}}" bindtap="onRecurrenceChange" data-value="none">不重复</view>
+          <view class="form-btn form-btn-sm {{formRecurrence === 'daily' ? 'active-daily' : ''}}" bindtap="onRecurrenceChange" data-value="daily">每天</view>
+          <view class="form-btn form-btn-sm {{formRecurrence === 'weekly' ? 'active-weekly' : ''}}" bindtap="onRecurrenceChange" data-value="weekly">每周</view>
+          <view class="form-btn form-btn-sm {{formRecurrence === 'monthly' ? 'active-monthly' : ''}}" bindtap="onRecurrenceChange" data-value="monthly">每月</view>
+          <view class="form-btn form-btn-sm {{formRecurrence === 'yearly' ? 'active-yearly' : ''}}" bindtap="onRecurrenceChange" data-value="yearly">每年</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">联系人</view>
+        <input class="form-input" value="{{formContacts}}" bindinput="onContactsInput" placeholder="参与人姓名" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">天气</view>
+        <input class="form-input" value="{{formWeather}}" bindinput="onWeatherInput" placeholder="预留字段" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">状态</view>
+        <view class="form-status">
+          <view class="status-btn {{formStatus === 'todo' ? 'active-todo' : ''}}" bindtap="onStatusChange" data-status="todo">待办</view>
+          <view class="status-btn {{formStatus === 'done' ? 'active-done' : ''}}" bindtap="onStatusChange" data-status="done">已完成</view>
+        </view>
+      </view>
+    </view>
+
+    <button class="save-btn" bindtap="onSave">{{mode === 'create' ? '创建' : '保存'}}</button>
+    <button wx:if="{{mode === 'edit'}}" class="delete-btn" bindtap="onDelete">删除日程</button>
+  </block>
+
+  <block wx:elif="{{mode === 'view'}}">
+    <view class="view-card">
+      <view class="view-title">{{viewTitle}}</view>
+      <view class="view-row">
+        <text class="view-icon">🕐</text>
+        <text class="view-text">{{viewTimeRange}}</text>
+      </view>
+      <view wx:if="{{viewLocation}}" class="view-row">
+        <text class="view-icon">📍</text>
+        <text class="view-text">{{viewLocation}}</text>
+      </view>
+      <view wx:if="{{viewDescription}}" class="view-row">
+        <text class="view-icon">📝</text>
+        <text class="view-text">{{viewDescription}}</text>
+      </view>
+      <view wx:if="{{viewCategory}}" class="view-row">
+        <text class="view-icon">🏷️</text>
+        <text class="view-text">{{viewCategory}}</text>
+      </view>
+      <view wx:if="{{viewPriority}}" class="view-row">
+        <text class="view-icon">⚡</text>
+        <text class="view-text">优先级 {{viewPriority}}</text>
+      </view>
+      <view wx:if="{{viewRecurrence && viewRecurrence !== '不重复'}}" class="view-row">
+        <text class="view-icon">🔄</text>
+        <text class="view-text">{{viewRecurrence}}</text>
+      </view>
+      <view wx:if="{{viewContacts}}" class="view-row">
+        <text class="view-icon">👥</text>
+        <text class="view-text">{{viewContacts}}</text>
+      </view>
+      <view wx:if="{{viewWeather}}" class="view-row">
+        <text class="view-icon">🌤️</text>
+        <text class="view-text">{{viewWeather}}</text>
+      </view>
+      <view class="view-row">
+        <text class="view-icon">📌</text>
+        <view class="view-status {{viewStatus === 'todo' ? 'view-status-todo' : 'view-status-done'}}">{{viewStatus === 'todo' ? '待办' : '已完成'}}</view>
+      </view>
+      <view class="view-row">
+        <text class="view-icon">📅</text>
+        <text class="view-text">创建于 {{viewCreatedAt}}</text>
+      </view>
+    </view>
+
+    <button class="edit-btn" bindtap="onEditTap">编辑</button>
+    <button class="delete-btn" bindtap="onDelete">删除日程</button>
+  </block>
+</view>

@@ -1,0 +1,275 @@
+.page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 32rpx;
+}
+
+.form-group {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.form-item {
+  margin-bottom: 32rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 72rpx;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.form-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 72rpx;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.form-picker-text {
+  color: #333;
+}
+
+.form-picker-hint {
+  color: #bbb;
+}
+
+.form-picker-arrow {
+  font-size: 24rpx;
+  color: #ccc;
+}
+
+.form-status {
+  display: flex;
+  gap: 16rpx;
+}
+
+.status-btn {
+  flex: 1;
+  height: 64rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  border: 2rpx solid #e8e8e8;
+  color: #999;
+  background: #fff;
+}
+
+.status-btn.active-todo {
+  border-color: #4A6CF7;
+  color: #4A6CF7;
+  background: #f0f4ff;
+}
+
+.status-btn.active-done {
+  border-color: #52c41a;
+  color: #52c41a;
+  background: #f0fff0;
+}
+
+.save-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: #4A6CF7;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24rpx;
+  border: none;
+}
+
+.save-btn:active {
+  opacity: 0.8;
+}
+
+.delete-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: #fff;
+  color: #e74c3c;
+  font-size: 32rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #e74c3c;
+}
+
+.delete-btn:active {
+  background: #fff0f0;
+}
+
+/* View mode styles */
+.view-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.view-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 24rpx;
+}
+
+.view-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.view-icon {
+  width: 40rpx;
+  font-size: 28rpx;
+  color: #999;
+  margin-right: 16rpx;
+  text-align: center;
+}
+
+.view-text {
+  font-size: 28rpx;
+  color: #555;
+}
+
+.view-status {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.view-status-todo {
+  background: #f0f4ff;
+  color: #4A6CF7;
+}
+
+.view-status-done {
+  background: #f0fff0;
+  color: #52c41a;
+}
+
+.edit-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: #4A6CF7;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 160rpx;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.form-btn-group {
+  display: flex;
+  gap: 12rpx;
+}
+
+.form-btn-group-wrap {
+  flex-wrap: wrap;
+}
+
+.form-btn {
+  padding: 12rpx 28rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  border: 2rpx solid #e8e8e8;
+  color: #999;
+  background: #fff;
+  text-align: center;
+}
+
+.form-btn-sm {
+  padding: 8rpx 20rpx;
+  font-size: 24rpx;
+}
+
+.form-btn.active-work {
+  border-color: #4A6CF7;
+  color: #4A6CF7;
+  background: #f0f4ff;
+}
+
+.form-btn.active-life {
+  border-color: #52c41a;
+  color: #52c41a;
+  background: #f0fff0;
+}
+
+.form-btn.active-private {
+  border-color: #faad14;
+  color: #faad14;
+  background: #fffbe6;
+}
+
+.form-btn.active-high {
+  border-color: #e74c3c;
+  color: #e74c3c;
+  background: #fff0f0;
+}
+
+.form-btn.active-medium {
+  border-color: #faad14;
+  color: #faad14;
+  background: #fffbe6;
+}
+
+.form-btn.active-low {
+  border-color: #999;
+  color: #999;
+  background: #f5f5f5;
+}
+
+.form-btn.active-none,
+.form-btn.active-daily,
+.form-btn.active-weekly,
+.form-btn.active-monthly,
+.form-btn.active-yearly {
+  border-color: #4A6CF7;
+  color: #4A6CF7;
+  background: #f0f4ff;
+}

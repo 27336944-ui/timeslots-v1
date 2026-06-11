@@ -1,0 +1,10 @@
+<view
+  class="card"
+  style="border-left-color: {{ block.color }};"
+  bindtap="onTap"
+  bindlongpress="onLongPress"
+>
+  <view class="card__time">{{ block.startAt }} – {{ block.endAt }}</view>
+  <view class="card__title">{{ block.title }}</view>
+  <view wx:if="{{ block.notes }}" class="card__notes">{{ block.notes }}</view>
+</view>

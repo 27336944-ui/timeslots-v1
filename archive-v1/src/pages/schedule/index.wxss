@@ -1,0 +1,121 @@
+.schedule-page {
+  min-height: 100vh;
+  background: var(--bg-canvas);
+  padding: 0 0 200rpx;
+}
+.schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48rpx 32rpx 32rpx;
+}
+.schedule-header__date {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+.schedule-header__title {
+  font-size: 44rpx;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 8rpx;
+}
+.schedule-header__add {
+  width: 80rpx;
+  height: 80rpx;
+  background: var(--brand-primary);
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx var(--brand-glow);
+  color: var(--text-inverse);
+  font-size: 44rpx;
+  font-weight: 300;
+}
+
+.schedule-views {
+  display: flex;
+  gap: 12rpx;
+  padding: 0 32rpx 24rpx;
+}
+.schedule-views .ts-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 28rpx;
+  border-radius: 999rpx;
+}
+.schedule-views .ts-tag--active {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  font-weight: 500;
+}
+
+.schedule-timeline {
+  position: relative;
+  padding: 0 32rpx;
+}
+.schedule-timeline__hour {
+  display: flex;
+  min-height: 100rpx;
+  border-top: 1rpx solid var(--divider-soft);
+}
+.schedule-timeline__label {
+  width: 80rpx;
+  font-size: 22rpx;
+  color: var(--text-placeholder);
+  padding-top: 8rpx;
+}
+.schedule-timeline__events {
+  flex: 1;
+  position: relative;
+  padding: 4rpx 0 4rpx 16rpx;
+  border-left: 1rpx solid var(--bg-tertiary);
+}
+
+.schedule-block {
+  background: var(--brand-light);
+  border-left: 6rpx solid var(--brand-primary);
+  border-radius: 12rpx;
+  padding: 12rpx 16rpx;
+  margin-bottom: 8rpx;
+  transition: transform 200ms ease;
+}
+.schedule-block:active {
+  transform: scale(0.98);
+}
+.schedule-block--work {
+  background: #dbeafe;
+  border-color: var(--semantic-work);
+}
+.schedule-block--life {
+  background: #d1fae5;
+  border-color: var(--semantic-life);
+}
+.schedule-block--private {
+  background: #ede9fe;
+  border-color: var(--semantic-private);
+}
+.schedule-block__time {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+.schedule-block__title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-top: 4rpx;
+}
+.schedule-block__summary {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-top: 4rpx;
+}
+
+.schedule-empty {
+  text-align: center;
+  padding: 80rpx 32rpx;
+  color: var(--text-placeholder);
+}

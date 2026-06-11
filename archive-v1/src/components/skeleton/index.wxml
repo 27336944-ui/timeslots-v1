@@ -1,0 +1,1 @@
+<view wx:for="{{lines}}" wx:key="*this" class="ts-skeleton ts-skeleton--{{type}}"></view>

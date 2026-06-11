@@ -1,0 +1,107 @@
+.tasks-page {
+  min-height: 100vh;
+  background: var(--bg-canvas);
+  padding-bottom: 200rpx;
+}
+.tasks-header {
+  padding: 48rpx 32rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tasks-header__title {
+  font-size: 44rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.tasks-header__add {
+  width: 80rpx;
+  height: 80rpx;
+  background: var(--brand-primary);
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx var(--brand-glow);
+  color: var(--text-inverse);
+  font-size: 44rpx;
+  font-weight: 300;
+}
+
+.tasks-stats {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 32rpx 32rpx;
+}
+.tasks-stats__card {
+  flex: 1;
+  background: var(--bg-card);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(26, 29, 38, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+.tasks-stats__label {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+.tasks-stats__num {
+  font-size: 56rpx;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 80rpx;
+}
+.tasks-stats__card--work {
+  border-left: 6rpx solid var(--semantic-work);
+}
+.tasks-stats__card--week {
+  border-left: 6rpx solid var(--semantic-warning);
+}
+.tasks-stats__card--warn {
+  border-left: 6rpx solid var(--semantic-danger);
+}
+
+.tasks-section {
+  margin: 0 32rpx 32rpx;
+}
+.tasks-section__title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 16rpx;
+}
+
+.tasks-group {
+  background: var(--bg-card);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 4rpx 16rpx rgba(26, 29, 38, 0.04);
+}
+.tasks-group__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.tasks-group__name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.tasks-group__count {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+.tasks-group__progress {
+  height: 8rpx;
+  background: var(--bg-secondary);
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+.tasks-group__progress-fill {
+  height: 100%;
+  background: var(--brand-primary);
+  border-radius: 999rpx;
+}

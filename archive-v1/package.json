@@ -1,0 +1,46 @@
+{
+  "name": "timeslots-v1",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WeChat native mini-program for time-blocking daily management (MVP)",
+  "scripts": {
+    "dev:db": "docker-compose up -d",
+    "dev:server": "cd server && npm install && npm run start:dev",
+    "dev:fe": "echo Please click [Compile] in WeChat DevTools",
+    "dev": "concurrently -n db,server -c blue,green \"npm run dev:db\" \"npm run dev:server\"",
+    "build:npm": "node scripts/build-npm.js",
+    "stop:db": "docker-compose down",
+    "postinstall": "node scripts/build-npm.js",
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --check \"src/**/*.{ts,wxml,wxss,json}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,wxml,wxss,json}\""
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{wxml,wxss,json}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "mobx-miniprogram": "^6.12.3",
+    "mobx-miniprogram-bindings": "^6.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
+    "concurrently": "^8.0.0",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "miniprogram-api-typings": "^5.0.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5.9.3"
+  }
+}

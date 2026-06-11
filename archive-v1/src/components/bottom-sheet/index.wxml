@@ -1,0 +1,10 @@
+<view class="ts-bottom-sheet-mask {{visible ? 'ts-bottom-sheet-mask--visible' : ''}}" bindtap="onTapMask"></view>
+<view class="ts-bottom-sheet {{visible ? 'ts-bottom-sheet--visible' : ''}}">
+  <view class="ts-bottom-sheet__handle"></view>
+  <view wx:if="{{title}}" class="ts-bottom-sheet__header">
+    <view class="ts-bottom-sheet__title">{{title}}</view>
+  </view>
+  <view class="ts-bottom-sheet__body">
+    <slot></slot>
+  </view>
+</view>

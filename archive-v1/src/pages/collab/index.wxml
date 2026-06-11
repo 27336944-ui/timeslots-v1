@@ -1,0 +1,89 @@
+<view class="collab-page">
+  <view class="collab-header">
+    <view class="collab-header__title">协作</view>
+    <view class="collab-header__sub">圈子 · 邀请 · 共享日程</view>
+  </view>
+
+  <view class="collab-subtabs">
+    <view
+      wx:for="{{subTabs}}"
+      wx:key="key"
+      class="ts-tag {{currentSub === item.key ? 'ts-tag--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTapSub"
+    >
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="collab-empty">加载中...</view>
+
+  <view wx:if="{{!loading && currentSub === 'mine'}}" class="collab-list">
+    <view class="collab-create" bindtap="onTapCreate">
+      <view class="collab-create__text">
+        <text class="collab-create__title">创建新圈子</text>
+        <text class="collab-create__sub">邀请好友 · 共享日程</text>
+      </view>
+      <view class="collab-create__btn">+ 新建</view>
+    </view>
+
+    <view wx:if="{{circles.length === 0}}" class="collab-empty">
+      暂无圈子 · 创建一个开始协作
+    </view>
+    <view
+      wx:for="{{circles}}"
+      wx:key="id"
+      class="collab-card"
+      data-id="{{item.id}}"
+      bindtap="onTapCircle"
+    >
+      <view class="collab-card__top">
+        <text class="collab-card__name">{{item.name}}</text>
+        <text class="collab-card__role collab-card__role--{{item.role}}">{{item.roleLabel}}</text>
+      </view>
+      <view class="collab-card__meta">{{item.memberCount}} 位成员</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && currentSub === 'invites'}}" class="collab-list">
+    <view wx:if="{{invites.length === 0}}" class="collab-empty">
+      <text>暂无收到的邀请</text>
+      <text class="collab-empty__sub">让圈子创建者分享邀请码给你，在「我的圈子」tab 加入</text>
+    </view>
+    <view
+      wx:for="{{invites}}"
+      wx:key="id"
+      class="collab-card collab-card--invite"
+      data-id="{{item.id}}"
+    >
+      <view class="collab-card__top">
+        <text class="collab-card__name">{{item.circleName}}</text>
+        <text class="collab-card__tag">待加入</text>
+      </view>
+      <view class="collab-card__meta">邀请人：{{item.inviterName}} · {{item.sentAt}}</view>
+      <view class="collab-invite-actions">
+        <view class="collab-invite-btn collab-invite-btn--accept">接受</view>
+        <view class="collab-invite-btn collab-invite-btn--decline">拒绝</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && currentSub !== 'mine' && currentSub !== 'invites'}}" class="collab-list">
+    <view wx:if="{{shared.length === 0}}" class="collab-empty">
+      <text>暂无共享日程</text>
+      <text class="collab-empty__sub">圈子成员共享的日程将在这里显示</text>
+    </view>
+    <view
+      wx:for="{{shared}}"
+      wx:key="id"
+      class="collab-card collab-card--shared"
+      data-id="{{item.id}}"
+    >
+      <view class="collab-card__top">
+        <text class="collab-card__name">{{item.title}}</text>
+        <text class="collab-card__tag collab-card__tag--{{item.nature}}">{{item.nature}}</text>
+      </view>
+      <view class="collab-card__meta">{{item.timeRange}}</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,28 @@
+{
+  "name": "timeslots-v1",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "node scripts/build-npm.js",
+    "lint": "eslint src/ server/src/",
+    "lint:fix": "eslint --fix src/ server/src/",
+    "typecheck": "tsc --noEmit",
+    "typecheck:server": "cd server && tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,wxml,wxss,json}\" \"server/src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.{ts,wxml,wxss,json}\" \"server/src/**/*.ts\"",
+    "server:dev": "cd server && npx nest start --watch",
+    "server:build": "cd server && npx nest build",
+    "server:start": "cd server && node dist/main.js"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "miniprogram-api-typings": "^3.12.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "mobx-miniprogram": "^4.13.0",
+    "mobx-miniprogram-bindings": "^2.1.5",
+    "weui-miniprogram": "^1.5.6"
+  }
+}

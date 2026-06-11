@@ -1,0 +1,190 @@
+/* ==========================================
+ * timeslots-v1 Design Tokens (WXSS 版)
+ * 翻译自《AI 日程小程序 UI/UX 架构规范》
+ * 单位：rpx（小程序专用，750rpx = 375px = iPhone 6 屏宽）
+ * ========================================== */
+
+/* ==========================================
+ * 1. 色彩系统 (Color Palette)
+ * ========================================== */
+page {
+  --bg-canvas: #f7f8fa; /* 页面最底层画布 */
+  --bg-card: #ffffff; /* 卡片/弹窗背景 */
+  --bg-secondary: #f2f4f7; /* 输入框/标签的底色 */
+  --bg-tertiary: #e5e7eb; /* 拖拽条/分隔线 */
+
+  --brand-primary: #4a6cf7; /* 静谧蓝 (主操作色) */
+  --brand-light: #eef2ff; /* 品牌色浅底 (Tag 选中) */
+  --brand-glow: rgba(74, 108, 247, 0.24);
+
+  --text-main: #1a1d26; /* 主文本 (深灰黑) */
+  --text-secondary: #6b7280; /* 副文本 (中灰) */
+  --text-placeholder: #9ca3af; /* 占位符/禁用 (浅灰) */
+  --text-inverse: #ffffff; /* 反色 (深底上的文字) */
+
+  --semantic-work: #3b82f6;
+  --semantic-life: #10b981;
+  --semantic-private: #8b5cf6;
+  --semantic-danger: #ef4444;
+  --semantic-warning: #f59e0b;
+
+  --overlay-strong: rgba(26, 29, 38, 0.4);
+  --divider-soft: rgba(0, 0, 0, 0.04);
+}
+
+/* ==========================================
+ * 2. 排版系统 (Typography)
+ * 单位 rpx: 28rpx ≈ 14px (375 屏宽)
+ * ========================================== */
+.ts-h1 {
+  font-size: 40rpx;
+  line-height: 56rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.ts-h2 {
+  font-size: 34rpx;
+  line-height: 48rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.ts-h3 {
+  font-size: 30rpx;
+  line-height: 42rpx;
+  font-weight: 500;
+  color: var(--text-main);
+}
+.ts-body {
+  font-size: 28rpx;
+  line-height: 40rpx;
+  font-weight: 400;
+  color: var(--text-main);
+}
+.ts-body-sm {
+  font-size: 26rpx;
+  line-height: 38rpx;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.ts-caption {
+  font-size: 24rpx;
+  line-height: 32rpx;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.ts-placeholder {
+  color: var(--text-placeholder);
+  font-weight: 400;
+}
+
+/* ==========================================
+ * 3. 空间 (Spacing) & 圆角 (Radius)
+ * ========================================== */
+.ts-p-xs {
+  padding: 8rpx;
+}
+.ts-p-sm {
+  padding: 16rpx;
+}
+.ts-p-md {
+  padding: 24rpx;
+}
+.ts-p-lg {
+  padding: 32rpx;
+}
+.ts-p-xl {
+  padding: 48rpx;
+}
+
+.ts-m-xs {
+  margin: 8rpx;
+}
+.ts-m-sm {
+  margin: 16rpx;
+}
+.ts-m-md {
+  margin: 24rpx;
+}
+.ts-m-lg {
+  margin: 32rpx;
+}
+.ts-mt-sm {
+  margin-top: 16rpx;
+}
+.ts-mt-md {
+  margin-top: 24rpx;
+}
+.ts-mt-lg {
+  margin-top: 32rpx;
+}
+.ts-mb-sm {
+  margin-bottom: 16rpx;
+}
+.ts-mb-md {
+  margin-bottom: 24rpx;
+}
+.ts-mb-lg {
+  margin-bottom: 32rpx;
+}
+
+.ts-gap-xs {
+  gap: 8rpx;
+}
+.ts-gap-sm {
+  gap: 16rpx;
+}
+
+.ts-radius-sm {
+  border-radius: 12rpx;
+}
+.ts-radius-md {
+  border-radius: 16rpx;
+}
+.ts-radius-lg {
+  border-radius: 24rpx;
+}
+.ts-radius-full {
+  border-radius: 999rpx;
+}
+
+/* ==========================================
+ * 4. 阴影 (Elevation)
+ * ========================================== */
+.ts-shadow-card {
+  box-shadow: 0 4rpx 16rpx rgba(26, 29, 38, 0.04);
+}
+.ts-shadow-popup {
+  box-shadow: 0 -8rpx 32rpx rgba(26, 29, 38, 0.08);
+}
+.ts-shadow-fab {
+  box-shadow: 0 8rpx 24rpx var(--brand-glow);
+}
+
+/* ==========================================
+ * 5. 全局重置
+ * ========================================== */
+view,
+text,
+button,
+input,
+scroll-view {
+  box-sizing: border-box;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+}
+button {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  line-height: normal;
+}
+button::after {
+  border: none;
+}
+
+.ts-page {
+  min-height: 100vh;
+  background: var(--bg-canvas);
+  padding-bottom: env(safe-area-inset-bottom);
+}

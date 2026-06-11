@@ -1,0 +1,49 @@
+
+
+page {
+  
+  --ts-primary: #4A6CF7;
+  --ts-primary-light: #6B8AFF;
+  --ts-primary-bg: #EEF2FF;
+
+  
+  --ts-success: #07C160;
+  --ts-warning: #FF8C00;
+  --ts-danger: #EE0A24;
+
+  
+  --ts-text-primary: #1A1A1A;
+  --ts-text-secondary: #666666;
+  --ts-text-tertiary: #999999;
+  --ts-text-placeholder: #CCCCCC;
+  --ts-bg-page: #F5F5F5;
+  --ts-bg-card: #FFFFFF;
+  --ts-bg-disabled: #F0F0F0;
+  --ts-border: #E5E5E5;
+  --ts-border-light: #F0F0F0;
+
+  
+  --ts-space-xs: 8rpx;
+  --ts-space-sm: 12rpx;
+  --ts-space-md: 16rpx;
+  --ts-space-lg: 24rpx;
+  --ts-space-xl: 32rpx;
+
+  
+  --ts-font-xs: 22rpx;
+  --ts-font-sm: 24rpx;
+  --ts-font-md: 28rpx;
+  --ts-font-lg: 32rpx;
+  --ts-font-xl: 36rpx;
+  --ts-font-xxl: 48rpx;
+
+  
+  --ts-radius-sm: 8rpx;
+  --ts-radius-md: 12rpx;
+  --ts-radius-lg: 16rpx;
+  --ts-radius-full: 999rpx;
+
+  
+  --ts-shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+  --ts-shadow-modal: 0 4rpx 24rpx rgba(0, 0, 0, 0.12);
+}

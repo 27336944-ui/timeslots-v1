@@ -1,0 +1,43 @@
+/* Cell 列表项 */
+.ts-cell-group {
+  background: var(--bg-secondary);
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin-bottom: 32rpx;
+}
+.ts-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  transition: background-color 150ms ease;
+}
+.ts-cell:active {
+  background: rgba(0, 0, 0, 0.02);
+}
+.ts-cell:not(:last-child) {
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  margin-left: 32rpx;
+}
+.ts-cell__left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  font-size: 28rpx;
+  line-height: 40rpx;
+  color: var(--text-main);
+}
+.ts-cell__right {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.ts-cell__value {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+.ts-cell__arrow {
+  font-size: 24rpx;
+  color: var(--text-placeholder);
+  font-weight: 300;
+}

@@ -1,0 +1,19 @@
+
+
+<view class="cell {{bordered ? 'cell-bordered' : ''}}" bindtap="onTap">
+  
+  <view class="cell-body">
+    <slot name="icon"></slot>
+    
+    <view class="cell-content">
+      <text class="cell-title">{{title}}</text>
+      <text wx:if="{{desc}}" class="cell-desc">{{desc}}</text>
+    </view>
+  </view>
+  
+  <slot name="extra"></slot>
+  
+  <view wx:if="{{arrow}}" class="cell-arrow">
+    <text>›</text>
+  </view>
+</view>

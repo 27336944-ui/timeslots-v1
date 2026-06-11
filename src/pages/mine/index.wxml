@@ -1,0 +1,58 @@
+
+<view class="container">
+  
+  <view class="profile" wx:if="{{isLoggedIn && user && user.nickname}}">
+    <image wx:if="{{user.avatar}}" class="avatar avatar-img" src="{{user.avatar}}" />
+    <view wx:else class="avatar">{{user.nickname[0]}}</view>
+    <text class="nickname">{{user.nickname}}</text>
+  </view>
+
+  
+  <view class="profile" wx:else>
+    <view class="avatar avatar-placeholder">?</view>
+    <text class="nickname">未登录</text>
+  </view>
+
+  
+  <view class="login-form" wx:if="{{!isLoggedIn}}">
+    <view class="section-title">Dev 登录</view>
+    <input class="input" placeholder="输入用户 ID" value="{{userId}}" bindinput="onUserIdInput" />
+    <button class="btn btn-primary" loading="{{loading}}" bindtap="onLoginTap">Dev 登录</button>
+
+    <view class="divider-text">或</view>
+
+    <view class="section-title">微信登录</view>
+    <button class="btn btn-wechat" loading="{{wxLoading}}" bindtap="onWxLoginTap">微信一键登录</button>
+  </view>
+
+  
+  <view class="logout-section" wx:if="{{isLoggedIn}}">
+    <button class="btn btn-danger" bindtap="onLogoutTap">退出登录</button>
+    <view class="delete-row">
+      <button class="btn btn-text" bindtap="onDeleteAccountTap">注销账号</button>
+    </view>
+  </view>
+
+  <view class="modal-overlay" wx:if="{{showRestoreModal}}" catchtouchmove="{{true}}">
+    <view class="modal">
+      <view class="modal-title">恢复账号</view>
+      <view class="modal-desc">您的账号已注销，7 天内可以恢复。确认要恢复吗？</view>
+      <view class="modal-actions">
+        <button class="btn btn-primary modal-btn" loading="{{restoring}}" bindtap="onRestoreTap">恢复账号</button>
+        <button class="btn btn-secondary modal-btn" bindtap="onRestoreCancel">取消</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal-overlay" wx:if="{{showMigrationModal}}" catchtouchmove="{{true}}">
+    <view class="modal">
+      <view class="modal-title">迁移旧数据</view>
+      <view class="modal-desc">检测到您刚刚使用微信登录，是否将旧版 Dev 用户数据迁移过来？</view>
+      <input class="modal-input" placeholder="输入旧 Dev 用户 ID" value="{{devUserId}}" bindinput="onDevUserIdInput" />
+      <view class="modal-actions">
+        <button class="btn btn-primary modal-btn" loading="{{migrating}}" bindtap="onMigrateConfirm">迁移并删除旧数据</button>
+        <button class="btn btn-secondary modal-btn" bindtap="onMigrateSkip">跳过</button>
+      </view>
+    </view>
+  </view>
+</view>

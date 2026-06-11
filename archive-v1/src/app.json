@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/schedule/index",
+    "pages/collab/index",
+    "pages/tasks/index",
+    "pages/mine/index",
+    "pages/coach-detail/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "时光块",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#07c160",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/schedule/index",
+        "text": "日程"
+      },
+      {
+        "pagePath": "pages/collab/index",
+        "text": "协作"
+      },
+      {
+        "pagePath": "pages/tasks/index",
+        "text": "任务"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

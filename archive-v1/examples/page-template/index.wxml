@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="page__hd">
+    <view class="page__title">{{ title }}</view>
+    <view class="page__desc">{{ blocks.length }} 个时段</view>
+  </view>
+
+  <view wx:if="{{ loading }}" class="state state--loading">加载中…</view>
+
+  <view wx:elif="{{ errorMessage }}" class="state state--error">
+    <view class="state__text">{{ errorMessage }}</view>
+    <button class="weui-btn weui-btn_primary" bindtap="onTapRetry">重试</button>
+  </view>
+
+  <view wx:elif="{{ blocks.length === 0 }}" class="state state--empty">
+    <view class="state__text">今天还没有安排</view>
+    <button class="weui-btn weui-btn_primary" bindtap="onTapCreate">新建时段</button>
+  </view>
+
+  <view wx:else class="list">
+    <block-card
+      wx:for="{{ blocks }}"
+      wx:key="id"
+      block="{{ item }}"
+      bindtap="onTapBlock"
+    />
+  </view>
+
+  <view class="fab" bindtap="onTapCreate">
+    <view class="fab__plus">+</view>
+  </view>
+</view>

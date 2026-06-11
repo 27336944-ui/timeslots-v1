@@ -1,0 +1,2 @@
+@echo off
+wsl -d Ubuntu-26.04 -- bash -c "su postgres -c 'psql -d timeslots_dev -f /mnt/c/Users/xwhy7/timeslots-v1/server/scripts/drop-public.sql'"

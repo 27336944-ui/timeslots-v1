@@ -1,0 +1,28 @@
+.card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx 24rpx 24rpx 32rpx;
+  border-left: 8rpx solid #07c160;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.card__time {
+  font-size: 24rpx;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+
+.card__title {
+  margin-top: 8rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #1a1a1a;
+  word-break: break-all;
+}
+
+.card__notes {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
+}
