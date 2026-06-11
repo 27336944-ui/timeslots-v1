@@ -49,4 +49,8 @@ export class CreateTimeBlockDto {
   @IsString()
   @MaxLength(200)
   weather?: string;
+
+  @IsOptional()
+  @IsString()
+  taskId?: string;
 }

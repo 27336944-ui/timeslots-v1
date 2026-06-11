@@ -19,6 +19,7 @@ function toResponse(block: {
   recurrence: string;
   contacts: string | null;
   weather: string | null;
+  taskId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }): TimeBlockResponseDto {
@@ -36,6 +37,7 @@ function toResponse(block: {
     recurrence: block.recurrence,
     contacts: block.contacts,
     weather: block.weather,
+    taskId: block.taskId,
     createdAt: block.createdAt.toISOString(),
     updatedAt: block.updatedAt.toISOString(),
   };
@@ -71,6 +73,7 @@ export class TimeBlockService {
         recurrence: dto.recurrence ?? 'none',
         contacts: dto.contacts ?? null,
         weather: dto.weather ?? null,
+        taskId: dto.taskId ?? null,
       },
     });
 
@@ -104,6 +107,15 @@ export class TimeBlockService {
   async findMyBlocks(userId: string): Promise<TimeBlockResponseDto[]> {
     const blocks = await this.prisma.client.timeBlock.findMany({
       where: { userId, isDeleted: false },
+      orderBy: { startTime: 'asc' },
+    });
+
+    return blocks.map(toResponse);
+  }
+
+  async findByTaskId(userId: string, taskId: string): Promise<TimeBlockResponseDto[]> {
+    const blocks = await this.prisma.client.timeBlock.findMany({
+      where: { userId, isDeleted: false, taskId },
       orderBy: { startTime: 'asc' },
     });
 

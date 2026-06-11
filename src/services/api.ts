@@ -70,8 +70,14 @@ export function createBlock(data: {
   recurrence?: string;
   contacts?: string;
   weather?: string;
+  taskId?: string;
 }): Promise<TimeBlock> {
   return post<TimeBlock>('/api/v1/time-blocks', data);
+}
+
+
+export function getBlocksByTask(taskId: string): Promise<TimeBlock[]> {
+  return get<TimeBlock[]>(`/api/v1/time-blocks/by-task/${taskId}`);
 }
 
 

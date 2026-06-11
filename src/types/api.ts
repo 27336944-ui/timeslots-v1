@@ -87,6 +87,7 @@ export interface TimeBlock {
   recurrence: string;
   contacts: string | null;
   weather: string | null;
+  taskId: string | null;
   createdAt: string;
   updatedAt: string;
 }

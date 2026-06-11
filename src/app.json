@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/schedule/index", "pages/schedule/detail/index", "pages/mine/index", "pages/index/index"],
+  "pages": ["pages/schedule/index", "pages/schedule/detail/index", "pages/tasks/index", "pages/tasks/task-detail/index", "pages/mine/index", "pages/index/index"],
   "window": {
     "navigationBarTitleText": "timeslots",
     "navigationBarTextStyle": "black",
@@ -15,6 +15,10 @@
       {
         "pagePath": "pages/schedule/index",
         "text": "日程"
+      },
+      {
+        "pagePath": "pages/tasks/index",
+        "text": "任务"
       },
       {
         "pagePath": "pages/mine/index",

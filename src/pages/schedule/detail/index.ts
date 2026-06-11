@@ -35,6 +35,7 @@ const RECURRENCE_LABELS: Record<string, string> = { none: '不重复', daily: '�
 interface DetailPageData {
   mode: 'create' | 'edit' | 'view';
   blockId: string;
+  taskId: string;
   originalDate: string;
   viewTitle: string;
   viewTimeRange: string;
@@ -85,6 +86,7 @@ Page<DetailPageData, DetailPageMethods>({
   data: {
     mode: 'create',
     blockId: '',
+    taskId: '',
     originalDate: '',
     viewTitle: '',
     viewTimeRange: '',
@@ -113,7 +115,9 @@ Page<DetailPageData, DetailPageMethods>({
   },
 
   async onLoad(options: Record<string, string>) {
-    if (options.id) {
+    if (options.taskId) {
+      this.setData({ mode: 'create', formDate: options.date || todayStr(), taskId: options.taskId });
+    } else if (options.id) {
       let block = blockStore.blocks.find((b) => b.id === options.id);
       if (!block) {
         try {
@@ -237,6 +241,7 @@ Page<DetailPageData, DetailPageMethods>({
           recurrence: formRecurrence,
           contacts: formContacts || undefined,
           weather: formWeather || undefined,
+          taskId: this.data.taskId || undefined,
         });
         wx.showToast({ title: '创建成功', icon: 'success' });
       } else {

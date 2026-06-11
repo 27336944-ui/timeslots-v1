@@ -12,6 +12,7 @@ export class TimeBlockResponseDto {
   recurrence: string = 'none';
   contacts: string | null = null;
   weather: string | null = null;
+  taskId: string | null = null;
   createdAt!: string;
   updatedAt!: string;
 }

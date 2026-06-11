@@ -6,7 +6,7 @@
 
 | Version | Pages | Backend |
 |---------|-------|---------|
-| v0.13 (里程碑：任务后端) | 3 pages: 日程 / 详情 / 我的 | NestJS 7777 + PG 5432 |
+| v0.14 (里程碑：任务 Tab 前端) | 5 pages: 日程 / 详情 / 任务 / 任务详情 / 我的 | NestJS 7777 + PG 5432 |
 
 ## What's Been Implemented
 
@@ -25,6 +25,17 @@
 | v0.11 | WeChat real login (code2session, migration modal) | ✅ |
 | v0.12 | Account delete/restore (7d grace, restoreToken) | ✅ |
 | v0.13 | Task backend (work/life/private 3 types, 7 endpoints, stats) | ✅ |
+
+## v0.14 Completed (2026-06-11) — Task Tab Frontend
+
+- **Backend**: TimeBlock DTO + repsonse + create added `taskId`; `GET /api/v1/time-blocks/by-task/:taskId` endpoint
+- **Frontend types**: `TimeBlock.taskId` field; `getBlocksByTask()` API function; `taskId` param on `createBlock`
+- **Store**: `taskStore` (tasks, stats, CRUD, taskBlocks, category filter)
+- **`pages/tasks/index`**: Stats cards (8 metrics), 4 category tabs (全部/工作/生活/私有), task list with category badge + priority dot + due date + done strikethrough, pull-to-refresh, FAB
+- **`pages/tasks/task-detail/index`**: 3 modes (create/view/edit). Steps checklist (add/toggle/remove), status management, completedNote + retrospective + improvements, associated timeblock list, "创建日程" entry → schedule detail with `taskId`, delete with confirm
+- **Schedule detail**: accepts `taskId` param for creating task-associated timeblocks
+- **`app.json`**: TabBar 3 tabs (日程/任务/我的), both task pages registered
+- **Gate**: tsc 双 0 错 ✅, prisma validate ✅
 
 ## Today's Fixes (2026-06-11) — Architecture Audit 8 Items
 

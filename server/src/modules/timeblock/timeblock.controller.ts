@@ -38,6 +38,14 @@ export class TimeBlockController {
     return this.timeBlockService.findByDate(userId, date);
   }
 
+  @Get('by-task/:taskId')
+  async findByTaskId(
+    @CurrentUser('userId') userId: string,
+    @Param('taskId') taskId: string,
+  ): Promise<TimeBlockResponseDto[]> {
+    return this.timeBlockService.findByTaskId(userId, taskId);
+  }
+
   @Get(':id')
   async findById(
     @CurrentUser('userId') userId: string,

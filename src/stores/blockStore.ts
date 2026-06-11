@@ -13,7 +13,7 @@ interface BlockStore {
   createBlock: (data: {
     title: string; startTime: string; endTime: string; status?: string;
     location?: string; description?: string; priority?: string; category?: string;
-    recurrence?: string; contacts?: string; weather?: string;
+    recurrence?: string; contacts?: string; weather?: string; taskId?: string;
   }) => Promise<TimeBlock>;
   updateBlock: (id: string, data: {
     title?: string; startTime?: string; endTime?: string; status?: string;
@@ -55,7 +55,7 @@ export const blockStore: BlockStore = observable({
   createBlock: action(async function (this: BlockStore, data: {
     title: string; startTime: string; endTime: string; status?: string;
     location?: string; description?: string; priority?: string; category?: string;
-    recurrence?: string; contacts?: string; weather?: string;
+    recurrence?: string; contacts?: string; weather?: string; taskId?: string;
   }) {
     const block = await apiCreateBlock(data);
     await this.fetchByDate(this.currentDate);
