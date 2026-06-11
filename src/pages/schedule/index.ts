@@ -1,6 +1,7 @@
 
 import { createStoreBindings } from 'mobx-miniprogram-bindings';
 import { blockStore } from '../../stores/blockStore';
+import { authStore } from '../../stores/authStore';
 import type { TimeBlock } from '../../types/api';
 
 
@@ -88,6 +89,7 @@ interface SchedulePageMethods {
   onBlockTap: (e: WechatMiniprogram.TouchEvent) => void;
   onCreateTap: () => void;
   storeBindings?: { destroyStoreBindings: () => void };
+  authBindings?: { destroyStoreBindings: () => void };
 }
 
 Page<SchedulePageData, SchedulePageMethods>({
@@ -102,14 +104,21 @@ Page<SchedulePageData, SchedulePageMethods>({
       store: blockStore,
       fields: ['blocks', 'loading', 'currentDate', 'error'],
     });
+    this.authBindings = createStoreBindings(this, {
+      store: authStore,
+      fields: ['isLoggedIn'],
+    });
   },
 
   onShow() {
-    this.loadToday();
+    if (authStore.isLoggedIn) {
+      this.loadToday();
+    }
   },
 
   onUnload() {
     this.storeBindings!.destroyStoreBindings();
+    this.authBindings!.destroyStoreBindings();
   },
 
   loadToday() {
