@@ -26,7 +26,20 @@
 | v0.12 | Account delete/restore (7d grace, restoreToken) | ✅ |
 | v0.13 | Task backend (work/life/private 3 types, 7 endpoints, stats) | ✅ |
 
-## Today's Bug Fixes (C1-C3, M1-M5, L2-L3)
+## Today's Fixes (2026-06-11) — Architecture Audit 8 Items
+
+- **C1**: PrismaService `$extends` soft-delete interceptor (Task/TimeBlock auto `isDeleted: false`)
+- **C2**: `BusinessException` + `ErrorCodes` (9 groups, 5-digit business codes)
+- **C3**: `HttpExceptionFilter` rewrite (BusinessException → direct code, Prisma P2002→40901, P2025→40401, fallback `status*100+1`)
+- **H2**: Task DTO `@MinLength(1)` + `@IsISO8601()` validation
+- **H3**: TimeBlock DTO status `@IsIn(['todo', 'in_progress', 'done'])`
+- **H4**: `migrateDevData`/`deleteDevData` now handles Task records
+- **M1**: `app.ts` `wx.onError` global error handler
+- **M4**: `server/.env.example` with all required env vars
+
+**Pattern change**: All services now use `this.prisma.client.xxx` (PrismaService no longer extends PrismaClient).
+
+## Previous Bug Fixes (C1-C3, M1-M5, L2-L3)
 
 See `VERSION_PLAN.md` changelog entry 2026-06-10 "Bug fix sweep".
 

@@ -48,7 +48,7 @@ export class TaskService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateTaskDto): Promise<TaskResponseDto> {
-    const task = await this.prisma.task.create({
+    const task = await this.prisma.client.task.create({
       data: {
         userId,
         title: dto.title,
@@ -65,7 +65,7 @@ export class TaskService {
   }
 
   async findMyTasks(userId: string): Promise<TaskResponseDto[]> {
-    const tasks = await this.prisma.task.findMany({
+    const tasks = await this.prisma.client.task.findMany({
       where: { userId, isDeleted: false },
       orderBy: { createdAt: 'desc' },
     });
@@ -74,7 +74,7 @@ export class TaskService {
   }
 
   async findById(userId: string, id: string): Promise<TaskResponseDto> {
-    const task = await this.prisma.task.findFirst({
+    const task = await this.prisma.client.task.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -94,7 +94,7 @@ export class TaskService {
       throw new BadRequestException('分类无效，应为 work/life/private');
     }
 
-    const tasks = await this.prisma.task.findMany({
+    const tasks = await this.prisma.client.task.findMany({
       where: { userId, category, isDeleted: false },
       orderBy: { createdAt: 'desc' },
     });
@@ -103,7 +103,7 @@ export class TaskService {
   }
 
   async update(userId: string, id: string, dto: UpdateTaskDto): Promise<TaskResponseDto> {
-    const task = await this.prisma.task.findFirst({
+    const task = await this.prisma.client.task.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -115,7 +115,7 @@ export class TaskService {
       throw new ForbiddenException('无权修改该任务');
     }
 
-    const updated = await this.prisma.task.update({
+    const updated = await this.prisma.client.task.update({
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
@@ -135,7 +135,7 @@ export class TaskService {
   }
 
   async softDelete(userId: string, id: string): Promise<void> {
-    const task = await this.prisma.task.findFirst({
+    const task = await this.prisma.client.task.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -147,14 +147,14 @@ export class TaskService {
       throw new ForbiddenException('无权删除该任务');
     }
 
-    await this.prisma.task.update({
+    await this.prisma.client.task.update({
       where: { id },
       data: { isDeleted: true, deletedAt: new Date() },
     });
   }
 
   async getStats(userId: string): Promise<TaskStatsDto> {
-    const tasks = await this.prisma.task.findMany({
+    const tasks = await this.prisma.client.task.findMany({
       where: { userId, isDeleted: false },
       select: { id: true, status: true, dueAt: true },
     });
@@ -194,7 +194,7 @@ export class TaskService {
 
     const total = tasks.length;
 
-    const taskIdsWithBlock = await this.prisma.timeBlock.findMany({
+    const taskIdsWithBlock = await this.prisma.client.timeBlock.findMany({
       where: { userId, isDeleted: false, taskId: { not: null } },
       select: { taskId: true },
       distinct: ['taskId'],

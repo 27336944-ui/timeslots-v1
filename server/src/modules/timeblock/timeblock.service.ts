@@ -57,7 +57,7 @@ export class TimeBlockService {
     const endTime = new Date(dto.endTime);
     this.validateTimeRange(startTime, endTime);
 
-    const block = await this.prisma.timeBlock.create({
+    const block = await this.prisma.client.timeBlock.create({
       data: {
         userId,
         title: dto.title,
@@ -89,7 +89,7 @@ export class TimeBlockService {
     const nextDate = new Date(dayStart);
     nextDate.setDate(nextDate.getDate() + 1);
 
-    const blocks = await this.prisma.timeBlock.findMany({
+    const blocks = await this.prisma.client.timeBlock.findMany({
       where: {
         userId,
         isDeleted: false,
@@ -102,7 +102,7 @@ export class TimeBlockService {
   }
 
   async findMyBlocks(userId: string): Promise<TimeBlockResponseDto[]> {
-    const blocks = await this.prisma.timeBlock.findMany({
+    const blocks = await this.prisma.client.timeBlock.findMany({
       where: { userId, isDeleted: false },
       orderBy: { startTime: 'asc' },
     });
@@ -111,7 +111,7 @@ export class TimeBlockService {
   }
 
   async findById(userId: string, id: string): Promise<TimeBlockResponseDto> {
-    const block = await this.prisma.timeBlock.findFirst({
+    const block = await this.prisma.client.timeBlock.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -127,7 +127,7 @@ export class TimeBlockService {
   }
 
   async update(userId: string, id: string, dto: UpdateTimeBlockDto): Promise<TimeBlockResponseDto> {
-    const block = await this.prisma.timeBlock.findFirst({
+    const block = await this.prisma.client.timeBlock.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -143,7 +143,7 @@ export class TimeBlockService {
     const newEndTime = dto.endTime !== undefined ? new Date(dto.endTime) : block.endTime;
     this.validateTimeRange(newStartTime, newEndTime);
 
-    const updated = await this.prisma.timeBlock.update({
+    const updated = await this.prisma.client.timeBlock.update({
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
@@ -164,7 +164,7 @@ export class TimeBlockService {
   }
 
   async softDelete(userId: string, id: string): Promise<void> {
-    const block = await this.prisma.timeBlock.findFirst({
+    const block = await this.prisma.client.timeBlock.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -176,7 +176,7 @@ export class TimeBlockService {
       throw new ForbiddenException('无权删除该时间块');
     }
 
-    await this.prisma.timeBlock.update({
+    await this.prisma.client.timeBlock.update({
       where: { id },
       data: {
         isDeleted: true,

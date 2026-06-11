@@ -1,9 +1,10 @@
 
-import { IsString, IsOptional, IsIn, IsArray, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsIn, IsArray, IsObject, MinLength, IsISO8601 } from 'class-validator';
 
 
 export class CreateTaskDto {
   @IsString()
+  @MinLength(1)
   title!: string;
 
   @IsOptional()
@@ -32,5 +33,6 @@ export class CreateTaskDto {
 
   @IsOptional()
   @IsString()
+  @IsISO8601()
   dueAt?: string | null;
 }

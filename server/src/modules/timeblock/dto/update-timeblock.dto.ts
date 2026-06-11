@@ -17,6 +17,7 @@ export class UpdateTimeBlockDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['todo', 'in_progress', 'done'])
   status?: string;
 
   @IsOptional()

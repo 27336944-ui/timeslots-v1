@@ -22,7 +22,7 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.client.user.findFirst({
       where: { id: dto.userId },
     });
 
@@ -57,14 +57,14 @@ export class AuthService {
       throw new BadRequestException('微信登录服务不可用');
     }
 
-    let user = await this.prisma.user.findFirst({
+    let user = await this.prisma.client.user.findFirst({
       where: { openid },
     });
 
     if (user) {
       this.checkDeletedUser(user);
     } else {
-      user = await this.prisma.user.create({
+      user = await this.prisma.client.user.create({
         data: { openid, nickname: '微信用户' },
       });
     }
@@ -73,14 +73,14 @@ export class AuthService {
   }
 
   async deleteAccount(userId: string): Promise<{ deleted: boolean; restoreToken: string }> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.client.user.findFirst({
       where: { id: userId, isDeleted: false },
     });
     if (!user) {
       throw new NotFoundException('用户不存在或已注销');
     }
     const restoreToken = randomUUID();
-    await this.prisma.user.update({
+    await this.prisma.client.user.update({
       where: { id: userId },
       data: { isDeleted: true, deletedAt: new Date(), restoreToken },
     });
@@ -88,7 +88,7 @@ export class AuthService {
   }
 
   async restoreAccount(dto: RestoreAccountDto): Promise<LoginResponseDto> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.client.user.findFirst({
       where: { id: dto.userId },
     });
     if (!user) {
@@ -104,7 +104,7 @@ export class AuthService {
     if (elapsed > GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000) {
       throw new ForbiddenException('账号已超过 7 天冷静期，无法恢复');
     }
-    await this.prisma.user.update({
+    await this.prisma.client.user.update({
       where: { id: dto.userId },
       data: { isDeleted: false, deletedAt: null, restoreToken: null },
     });
@@ -112,50 +112,72 @@ export class AuthService {
   }
 
   async migrateDevData(userId: string, devUserId: string): Promise<{ migrated: number }> {
-    const count = await this.prisma.timeBlock.count({
+    const blockCount = await this.prisma.client.timeBlock.count({
+      where: { userId: devUserId, isDeleted: false },
+    });
+    const taskCount = await this.prisma.client.task.count({
       where: { userId: devUserId, isDeleted: false },
     });
 
-    if (count === 0) {
+    if (blockCount === 0 && taskCount === 0) {
       throw new BadRequestException('未找到可迁移的 Dev 数据');
     }
 
-    await this.prisma.timeBlock.updateMany({
-      where: { userId: devUserId, isDeleted: false },
-      data: { userId },
-    });
+    if (blockCount > 0) {
+      await this.prisma.client.timeBlock.updateMany({
+        where: { userId: devUserId, isDeleted: false },
+        data: { userId },
+      });
+    }
+    if (taskCount > 0) {
+      await this.prisma.client.task.updateMany({
+        where: { userId: devUserId, isDeleted: false },
+        data: { userId },
+      });
+    }
 
-    return { migrated: count };
+    return { migrated: blockCount + taskCount };
   }
 
   async deleteDevData(userId: string, devUserId: string): Promise<{ deleted: number }> {
     if (userId === devUserId) {
       throw new BadRequestException('不能通过此接口删除自己的数据');
     }
-    const count = await this.prisma.timeBlock.count({
+    const blockCount = await this.prisma.client.timeBlock.count({
+      where: { userId: devUserId, isDeleted: false },
+    });
+    const taskCount = await this.prisma.client.task.count({
       where: { userId: devUserId, isDeleted: false },
     });
 
-    if (count === 0) {
+    if (blockCount === 0 && taskCount === 0) {
       throw new BadRequestException('未找到可删除的 Dev 数据');
     }
 
-    await this.prisma.timeBlock.updateMany({
-      where: { userId: devUserId, isDeleted: false },
-      data: { isDeleted: true, deletedAt: new Date() },
-    });
+    if (blockCount > 0) {
+      await this.prisma.client.timeBlock.updateMany({
+        where: { userId: devUserId, isDeleted: false },
+        data: { isDeleted: true, deletedAt: new Date() },
+      });
+    }
+    if (taskCount > 0) {
+      await this.prisma.client.task.updateMany({
+        where: { userId: devUserId, isDeleted: false },
+        data: { isDeleted: true, deletedAt: new Date() },
+      });
+    }
 
-    return { deleted: count };
+    return { deleted: blockCount + taskCount };
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<{ id: string; nickname: string; avatar: string | null }> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.client.user.findFirst({
       where: { id: userId, isDeleted: false },
     });
     if (!user) {
       throw new NotFoundException('用户不存在');
     }
-    const updated = await this.prisma.user.update({
+    const updated = await this.prisma.client.user.update({
       where: { id: userId },
       data: {
         ...(dto.nickname !== undefined && { nickname: dto.nickname }),
@@ -166,7 +188,7 @@ export class AuthService {
   }
 
   async validateUser(userId: string) {
-    return this.prisma.user.findFirst({
+    return this.prisma.client.user.findFirst({
       where: { id: userId, isDeleted: false },
     });
   }

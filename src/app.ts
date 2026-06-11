@@ -1,7 +1,8 @@
 
 App({
-  
   onLaunch() {
-    console.log('timeslots-v1 launched');
+    wx.onError((error) => {
+      console.error('[Global Error]', error.message);
+    });
   },
 });
