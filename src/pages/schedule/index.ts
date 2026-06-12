@@ -59,8 +59,8 @@ interface MonthDayInfo {
 }
 
 const CATEGORY_CLASS: Record<string, string> = { work: 'tag-work', life: 'tag-life', private: 'tag-private' };
-const PRIORITY_LABEL: Record<string, string> = { high: '�?, medium: '�?, low: '�? };
-const DAY_LABELS = ['�?, '一', '�?, '�?, '�?, '�?, '�?];
+const PRIORITY_LABEL: Record<string, string> = { high: '�?, medium: '�?, low: '�? };
+const DAY_LABELS = ['�?, '一', '�?, '�?, '�?, '�?, '�?];
 
 const MIN_CARD_HEIGHT = 60;
 const HEIGHT_PER_MINUTE = 1.5;
@@ -134,7 +134,7 @@ function groupByHour(blocks: TimeBlock[], dateStr: string, dayStartHour: number)
         localStart: toLocalTime(b.startTime),
         localEnd: toLocalTime(b.endTime),
         categoryClass: CATEGORY_CLASS[b.category] || 'tag-life',
-        priorityLabel: PRIORITY_LABEL[b.priority] || '�?,
+        priorityLabel: PRIORITY_LABEL[b.priority] || '�?,
         blockHeight: calcCardHeight(b.startTime, b.endTime, range.totalMin),
         isCrossDay: range.isCrossDay,
       });
@@ -439,7 +439,7 @@ Page<SchedulePageData, SchedulePageMethods>({
           if (res.tapIndex === 0) {
             wx.navigateTo({ url: `/pages/schedule/detail/index?id=${bid}&mode=edit` });
           } else if (res.tapIndex === 1) {
-            wx.showModal({ title: '确认删除', content: '删除后不可恢�?, confirmColor: '#e74c3c', success: (m) => {
+            wx.showModal({ title: '确认删除', content: '删除后不可恢�?, confirmColor: '#e74c3c', success: (m) => {
               if (m.confirm) {
                 blockStore.deleteBlock(bid).then(() => {
                   this.loadToday();
@@ -586,13 +586,13 @@ Page<SchedulePageData, SchedulePageMethods>({
   },
 
   prevMonth() {
-    const d = new Date(this.data.currentMonthStr.replace('�?, '/').replace('�?, '/01'));
+    const d = new Date(this.data.currentMonthStr.replace('�?, '/').replace('�?, '/01'));
     d.setMonth(d.getMonth() - 1);
     this.loadMonth(d.getFullYear(), d.getMonth() + 1);
   },
 
   nextMonth() {
-    const d = new Date(this.data.currentMonthStr.replace('�?, '/').replace('�?, '/01'));
+    const d = new Date(this.data.currentMonthStr.replace('�?, '/').replace('�?, '/01'));
     d.setMonth(d.getMonth() + 1);
     this.loadMonth(d.getFullYear(), d.getMonth() + 1);
   },
@@ -602,7 +602,8 @@ Page<SchedulePageData, SchedulePageMethods>({
     const lastDay = new Date(year, month, 0);
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
-    const startDow = firstDay.getDay();
+    // 周一为起始日：getDay() 周日=0...周六=6 → 转换为 周一=0...周日=6
+    const startDow = (firstDay.getDay() + 6) % 7;
     const gridStart = new Date(firstDay);
     gridStart.setDate(gridStart.getDate() - startDow);
     const days: MonthDayInfo[] = [];
@@ -627,7 +628,7 @@ Page<SchedulePageData, SchedulePageMethods>({
         day.hasBlocks = true;
       }
     }
-    this.setData({ monthDays: days, currentMonthStr: `${year}�?{month}月`, viewMode: 'month' });
+    this.setData({ monthDays: days, currentMonthStr: `${year}�?{month}月`, viewMode: 'month' });
   },
 
   onMonthDayTap(e: WechatMiniprogram.TouchEvent) {
