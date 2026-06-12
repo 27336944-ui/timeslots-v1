@@ -1,16 +1,25 @@
-import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as https from 'https';
 import { randomUUID } from 'crypto';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BusinessException, ErrorCodes } from '../../common/exceptions/business-exception';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
 import { WxLoginDto } from './dto/wx-login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { RestoreAccountDto } from './dto/restore-account.dto';
 
 
 const GRACE_PERIOD_DAYS = 7;
+
+const DEFAULT_SETTINGS = {
+  dayStartsAt: '06:00',
+  reminderLeadMinutes: 15,
+  defaultNature: 'PUBLIC',
+};
 
 
 @Injectable()
@@ -23,11 +32,11 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const user = await this.prisma.client.user.findFirst({
-      where: { id: dto.userId },
+      where: { id: dto.userId, isDeleted: false },
     });
 
     if (!user) {
-      throw new UnauthorizedException('用户不存在');
+      throw new BusinessException(ErrorCodes.USER_NOT_FOUND, '用户不存在', HttpStatus.UNAUTHORIZED);
     }
 
     this.checkDeletedUser(user);
@@ -40,7 +49,7 @@ export class AuthService {
     const secret = this.configService.get<string>('WX_SECRET');
 
     if (!appid || !secret || appid === 'your_wechat_appid_here') {
-      throw new BadRequestException('微信登录未配置，请使用 Dev 登录');
+      throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '微信登录未配置，请使用 Dev 登录');
     }
 
     const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${dto.code}&grant_type=authorization_code`;
@@ -49,16 +58,16 @@ export class AuthService {
     try {
       const body = await this.httpsGet(url);
       if (body.errcode) {
-        throw new BadRequestException(`微信登录失败: ${body.errmsg || body.errcode}`);
+        throw new BusinessException(ErrorCodes.VALIDATION_FAILED, `微信登录失败: ${body.errmsg || body.errcode}`);
       }
       openid = body.openid as string;
     } catch (e) {
-      if (e instanceof BadRequestException) throw e;
-      throw new BadRequestException('微信登录服务不可用');
+      if (e instanceof BusinessException) throw e;
+      throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '微信登录服务不可用');
     }
 
     let user = await this.prisma.client.user.findFirst({
-      where: { openid },
+      where: { openid, isDeleted: false },
     });
 
     if (user) {
@@ -77,7 +86,7 @@ export class AuthService {
       where: { id: userId, isDeleted: false },
     });
     if (!user) {
-      throw new NotFoundException('用户不存在或已注销');
+      throw new BusinessException(ErrorCodes.USER_NOT_EXISTS, '用户不存在或已注销', HttpStatus.NOT_FOUND);
     }
     const restoreToken = randomUUID();
     await this.prisma.client.user.update({
@@ -92,17 +101,17 @@ export class AuthService {
       where: { id: dto.userId },
     });
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw new BusinessException(ErrorCodes.USER_NOT_EXISTS, '用户不存在', HttpStatus.NOT_FOUND);
     }
     if (!user.isDeleted || !user.deletedAt) {
-      throw new BadRequestException('账号未被注销，无需恢复');
+      throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '账号未被注销，无需恢复');
     }
     if (user.restoreToken !== dto.restoreToken) {
-      throw new ForbiddenException('恢复令牌无效');
+      throw new BusinessException(ErrorCodes.RESTORE_TOKEN_INVALID, '恢复令牌无效', HttpStatus.FORBIDDEN);
     }
     const elapsed = Date.now() - user.deletedAt.getTime();
     if (elapsed > GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000) {
-      throw new ForbiddenException('账号已超过 7 天冷静期，无法恢复');
+      throw new BusinessException(ErrorCodes.RESTORE_EXPIRED, '账号已超过 7 天冷静期，无法恢复', HttpStatus.FORBIDDEN);
     }
     await this.prisma.client.user.update({
       where: { id: dto.userId },
@@ -120,7 +129,7 @@ export class AuthService {
     });
 
     if (blockCount === 0 && taskCount === 0) {
-      throw new BadRequestException('未找到可迁移的 Dev 数据');
+      throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '未找到可迁移的 Dev 数据');
     }
 
     if (blockCount > 0) {
@@ -141,7 +150,7 @@ export class AuthService {
 
   async deleteDevData(userId: string, devUserId: string): Promise<{ deleted: number }> {
     if (userId === devUserId) {
-      throw new BadRequestException('不能通过此接口删除自己的数据');
+      throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '不能通过此接口删除自己的数据');
     }
     const blockCount = await this.prisma.client.timeBlock.count({
       where: { userId: devUserId, isDeleted: false },
@@ -151,7 +160,7 @@ export class AuthService {
     });
 
     if (blockCount === 0 && taskCount === 0) {
-      throw new BadRequestException('未找到可删除的 Dev 数据');
+      throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '未找到可删除的 Dev 数据');
     }
 
     if (blockCount > 0) {
@@ -175,7 +184,7 @@ export class AuthService {
       where: { id: userId, isDeleted: false },
     });
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw new BusinessException(ErrorCodes.USER_NOT_EXISTS, '用户不存在', HttpStatus.NOT_FOUND);
     }
     const updated = await this.prisma.client.user.update({
       where: { id: userId },
@@ -185,6 +194,36 @@ export class AuthService {
       },
     });
     return { id: updated.id, nickname: updated.nickname, avatar: updated.avatar };
+  }
+
+  async getSettings(userId: string): Promise<Record<string, unknown>> {
+    const user = await this.prisma.client.user.findFirst({
+      where: { id: userId, isDeleted: false },
+    });
+    if (!user) {
+      throw new BusinessException(ErrorCodes.USER_NOT_EXISTS, '用户不存在', HttpStatus.NOT_FOUND);
+    }
+    const settings = (user.settings as Record<string, unknown>) || {};
+    return { ...DEFAULT_SETTINGS, ...settings } as Record<string, unknown>;
+  }
+
+  async updateSettings(userId: string, dto: UpdateSettingsDto): Promise<Record<string, unknown>> {
+    const user = await this.prisma.client.user.findFirst({
+      where: { id: userId, isDeleted: false },
+    });
+    if (!user) {
+      throw new BusinessException(ErrorCodes.USER_NOT_EXISTS, '用户不存在', HttpStatus.NOT_FOUND);
+    }
+    const current = (user.settings as Record<string, unknown>) || {};
+    const merged: Record<string, unknown> = { ...current };
+    if (dto.dayStartsAt !== undefined) merged.dayStartsAt = dto.dayStartsAt;
+    if (dto.reminderLeadMinutes !== undefined) merged.reminderLeadMinutes = dto.reminderLeadMinutes;
+    if (dto.defaultNature !== undefined) merged.defaultNature = dto.defaultNature;
+    await this.prisma.client.user.update({
+      where: { id: userId },
+      data: { settings: merged as Prisma.InputJsonValue },
+    });
+    return { ...DEFAULT_SETTINGS, ...merged } as Record<string, unknown>;
   }
 
   async validateUser(userId: string) {
@@ -197,9 +236,9 @@ export class AuthService {
     if (!user.isDeleted || !user.deletedAt) return;
     const elapsed = Date.now() - user.deletedAt.getTime();
     if (elapsed > GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000) {
-      throw new ForbiddenException('账号已永久删除，无法恢复');
+      throw new BusinessException(ErrorCodes.ACCOUNT_DELETED, '账号已永久删除，无法恢复', HttpStatus.FORBIDDEN);
     }
-    throw new ForbiddenException('账号待删除，请在 7 天内恢复账号后再登录');
+    throw new BusinessException(ErrorCodes.ACCOUNT_PENDING_DELETE, '账号待删除，请在 7 天内恢复账号后再登录', HttpStatus.FORBIDDEN);
   }
 
   private httpsGet(url: string): Promise<Record<string, unknown>> {

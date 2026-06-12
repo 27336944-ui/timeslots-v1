@@ -1,4 +1,4 @@
-import { IsString, IsISO8601, IsOptional, MaxLength, IsIn } from 'class-validator';
+import { IsString, IsISO8601, IsOptional, MaxLength, IsIn, IsUUID } from 'class-validator';
 
 
 export class UpdateTimeBlockDto {
@@ -43,6 +43,10 @@ export class UpdateTimeBlockDto {
   recurrence?: string;
 
   @IsOptional()
+  @IsISO8601()
+  recurrenceEndAt?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(500)
   contacts?: string;
@@ -51,4 +55,16 @@ export class UpdateTimeBlockDto {
   @IsString()
   @MaxLength(200)
   weather?: string;
+
+  @IsOptional()
+  @IsUUID()
+  taskId?: string;
+
+  @IsOptional()
+  @IsIn(['PRIVATE', 'PUBLIC', 'CIRCLE_ONLY'])
+  nature?: string;
+
+  @IsOptional()
+  @IsUUID()
+  circleId?: string;
 }

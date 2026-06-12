@@ -1,10 +1,11 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, UseGuards,
+  Body, Param, Query, UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { TimeBlockService } from './timeblock.service';
+import { ApprovalService } from '../approval/approval.service';
 import { CreateTimeBlockDto } from './dto/create-timeblock.dto';
 import { UpdateTimeBlockDto } from './dto/update-timeblock.dto';
 import { TimeBlockResponseDto } from './dto/timeblock-response.dto';
@@ -13,7 +14,10 @@ import { TimeBlockResponseDto } from './dto/timeblock-response.dto';
 @Controller('api/v1/time-blocks')
 @UseGuards(JwtAuthGuard)
 export class TimeBlockController {
-  constructor(private readonly timeBlockService: TimeBlockService) {}
+  constructor(
+    private readonly timeBlockService: TimeBlockService,
+    private readonly approvalService: ApprovalService,
+  ) {}
 
   @Post()
   async create(
@@ -38,6 +42,15 @@ export class TimeBlockController {
     return this.timeBlockService.findByDate(userId, date);
   }
 
+  @Get('by-date-range')
+  async findByDateRange(
+    @CurrentUser('userId') userId: string,
+    @Query('start') start: string,
+    @Query('end') end: string,
+  ): Promise<Record<string, TimeBlockResponseDto[]>> {
+    return this.timeBlockService.findByDateRange(userId, start, end);
+  }
+
   @Get('by-task/:taskId')
   async findByTaskId(
     @CurrentUser('userId') userId: string,
@@ -60,7 +73,9 @@ export class TimeBlockController {
     @Param('id') id: string,
     @Body() dto: UpdateTimeBlockDto,
   ): Promise<TimeBlockResponseDto> {
-    return this.timeBlockService.update(userId, id, dto);
+    const result = await this.timeBlockService.update(userId, id, dto);
+    await this.approvalService.handleBlockUpdate(userId, id).catch(() => {});
+    return result;
   }
 
   @Delete(':id')

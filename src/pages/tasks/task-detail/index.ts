@@ -69,6 +69,7 @@ interface TaskDetailPageMethods {
   onImprovementsInput: (e: WechatMiniprogram.Input) => void;
   onSave: () => Promise<void>;
   onEditTap: () => void;
+  onMarkDone: () => Promise<void>;
   onDelete: () => Promise<void>;
   onCreateScheduleTap: () => void;
   onBlockTap: (e: WechatMiniprogram.TouchEvent) => void;
@@ -212,6 +213,21 @@ Page<TaskDetailPageData, TaskDetailPageMethods>({
       return;
     }
 
+    if (formStatus === 'done' && mode !== 'create') {
+      if (!formSteps.every(s => s.isDone)) {
+        wx.showToast({ title: '请先完成所有步骤再标记完成', icon: 'none' });
+        return;
+      }
+      if (!formCompletedNote.trim()) {
+        wx.showToast({ title: '标记完成需填写补充说明', icon: 'none' });
+        return;
+      }
+      if (!formRetrospective.trim()) {
+        wx.showToast({ title: '标记完成需填写复盘改进点', icon: 'none' });
+        return;
+      }
+    }
+
     this.setData({ saving: true });
 
     try {
@@ -245,6 +261,37 @@ Page<TaskDetailPageData, TaskDetailPageMethods>({
 
   onEditTap() {
     this.setData({ mode: 'edit' });
+  },
+
+  async onMarkDone() {
+    if (this.data.saving) return;
+    const { formSteps, formCompletedNote, formRetrospective } = this.data;
+    if (!formSteps.every(s => s.isDone)) {
+      wx.showToast({ title: '请先完成所有步骤', icon: 'none' });
+      return;
+    }
+    if (!formCompletedNote.trim()) {
+      wx.showToast({ title: '请填写完成说明（补充说明）', icon: 'none' });
+      return;
+    }
+    if (!formRetrospective.trim()) {
+      wx.showToast({ title: '请填写复盘改进点', icon: 'none' });
+      return;
+    }
+    this.setData({ saving: true });
+    try {
+      await taskStore.updateTask(this.data.taskId, { status: 'done' });
+      this.setData({
+        formStatus: 'done',
+        viewStatus: 'done',
+        viewDueAtOverdue: false,
+      });
+      wx.showToast({ title: '已标记完成', icon: 'success' });
+    } catch (e) {
+      wx.showToast({ title: (e as Error).message || '操作失败', icon: 'none' });
+    } finally {
+      this.setData({ saving: false });
+    }
   },
 
   async onDelete() {

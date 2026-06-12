@@ -1,26 +1,21 @@
 
 import { Controller, Get } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { HealthService } from './health.service';
 
 
-@Controller()
+@Controller('api/v1/health')
 export class HealthController {
   
-  constructor(private readonly prisma: PrismaService) {}
-
-  
-  @Get('api/v1/health')
-  async check() {
-    const dbConnected = await this.prisma.checkConnection();
-    return {
-      status: 'ok',
-      db: dbConnected ? 'connected' : 'disconnected',
-      timestamp: new Date().toISOString(),
-    };
-  }
+  constructor(private readonly healthService: HealthService) {}
 
   
   @Get()
+  async check() {
+    return this.healthService.check();
+  }
+
+  
+  @Get('info')
   root() {
     return {
       name: 'timeslots-server',

@@ -29,6 +29,12 @@ export interface LoginResponse {
   user: UserInfo;
 }
 
+export interface UserSettings {
+  dayStartsAt: string;
+  reminderLeadMinutes: number;
+  defaultNature: string;
+}
+
 
 export type WxRequestMethod = 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'CONNECT';
 
@@ -60,6 +66,18 @@ export interface Task {
 }
 
 
+export interface Reminder {
+  id: string;
+  userId: string;
+  blockId: string;
+  remindAt: string;
+  leadMinutes: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
 export interface TaskStats {
   total: number;
   pending: number;
@@ -70,6 +88,36 @@ export interface TaskStats {
   overdue: number;
   today: number;
   week: number;
+}
+
+
+export interface CircleMemberEntry {
+  id: string;
+  userId: string;
+  nickname: string;
+  avatar: string | null;
+  role: string;
+  joinedAt: string;
+}
+
+
+export interface Circle {
+  id: string;
+  ownerId: string;
+  name: string;
+  description: string | null;
+  inviteCode: string;
+  status: string;
+  memberCount: number;
+  members?: CircleMemberEntry[];
+  myRole: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
+export interface InviteResponse {
+  inviteCode: string;
 }
 
 
@@ -88,6 +136,8 @@ export interface TimeBlock {
   contacts: string | null;
   weather: string | null;
   taskId: string | null;
+  nature: string;
+  circleId: string | null;
   createdAt: string;
   updatedAt: string;
 }

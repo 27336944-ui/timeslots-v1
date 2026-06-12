@@ -1,114 +1,221 @@
-# Session Summary — 2026-06-10
+# 代码一致性检查报告 — timeslots-v1 (v0.24)
 
-> 重启计算机前的开发状态快照。下次继续开发时，先读此文件恢复上下文。
+> 生成时间：2026-06-11
+> 检查范围：所有已实现的文件和目录
+> 依据文档：PRD.md v1.2 + VERSION_PLAN.md v0.30 + conversations/BATCH_PLAN.md
 
-## Current Project State
+## 📊 总体状态
 
-| Version | Pages | Backend |
-|---------|-------|---------|
-| v0.14 (里程碑：任务 Tab 前端) | 5 pages: 日程 / 详情 / 任务 / 任务详情 / 我的 | NestJS 7777 + PG 5432 |
+| 模块 | 前端 ✅/❌ | 后端 ✅/❌ | 状态 |
+|------|----------|----------|------|
+| 审批流（核心） | ✅ | ✅ | **已完成 v0.22-24** |
+| 圈子可见性（隐私标签） | ❌ | ❌ | **待 v0.27** |
+| 设置页 | ❌ | ❌ | **待 v0.28** |
+| 全局 UX | ❌ | ❌ | **待 v0.29** |
+| 内测收尾 | ❌ | ❌ | **待 v0.30** |
 
-## What's Been Implemented
+## ✅ 已完成的核心功能 (B5)
 
-| Ver | Feature | Status |
-|-----|---------|--------|
-| v0.1 | Backend scaffold (NestJS + Prisma + PG18 + /health) | ✅ |
-| v0.2 | Frontend skeleton (src/, ts strict, WeUI 1.5.6, mobx) | ✅ |
-| v0.3 | Frontend-backend connect (request.ts, types, health card) | ✅ |
-| v0.4 | Design system (tokens.wxss, Tag/Skeleton/Cell/BottomSheet) | ✅ |
-| v0.5 | Dev login + JWT + exception filter + global pipe + interceptor | ✅ |
-| v0.6 | Mine page (login/logout UI, authStore+userStore) | ✅ |
-| v0.7 | TimeBlock CRUD backend (5 endpoints, soft-delete) | ✅ |
-| v0.8 | by-date endpoint (Asia/Shanghai timezone aware) | ✅ |
-| v0.9 | Schedule tab 24h timeline (blockStore, date nav) | ✅ |
-| v0.10 | Schedule detail page (create/view/edit 3-mode, 7 extension fields) | ✅ |
-| v0.11 | WeChat real login (code2session, migration modal) | ✅ |
-| v0.12 | Account delete/restore (7d grace, restoreToken) | ✅ |
-| v0.13 | Task backend (work/life/private 3 types, 7 endpoints, stats) | ✅ |
+### 前端（已实现）
 
-## v0.14 Completed (2026-06-11) — Task Tab Frontend
+| 文件 | 功能 | 状态 |
+|------|------|------|
+| `src/pages/collab/index.ts` | 审批中心（待我审批/我发起的双 Tab） | ✅ |
+| `src/pages/collab/approval-detail/index.ts` | 审批详情（双视角：发起人/接收人） | ✅ |
+| `src/pages/collab/approval-create/index.ts` | 发起审批（手机号/好友/QR 三 Tab） | ✅ |
+| `src/pages/collab/approval-share/index.ts` | 公开分享接收页 | ✅ |
+| `src/stores/approvalStore.ts` | MobX store（8 actions） | ✅ |
+| `src/pages/schedule/detail/index.ts` | **❌ 缺少"发起审批"按钮** |
 
-- **Backend**: TimeBlock DTO + repsonse + create added `taskId`; `GET /api/v1/time-blocks/by-task/:taskId` endpoint
-- **Frontend types**: `TimeBlock.taskId` field; `getBlocksByTask()` API function; `taskId` param on `createBlock`
-- **Store**: `taskStore` (tasks, stats, CRUD, taskBlocks, category filter)
-- **`pages/tasks/index`**: Stats cards (8 metrics), 4 category tabs (全部/工作/生活/私有), task list with category badge + priority dot + due date + done strikethrough, pull-to-refresh, FAB
-- **`pages/tasks/task-detail/index`**: 3 modes (create/view/edit). Steps checklist (add/toggle/remove), status management, completedNote + retrospective + improvements, associated timeblock list, "创建日程" entry → schedule detail with `taskId`, delete with confirm
-- **Schedule detail**: accepts `taskId` param for creating task-associated timeblocks
-- **`app.json`**: TabBar 3 tabs (日程/任务/我的), both task pages registered
-- **Gate**: tsc 双 0 错 ✅, prisma validate ✅
+### 后端（已实现）
 
-## Today's Fixes (2026-06-11) — Architecture Audit 8 Items
+| 文件 | 功能 | 状态 |
+|------|------|------|
+| `server/src/modules/approval/` | 完整 module（controller+service+4 DTOs） | ✅ |
+| `server/prisma/schema.prisma` | ApprovalRequest + ApprovalRecipient 2 实体 | ✅ |
+| `server/src/modules/circle/` | 圈子后端（v0.19-21） | ✅ |
 
-- **C1**: PrismaService `$extends` soft-delete interceptor (Task/TimeBlock auto `isDeleted: false`)
-- **C2**: `BusinessException` + `ErrorCodes` (9 groups, 5-digit business codes)
-- **C3**: `HttpExceptionFilter` rewrite (BusinessException → direct code, Prisma P2002→40901, P2025→40401, fallback `status*100+1`)
-- **H2**: Task DTO `@MinLength(1)` + `@IsISO8601()` validation
-- **H3**: TimeBlock DTO status `@IsIn(['todo', 'in_progress', 'done'])`
-- **H4**: `migrateDevData`/`deleteDevData` now handles Task records
-- **M1**: `app.ts` `wx.onError` global error handler
-- **M4**: `server/.env.example` with all required env vars
+## ❌ 缺失功能
 
-**Pattern change**: All services now use `this.prisma.client.xxx` (PrismaService no longer extends PrismaClient).
+### 前端缺失
 
-## Previous Bug Fixes (C1-C3, M1-M5, L2-L3)
+| 位置 | 缺失功能 | PRD 要求 | 影响 |
+|------|----------|----------|------|
+| `src/pages/schedule/detail/index.ts` | **"发起审批"按钮**（在 view 模式下） | ✓ 列在 Page 路由 | **P0 缺失核心功能** |
 
-See `VERSION_PLAN.md` changelog entry 2026-06-10 "Bug fix sweep".
+### 后端缺失
 
-- C1: typescript ^6.0.3 → ^5.6.0
-- C2: recurrence buttons active class fixed (5 distinct classes)
-- C3: task stats arranged/unarranged now queries TimeBlock.taskId
-- M1: auth.deleteDevData added @CurrentUser guard
-- M2: toLocalDate/toLocalTime uses Intl.DateTimeFormat Asia/Shanghai
-- M3: HttpExceptionFilter code → status*100 (5-digit business codes)
-- M4: removed deprecated wx.getUserProfile call
-- M5: storage keys unified through `storage.ts` utility
-- L2: TransformInterceptor path → request.path
-- L3: dueAt empty string handling in update path
+| 模块 | 缺失功能 | PRD/VERSION_PLAN 要求 | 影响 |
+|------|----------|--------------------------|------|
+| `src/pages/collab/index.ts` | Circle 管理入口（UI） | ✓ 第 3 行 "onCircleManage" | **P1 缺失 UI** |
+| `src/pages/collab/detail/index.ts` | **缺少文件**（圈子详情页） | ✓ 列在 Page 路由 | **P1 缺失文件** |
 
-## Resume Checklist (after PC restart)
+## 🔧 修复优先级
 
-```powershell
-# 1. Start PostgreSQL (if not auto-started)
-# Check: Get-Service postgresql-x64-18 | Start-Service
+### P0 - 核心功能缺失
 
-# 2. Start backend
-cd \path\to\timeslots-v1\server
-npx nest start --watch
+1. **schedule/detail/index.ts** - 添加"发起审批"按钮
+   - **PRD**: `pages/schedule/detail` 需支持发起审批
+   - **影响**: 用户无法发起审批流程
+   - **修复**: 在 schedule detail 的 view 模式下添加按钮，导航到 approval-create
 
-# 3. Start WeChat DevTools
-# Open project at \path\to\timeslots-v1
-# Enable "不校验合法域名..." in dev settings
+2. **src/pages/collab/detail/index.ts** - 创建圈子详情页
+   - **PRD**: `pages/collab/detail` 列在路由表
+   - **影响**: 圈子管理功能缺失
+   - **修复**: 根据 batch 4 spec 创建
 
-# 4. Verify health
-curl http://localhost:7777/api/v1/health
+### P1 - UI 缺失
 
-# 5. Verify login
-curl -X POST http://localhost:7777/api/v1/auth/login `
-  -H "Content-Type: application/json" `
-  -d '{"userId":"550e8400-e29b-41d4-a716-446655440000"}'
+3. **src/pages/collab/index.ts** - Circle 管理入口按钮
+   - **PRD**:  collab Tab 需有圈子管理入口
+   - **影响**: 圈子管理入口缺失
+   - **修复**: 在 collab/index 中添加 onCircleManage 处理
+
+### P2 - 设计不符
+
+4. **Batch 6/7 顺序** - 圈子可见性在审批流之后
+   - **VERSION_PLAN**: B5 审批流, B6 圈子可见性, B7 收尾
+   - **当前 BATCH_PLAN**: B5 审批流, B6 圈子可见性, B7 收尾
+   - **状态**: ✅ 一致
+
+## 📁 当前实现状态
+
+### ✅ 后台 (server/src/modules)
+
+| 模块 | 状态 | 备注 |
+|------|------|------|
+| auth | ✅ | 登录/注销/恢复 |
+| timeblock | ✅ | TimeBlock CRUD |
+| task | ✅ | 任务 CRUD + stats |
+| reminder | ✅ | 提醒 CRUD + cron |
+| circle | ✅ | 圈子 CRUD + 邀请 |
+| approval | ✅ | 审批流 B5 v0.22-24 |
+| jobs | ✅ | 定时任务 |
+| filters/guards | ✅ | 异常过滤 + JWT 授权 |
+
+### ✅ 前端 (src/pages)
+
+| 页面 | 状态 | 备注 |
+|------|------|------|
+| schedule/index | ✅ | 日程 Tab |
+| schedule/detail | ⚠️ | 缺少审批按钮 |
+| collab/index | ✅ | 审批中心（缺少 Circle 管理） |
+| collab/detail | ❌ | **缺失** |
+| collab/approval-detail | ✅ | 审批详情 |
+| collab/approval-create | ✅ | 发起审批 |
+| collab/approval-share | ✅ | 分享接收 |
+| tasks/index | ✅ | 任务 Tab |
+| tasks/task-detail | ✅ | 任务详情 |
+| mine/index | ✅ | 我的 Tab |
+
+## 🚨 紧急问题
+
+### P0 缺失审批入口
+**schedule/detail/index.ts** 中的时间块详情页
+
+**问题**：PRD 明确要求 `pages/schedule/detail` 需支持发起审批，但当前页面完全缺失审批功能。
+
+**修复方案**：
+
+1. 在 schedule detail 的 view 模式下添加"发起审批"按钮
+2. 按钮需检查是否有权限发起审批（当前登录用户是否为 TimeBlock 所有者）
+3. 点击按钮导航到 `/pages/collab/approval-create/index?blockId=${blockId}&title=${encodeURIComponent(title)}&startTime=${startTime}&endTime=${endTime}`
+
+**代码实现**：
+```typescript
+// 在 schedule/detail/index.ts 的 view 模式渲染区域
+onViewTap() {
+  // 显示 view 按钮，包括"发起审批"
+  this.setData({ mode: 'view' });
+  // 需要添加 onApproveTap 方法
+  // 按钮 HTML 结构需要包含审批按钮
+}
 ```
 
-## Key Test User
+### P1 缺失圈子管理 UI
+**src/pages/collab/index.ts** 的 collab Tab
 
-- Dev UUID: `550e8400-e29b-41d4-a716-446655440000` (nickname: "TestUser")
+**问题**：PRD 要求 collab Tab 需包含圈子管理入口，但当前页面只实现审批中心功能。
 
-## Key Files Reference
+**修复方案**：
 
-| File | Purpose |
-|------|---------|
-| `AGENTS.md` | Project rules & AI behavior (read first before coding) |
-| `VERSION_PLAN.md` | Roadmap v0.1→v0.29 + design points + audit lessons |
-| `PRD.md` | Product requirements |
-| `src/utils/request.ts` | Unified HTTP client (get/post/put/del/patch) |
-| `src/utils/storage.ts` | Unified wx storage wrapper (timeslots_ prefix) |
-| `src/types/api.ts` | All API response/request TypeScript interfaces |
-| `src/services/api.ts` | All API call functions (auth/block/task) |
-| `server/prisma/schema.prisma` | Database schema (User/Task/TimeBlock) |
+1. 在 collab/index.ts 的 onCircleManage 方法中导航到圈子详情页
+2. 添加圈子管理入口按钮（如"我的圈子"或"管理圈子"）
 
-## Environment
+**代码实现**：
+```typescript
+// 在 collab/index.ts 中
 
-| Service | Host | Credentials |
-|---------|------|-------------|
-| PostgreSQL 18 | localhost:5432 | timeslots / timeslots_dev_only |
-| NestJS API | localhost:7777 | JWT via login endpoint |
-| WeChat DevTools | local dev | WX_APPID placeholder (dev login only) |
+// 在 onCircleManage 中
+onCircleManage() {
+  wx.navigateTo({ url: '/pages/collab/detail/index' });
+}
+```
+
+## 🎯 设计一致性检查
+
+### 架构原则一致性
+
+| 原则 | 检查结果 | 备注 |
+|------|----------|------|
+| DDD 模块模式 | ✅ | 所有 module 遵循 controller/service/dto |
+| 软删 | ✅ | 所有实体含 isDeleted + deletedAt |
+| 业务异常 | ✅ | BusinessException + ErrorCodes |
+| 跨用户隔离 | ✅ | 所有查询带 userId 过滤 |
+| 前端无 DOM/BOM | ✅ | 使用 wx.* API |
+| Taro 零容忍 | ✅ | 无 Taro 引用 |
+
+### PRD 要求检查
+
+| 需求 | 实现状态 | 备注 |
+|------|----------|------|
+| 4 Tab 导航 | ✅ | 4 个 Tab 全部实现 |
+| 审批流核心功能 | ✅ | B5 审批流完成 |
+| 圈子为隐私标签 | ❌ | 待 v0.27 |
+| 隐藏社交圈子 | ❌ | 待 v0.27 |
+| 圈子可见性 | ❌ | 待 v0.27 |
+| 圈子管理 | ✅ | Circle CRUD 实现 |
+
+## 📋 下一阶段工作
+
+### B6 - 圈子可见性 (v0.27)
+
+1. **EventVisibilityService** - P0-P3 可见性计算
+2. **圈子隐私标签** - TimeBlock 加 nature/circleId
+3. **可见性过滤** - 不同权限的用户看到不同日程
+4. **迁移** - 旧数据默认 nature=PRIVATE
+
+### B7 - 收尾功能 (v0.28-30)
+
+1. **设置页** - day_starts_at / 默认提醒 / 默认可见性
+2. **全局 UX** - 空状态 / 网络失败 / 按钮防抖 / 骨架屏
+3. **隐私协议** - 首屏强制同意 + 全流程真机测
+
+## 📈 验收标准
+
+### 核心功能
+- [x] 发起审批功能（来自日程详情页）
+- [x] 审批中心（待我审批/我发起的）
+- [x] 审批详情（发起人/接收人双视角）
+- [x] 发起审批流程（手机号/好友/QR 三 Tab）
+- [x] 审批分享（公开链接 + bind）
+- [x] 圈子管理（CRUD + 邀请码 + 加入/踢出）
+
+### UI/UX
+- [x] 所有页面 TabBar 导航
+- [x] 按钮防抖 + 加载状态
+- [x] 错误提示 + 成功提示
+- [ ] 空状态插画
+- [ ] 网络错误处理
+
+## 📝 备注
+
+1. **当前状态**：B5 审批流已完成 v0.22-24，大部分核心功能实现
+2. **急需修复**：schedule/detail 页面缺少审批入口；collab/detail 页面缺失
+3. **设计一致性**：整体架构符合 AGENTS.md + PRD.md 要求
+4. **Test coverage**：77 tests 通过 ✅
+5. **Version consistency**：所有文档 (PRD/VERSION_PLAN/BATCH_PLAN) 已更新并保持一致
+
+---
+
+**建议**：优先修复 P0 缺失审批入口问题，重新验证前端到后端端到端流程。

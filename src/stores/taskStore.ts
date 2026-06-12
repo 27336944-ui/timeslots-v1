@@ -45,12 +45,15 @@ export const taskStore: TaskStore = observable({
     this.loading = true;
     this.error = '';
     try {
-      const [tasks, stats] = await Promise.all([getMyTasks(), getTaskStats()]);
-      this.tasks = tasks;
-      this.stats = stats;
+      this.tasks = await getMyTasks();
     } catch (e) {
       this.error = (e as Error).message || '加载失败';
       this.tasks = [];
+    }
+    try {
+      this.stats = await getTaskStats();
+    } catch {
+      // stats failure should not block task list
     } finally {
       this.loading = false;
     }

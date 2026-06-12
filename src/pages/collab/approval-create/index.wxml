@@ -1,0 +1,33 @@
+<view class="page">
+  <privacy-agreement />
+  <view class="section">
+    <view class="section-title">日程信息</view>
+    <view class="block-info">{{blockTitle}}</view>
+    <view class="block-time">{{blockStartTime}} - {{blockEndTime}}</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">选择邀请方式</view>
+    <view class="tab-bar">
+      <view class="tab-item {{contactTab === 'phone' ? 'active' : ''}}" bindtap="onTabPhone">手机号</view>
+      <view class="tab-item {{contactTab === 'friend' ? 'active' : ''}}" bindtap="onTabFriend">微信好友</view>
+      <view class="tab-item {{contactTab === 'qr' ? 'active' : ''}}" bindtap="onTabQR">二维码</view>
+    </view>
+
+    <view wx:if="{{contactTab === 'phone'}}" class="recipient-input-area">
+      <input class="phone-input" placeholder="输入手机号" value="{{phoneInput}}" bindinput="onPhoneInput" maxlength="11" type="number" />
+      <button class="btn-primary" bindtap="onAddPhone">添加</button>
+      <view wx:for="{{phoneList}}" wx:key="*this" class="recipient-tag">{{item}} <text bindtap="onRemovePhone" data-value="{{item}}"> ×</text></view>
+    </view>
+
+    <view wx:if="{{contactTab === 'friend'}}" class="recipient-input-area">
+      <text>将审批卡片分享到微信聊天，好友打开即可查看</text>
+    </view>
+
+    <view wx:if="{{contactTab === 'qr'}}" class="recipient-input-area">
+      <text>展示二维码，对方扫码后可查看审批详情</text>
+    </view>
+  </view>
+
+  <button wx:if="{{recipients.length > 0}}" class="btn-primary" bindtap="onSubmit">发起审批 ({{recipients.length}}人)</button>
+</view>

@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 
-const SOFT_DELETE_MODELS = ['Task', 'TimeBlock'];
+const SOFT_DELETE_MODELS = ['Task', 'TimeBlock', 'Reminder', 'Circle', 'CircleMember', 'ApprovalRequest', 'ApprovalRecipient'];
 
 
 function createExtendedClient(): PrismaClient {

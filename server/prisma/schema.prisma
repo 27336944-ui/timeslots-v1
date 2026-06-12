@@ -19,12 +19,18 @@ model User {
   deletedAt    DateTime?        @db.Timestamptz
   restoreToken String?
   version      Int              @default(1)
+  settings     Json?
 
   createdAt DateTime         @default(now()) @db.Timestamptz
   updatedAt DateTime         @updatedAt @db.Timestamptz
 
-  timeBlocks TimeBlock[]
-  tasks      Task[]
+  timeBlocks    TimeBlock[]
+  tasks         Task[]
+  reminders     Reminder[]
+  circlesOwned  Circle[]
+  circleMembers CircleMember[]
+  initiatedApprovals ApprovalRequest[]
+  approvalSlots      ApprovalRecipient[]
 
   @@index([openid])
   @@map("users")
@@ -70,9 +76,13 @@ model TimeBlock {
   description String?
   priority    String   @default("medium")
   category    String   @default("life")
-  recurrence  String   @default("none")
+  recurrence     String     @default("none")
+  recurrenceEndAt DateTime?  @db.Timestamptz
   contacts    String?
   weather     String?
+
+  nature    String   @default("PUBLIC")
+  circleId  String?
 
   isDeleted Boolean  @default(false)
   deletedAt DateTime? @db.Timestamptz
@@ -82,13 +92,168 @@ model TimeBlock {
   updatedAt DateTime  @updatedAt @db.Timestamptz
 
   taskId  String?
-  task    Task?   @relation(fields: [taskId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  task             Task?              @relation(fields: [taskId], references: [id])
+  user             User               @relation(fields: [userId], references: [id])
+  circle           Circle?            @relation(fields: [circleId], references: [id])
+  reminders        Reminder[]
+  approvalRequests ApprovalRequest[]
+  recipientBlocks  ApprovalRecipient[]
 
   @@index([userId])
   @@index([startTime])
   @@index([taskId])
+  @@index([circleId])
   @@map("time_blocks")
 }
 
+model Circle {
+  id          String   @id @default(uuid())
+  ownerId     String
+  name        String
+  description String?
+  inviteCode  String   @unique
+  status      String   @default("active")
 
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  owner   User           @relation(fields: [ownerId], references: [id])
+  members CircleMember[]
+  timeBlocks TimeBlock[]
+
+  @@index([ownerId])
+  @@index([inviteCode])
+  @@map("circles")
+}
+
+model CircleMember {
+  id       String @id @default(uuid())
+  circleId String
+  userId   String
+  role     String @default("MEMBER")
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  circle Circle @relation(fields: [circleId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
+  @@map("circle_members")
+}
+
+model Reminder {
+  id        String   @id @default(uuid())
+  userId    String
+  blockId   String
+  remindAt  DateTime @db.Timestamptz
+  leadMinutes Int    @default(15)
+  status    String   @default("PENDING")
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  user  User      @relation(fields: [userId], references: [id])
+  block TimeBlock @relation(fields: [blockId], references: [id])
+
+  @@index([userId])
+  @@index([blockId])
+  @@index([remindAt, status])
+  @@map("reminders")
+}
+
+enum ApprovalRequestStatus {
+  pending
+  partial
+  completed
+  cancelled
+}
+
+enum ContactType {
+  friend
+  phone
+  qr
+}
+
+enum ApprovalRecipientStatus {
+  pending
+  approved
+  rejected
+  expired
+}
+
+model ApprovalRequest {
+  id          String   @id @default(uuid())
+  initiatorId String
+  blockId     String
+
+  title       String
+  startTime   DateTime @db.Timestamptz
+  endTime     DateTime @db.Timestamptz
+  description String?
+  category    String   @default("life")
+
+  status      ApprovalRequestStatus @default(pending)
+  shareToken  String   @unique
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  initiator   User               @relation(fields: [initiatorId], references: [id])
+  block       TimeBlock          @relation(fields: [blockId], references: [id])
+  recipients  ApprovalRecipient[]
+
+  @@index([initiatorId])
+  @@index([blockId])
+  @@index([shareToken])
+  @@map("approval_requests")
+}
+
+model ApprovalRecipient {
+  id         String   @id @default(uuid())
+  requestId  String
+
+  contactType  ContactType
+  contactValue String?
+  userId       String?
+
+  status   ApprovalRecipientStatus @default(pending)
+  blockId  String?
+
+  notifiedAt   DateTime? @db.Timestamptz
+  respondedAt  DateTime? @db.Timestamptz
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  request   ApprovalRequest @relation(fields: [requestId], references: [id])
+  recipient User?           @relation(fields: [userId], references: [id])
+  block     TimeBlock?      @relation(fields: [blockId], references: [id])
+
+  @@unique([requestId, contactType, contactValue])
+  @@index([requestId])
+  @@index([userId])
+  @@map("approval_recipients")
+}

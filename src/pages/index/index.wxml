@@ -1,6 +1,6 @@
 
 <view class="container">
-  
+  <privacy-agreement />
   <view class="card {{connected ? 'success' : 'error'}}">
     <view class="status-row">
       

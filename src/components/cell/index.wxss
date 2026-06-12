@@ -2,16 +2,16 @@
   display: flex;
   align-items: center;
   padding: 28rpx 32rpx;
-  background: #fff;
+  background: var(--ts-bg-card);
   min-height: 96rpx;
 }
 
 .cell-bordered {
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--ts-border-light);
 }
 
 .cell:active {
-  background: #F8F8F8;
+  background: var(--ts-bg-disabled);
 }
 
 .cell-body {
@@ -28,21 +28,21 @@
 
 .cell-title {
   display: block;
-  font-size: 28rpx;
-  color: #1A1A1A;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
   line-height: 1.4;
 }
 
 .cell-desc {
   display: block;
-  font-size: 24rpx;
-  color: #999;
+  font-size: var(--ts-font-tiny);
+  color: var(--ts-text-tertiary);
   margin-top: 4rpx;
   line-height: 1.3;
 }
 
 .cell-arrow {
-  font-size: 36rpx;
+  font-size: var(--ts-font-title1);
   color: #CCC;
   margin-left: 8rpx;
 }

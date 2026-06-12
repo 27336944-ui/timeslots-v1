@@ -1,6 +1,12 @@
 
 import { get, post, del, patch } from '../utils/request';
-import type { HealthData, LoginResponse, TimeBlock, Task, TaskStats } from '../types/api';
+import type {
+  HealthData, LoginResponse, TimeBlock, Task, TaskStats, Reminder,
+  Circle, InviteResponse, UserSettings,
+} from '../types/api';
+import type {
+  ApprovalRequest, ApprovalPendingItem, ApprovalShareInfo, RecipientInput,
+} from '../types/approval';
 
 
 export function healthCheck(): Promise<HealthData> {
@@ -53,6 +59,11 @@ export function getMyBlocksByDate(date: string): Promise<TimeBlock[]> {
 }
 
 
+export function getMyBlocksByDateRange(start: string, end: string): Promise<Record<string, TimeBlock[]>> {
+  return get<Record<string, TimeBlock[]>>(`/api/v1/time-blocks/by-date-range?start=${start}&end=${end}`);
+}
+
+
 export function getBlockById(id: string): Promise<TimeBlock> {
   return get<TimeBlock>(`/api/v1/time-blocks/${id}`);
 }
@@ -71,6 +82,8 @@ export function createBlock(data: {
   contacts?: string;
   weather?: string;
   taskId?: string;
+  nature?: string;
+  circleId?: string;
 }): Promise<TimeBlock> {
   return post<TimeBlock>('/api/v1/time-blocks', data);
 }
@@ -95,6 +108,9 @@ export function updateBlock(
     recurrence?: string;
     contacts?: string;
     weather?: string;
+    taskId?: string;
+    nature?: string;
+    circleId?: string;
   },
 ): Promise<TimeBlock> {
   return patch<TimeBlock>(`/api/v1/time-blocks/${id}`, data);
@@ -157,4 +173,132 @@ export function updateTask(id: string, data: {
 
 export function deleteTask(id: string): Promise<{ deleted: boolean }> {
   return del<{ deleted: boolean }>(`/api/v1/tasks/${id}`);
+}
+
+
+export function getRemindersByBlock(blockId: string): Promise<Reminder[]> {
+  return get<Reminder[]>(`/api/v1/reminders/block/${blockId}`);
+}
+
+
+export function createReminder(data: {
+  blockId: string;
+  leadMinutes: number;
+}): Promise<Reminder> {
+  return post<Reminder>('/api/v1/reminders', data);
+}
+
+
+export function updateReminder(
+  id: string,
+  data: { leadMinutes?: number; status?: string },
+): Promise<Reminder> {
+  return patch<Reminder>(`/api/v1/reminders/${id}`, data);
+}
+
+
+export function deleteReminder(id: string): Promise<{ deleted: boolean }> {
+  return del<{ deleted: boolean }>(`/api/v1/reminders/${id}`);
+}
+
+
+export function createCircle(data: { name: string; description?: string }): Promise<Circle> {
+  return post<Circle>('/api/v1/circles', data);
+}
+
+
+export function getMyCircles(): Promise<Circle[]> {
+  return get<Circle[]>('/api/v1/circles/my');
+}
+
+
+export function getCircleDetail(id: string): Promise<Circle> {
+  return get<Circle>(`/api/v1/circles/${id}`);
+}
+
+
+export function getSettings(): Promise<UserSettings> {
+  return get<UserSettings>('/api/v1/auth/settings');
+}
+
+export function updateSettings(data: Partial<UserSettings>): Promise<UserSettings> {
+  return patch<UserSettings>('/api/v1/auth/settings', data);
+}
+
+export function updateCircle(id: string, data: {
+  name?: string; description?: string; status?: string;
+}): Promise<Circle> {
+  return patch<Circle>(`/api/v1/circles/${id}`, data);
+}
+
+
+export function deleteCircle(id: string): Promise<{ deleted: boolean }> {
+  return del<{ deleted: boolean }>(`/api/v1/circles/${id}`);
+}
+
+
+export function generateInviteCode(circleId: string): Promise<InviteResponse> {
+  return post<InviteResponse>(`/api/v1/circles/${circleId}/invite`);
+}
+
+
+export function joinCircleByCode(code: string): Promise<Circle> {
+  return post<Circle>(`/api/v1/circles/join/${code}`);
+}
+
+
+export function leaveCircle(circleId: string): Promise<{ deleted: boolean }> {
+  return post<{ deleted: boolean }>(`/api/v1/circles/${circleId}/leave`);
+}
+
+
+export function removeCircleMember(circleId: string, memberId: string): Promise<{ deleted: boolean }> {
+  return del<{ deleted: boolean }>(`/api/v1/circles/${circleId}/members/${memberId}`);
+}
+
+
+// ---- Approval APIs ----
+
+export function createApproval(data: { blockId: string; recipients: RecipientInput[] }): Promise<ApprovalRequest> {
+  return post<ApprovalRequest>('/api/v1/approvals', data);
+}
+
+
+export function getMyInitiatedApprovals(): Promise<ApprovalRequest[]> {
+  return get<ApprovalRequest[]>('/api/v1/approvals/my-initiated');
+}
+
+
+export function getMyPendingApprovals(): Promise<ApprovalPendingItem[]> {
+  return get<ApprovalPendingItem[]>('/api/v1/approvals/my-pending');
+}
+
+
+export function getApprovalDetail(id: string): Promise<ApprovalRequest> {
+  return get<ApprovalRequest>(`/api/v1/approvals/${id}`);
+}
+
+
+export function respondApproval(requestId: string, recipientId: string, action: 'approve' | 'reject'): Promise<{ action: string; ok: boolean }> {
+  return patch<{ action: string; ok: boolean }>(`/api/v1/approvals/${requestId}/recipients/${recipientId}`, { action });
+}
+
+
+export function resendApproval(requestId: string, recipientId: string): Promise<{ ok: boolean }> {
+  return post<{ ok: boolean }>(`/api/v1/approvals/${requestId}/recipients/${recipientId}/resend`);
+}
+
+
+export function cancelApproval(id: string): Promise<{ ok: boolean }> {
+  return post<{ ok: boolean }>(`/api/v1/approvals/${id}/cancel`);
+}
+
+
+export function getApprovalByShareToken(token: string): Promise<ApprovalShareInfo> {
+  return get<ApprovalShareInfo>(`/api/v1/approvals/shared/${token}`);
+}
+
+
+export function bindApprovalRecipient(requestId: string): Promise<{ recipientId: string }> {
+  return post<{ recipientId: string }>(`/api/v1/approvals/${requestId}/bind`);
 }

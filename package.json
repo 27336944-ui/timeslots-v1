@@ -12,13 +12,15 @@
     "format:check": "prettier --check \"src/**/*.{ts,wxml,wxss,json}\" \"server/src/**/*.ts\"",
     "server:dev": "cd server && npx nest start --watch",
     "server:build": "cd server && npx nest build",
-    "server:start": "cd server && node dist/main.js"
+    "server:start": "cd server && node dist/main.js",
+    "prepare": "husky"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
     "miniprogram-api-typings": "^3.12.0",
     "prettier": "^3.3.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.61.0"
   },
   "dependencies": {
     "mobx-miniprogram": "^4.13.0",

@@ -1,0 +1,33 @@
+<view class="page">
+  <privacy-agreement />
+  <view wx:if="{{!isLoggedIn}}" class="login-hint">
+    <text>请先登录后查看审批邀请</text>
+    <view class="login-btn" bindtap="onLogin">去登录</view>
+  </view>
+
+  <view wx:if="{{isLoggedIn && shareInfo}}">
+    <view class="share-card">
+      <view class="initiator-info">
+        <text class="avatar">{{shareInfo.initiator.nickname[0]}}</text>
+        <text class="initiator-name">{{shareInfo.initiator.nickname}} 邀请你</text>
+      </view>
+      <view class="block-title">{{shareInfo.title}}</view>
+      <view class="block-time">{{shareInfo.startTime}} - {{shareInfo.endTime}}</view>
+      <view wx:if="{{shareInfo.description}}" class="block-desc">{{shareInfo.description}}</view>
+    </view>
+
+    <view wx:if="{{showActions}}" class="action-bar">
+      <button class="btn-reject" bindtap="onReject">拒绝</button>
+      <button class="btn-approve" bindtap="onApprove">同意</button>
+    </view>
+
+    <view wx:if="{{!showActions && responded}}" class="login-hint">
+      <text wx:if="{{respondAction === 'approve'}}">你已同意此日程</text>
+      <text wx:if="{{respondAction === 'reject'}}">你已拒绝此日程</text>
+    </view>
+  </view>
+
+  <view wx:if="{{isLoggedIn && !shareInfo}}" class="login-hint">
+    <text>加载中...</text>
+  </view>
+</view>

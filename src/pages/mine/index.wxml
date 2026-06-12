@@ -1,6 +1,9 @@
 
 <view class="container">
-  
+  <privacy-agreement />
+  <view class="top-bar">
+    <view class="top-bar-title">我的</view>
+  </view>
   <view class="profile" wx:if="{{isLoggedIn && user && user.nickname}}">
     <image wx:if="{{user.avatar}}" class="avatar avatar-img" src="{{user.avatar}}" />
     <view wx:else class="avatar">{{user.nickname[0]}}</view>
@@ -26,6 +29,33 @@
   </view>
 
   
+  <view wx:if="{{isLoggedIn && stats}}" class="stats-section">
+    <view class="stat-card">
+      <text class="stat-value">{{stats.total}}</text>
+      <text class="stat-label">全部任务</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{stats.done}}</text>
+      <text class="stat-label">已完成</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value {{stats.overdue > 0 ? 'stat-warning' : ''}}">{{stats.overdue}}</text>
+      <text class="stat-label">逾期</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{stats.weekDue}}</text>
+      <text class="stat-label">本周截止</text>
+    </view>
+  </view>
+
+  <view class="settings-section" wx:if="{{isLoggedIn}}">
+    <view class="settings-row" bindtap="onSettingsTap">
+      <text class="settings-icon">⚙️</text>
+      <text class="settings-text">设置</text>
+      <text class="settings-arrow">›</text>
+    </view>
+  </view>
+
   <view class="logout-section" wx:if="{{isLoggedIn}}">
     <button class="btn btn-danger" bindtap="onLogoutTap">退出登录</button>
     <view class="delete-row">

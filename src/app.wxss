@@ -2,9 +2,10 @@
 @import './styles/tokens.wxss';
 
 page {
-  background-color: #f5f5f5;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: #1a1a1a;
-  font-size: 28rpx;
+  background-color: var(--ts-bg-page);
+  font-family: var(--ts-font-family);
+  -webkit-font-smoothing: antialiased;
+  color: var(--ts-text-primary);
+  font-size: var(--ts-font-body);
   box-sizing: border-box;
 }

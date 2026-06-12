@@ -1,12 +1,18 @@
 
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BusinessException, ErrorCodes } from '../../common/exceptions/business-exception';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
 import { TaskStatsDto } from './dto/task-stats.dto';
 
+
+function isValidSteps(steps: unknown): steps is { text: string; isDone: boolean }[] {
+  if (!Array.isArray(steps)) return false;
+  return steps.every(s => typeof s === 'object' && s !== null && 'text' in s && 'isDone' in s && typeof s.text === 'string' && typeof s.isDone === 'boolean');
+}
 
 function toResponse(task: {
   id: string;
@@ -29,7 +35,7 @@ function toResponse(task: {
     userId: task.userId,
     title: task.title,
     goal: task.goal,
-    steps: task.steps as { text: string; isDone: boolean }[] | null,
+    steps: isValidSteps(task.steps) ? task.steps : null,
     status: task.status,
     priority: task.priority,
     category: task.category,
@@ -66,7 +72,7 @@ export class TaskService {
 
   async findMyTasks(userId: string): Promise<TaskResponseDto[]> {
     const tasks = await this.prisma.client.task.findMany({
-      where: { userId, isDeleted: false },
+      where: { userId },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -75,15 +81,15 @@ export class TaskService {
 
   async findById(userId: string, id: string): Promise<TaskResponseDto> {
     const task = await this.prisma.client.task.findFirst({
-      where: { id, isDeleted: false },
+      where: { id },
     });
 
     if (!task) {
-      throw new NotFoundException('任务不存在');
+      throw new BusinessException(ErrorCodes.TASK_NOT_FOUND, '任务不存在', HttpStatus.NOT_FOUND);
     }
 
     if (task.userId !== userId) {
-      throw new ForbiddenException('无权访问该任务');
+      throw new BusinessException(ErrorCodes.FORBIDDEN, '无权访问该任务', HttpStatus.FORBIDDEN);
     }
 
     return toResponse(task);
@@ -91,11 +97,11 @@ export class TaskService {
 
   async findByCategory(userId: string, category: string): Promise<TaskResponseDto[]> {
     if (!['work', 'life', 'private'].includes(category)) {
-      throw new BadRequestException('分类无效，应为 work/life/private');
+      throw new BusinessException(ErrorCodes.INVALID_CATEGORY, '分类无效，应为 work/life/private');
     }
 
     const tasks = await this.prisma.client.task.findMany({
-      where: { userId, category, isDeleted: false },
+      where: { userId, category },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -104,15 +110,15 @@ export class TaskService {
 
   async update(userId: string, id: string, dto: UpdateTaskDto): Promise<TaskResponseDto> {
     const task = await this.prisma.client.task.findFirst({
-      where: { id, isDeleted: false },
+      where: { id },
     });
 
     if (!task) {
-      throw new NotFoundException('任务不存在');
+      throw new BusinessException(ErrorCodes.TASK_NOT_FOUND, '任务不存在', HttpStatus.NOT_FOUND);
     }
 
     if (task.userId !== userId) {
-      throw new ForbiddenException('无权修改该任务');
+      throw new BusinessException(ErrorCodes.FORBIDDEN, '无权修改该任务', HttpStatus.FORBIDDEN);
     }
 
     const updated = await this.prisma.client.task.update({
@@ -136,15 +142,15 @@ export class TaskService {
 
   async softDelete(userId: string, id: string): Promise<void> {
     const task = await this.prisma.client.task.findFirst({
-      where: { id, isDeleted: false },
+      where: { id },
     });
 
     if (!task) {
-      throw new NotFoundException('任务不存在');
+      throw new BusinessException(ErrorCodes.TASK_NOT_FOUND, '任务不存在', HttpStatus.NOT_FOUND);
     }
 
     if (task.userId !== userId) {
-      throw new ForbiddenException('无权删除该任务');
+      throw new BusinessException(ErrorCodes.FORBIDDEN, '无权删除该任务', HttpStatus.FORBIDDEN);
     }
 
     await this.prisma.client.task.update({
@@ -155,7 +161,7 @@ export class TaskService {
 
   async getStats(userId: string): Promise<TaskStatsDto> {
     const tasks = await this.prisma.client.task.findMany({
-      where: { userId, isDeleted: false },
+        where: { userId },
       select: { id: true, status: true, dueAt: true },
     });
 
@@ -195,7 +201,7 @@ export class TaskService {
     const total = tasks.length;
 
     const taskIdsWithBlock = await this.prisma.client.timeBlock.findMany({
-      where: { userId, isDeleted: false, taskId: { not: null } },
+      where: { userId, taskId: { not: null } },
       select: { taskId: true },
       distinct: ['taskId'],
     });

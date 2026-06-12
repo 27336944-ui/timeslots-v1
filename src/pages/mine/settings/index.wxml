@@ -1,0 +1,36 @@
+<view class="page">
+  <privacy-agreement />
+  <view class="form-group">
+    <view class="form-item">
+      <view class="form-label">日起始时间</view>
+      <picker mode="time" value="{{dayStartsAt}}" bindchange="onDayStartsAtChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{dayStartsAt}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+      <text class="form-hint">影响日程列表每日起始显示</text>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">默认提醒</view>
+      <picker mode="selector" range="{{reminderOptions}}" range-key="label" value="{{reminderIndex}}" bindchange="onReminderChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{reminderLabel}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">默认可见性</view>
+      <view class="form-btn-group">
+        <view class="form-btn {{defaultNature === 'PUBLIC' ? 'active-public' : ''}}" bindtap="onNatureChange" data-value="PUBLIC">公开</view>
+        <view class="form-btn {{defaultNature === 'PRIVATE' ? 'active-private' : ''}}" bindtap="onNatureChange" data-value="PRIVATE">私有</view>
+        <view class="form-btn {{defaultNature === 'CIRCLE_ONLY' ? 'active-circle' : ''}}" bindtap="onNatureChange" data-value="CIRCLE_ONLY">圈子可见</view>
+      </view>
+    </view>
+  </view>
+
+  <button class="save-btn" bindtap="onSave">{{saving ? '保存中...' : '保存设置'}}</button>
+</view>

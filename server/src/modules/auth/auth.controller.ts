@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Patch, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Delete, Patch, Get, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -6,6 +6,7 @@ import { LoginDto, LoginResponseDto } from './dto/login.dto';
 import { WxLoginDto } from './dto/wx-login.dto';
 import { MigrateDevDataDto } from './dto/migrate-dev-data.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { RestoreAccountDto } from './dto/restore-account.dto';
 
 
@@ -33,6 +34,25 @@ export class AuthController {
     @Body() dto: UpdateProfileDto,
   ): Promise<{ id: string; nickname: string; avatar: string | null }> {
     return this.authService.updateProfile(userId, dto);
+  }
+
+  @Get('settings')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getSettings(
+    @CurrentUser('userId') userId: string,
+  ): Promise<Record<string, unknown>> {
+    return this.authService.getSettings(userId);
+  }
+
+  @Patch('settings')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async updateSettings(
+    @CurrentUser('userId') userId: string,
+    @Body() dto: UpdateSettingsDto,
+  ): Promise<Record<string, unknown>> {
+    return this.authService.updateSettings(userId, dto);
   }
 
   @Delete('account')

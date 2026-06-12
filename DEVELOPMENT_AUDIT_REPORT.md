@@ -1,5 +1,9 @@
 # timeslots-v1 开发情况检查报告
 
+> **⚠️ 本报告已过时**（基于 2026-06-10 早期版本计划，当时 v0.22-26 仍规划为"可见性/评论/RSVP"）
+> 当前版本计划已改为**审批流优先**（v0.22-26），详见 `VERSION_PLAN.md` + `conversations/BATCH_PLAN.md`
+> 本文件保留仅作历史参考，不反映当前架构决策
+
 > 生成时间：2025-06-10
 > 检查范围：前端 `src/` + 后端 `server/src/` + 配置文件
 > 依据文档：`VERSION_PLAN.md` + `PRD.md` + `AGENTS.md`

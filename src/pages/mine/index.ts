@@ -2,7 +2,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings';
 import { authStore } from '../../stores/authStore';
 import { userStore } from '../../stores/userStore';
-import { login, wxLogin, migrateDevData, deleteDevData, deleteAccount, restoreAccount } from '../../services/api';
+import { login, wxLogin, migrateDevData, deleteDevData, deleteAccount, restoreAccount, getTaskStats } from '../../services/api';
 import { storage } from '../../utils/storage';
 
 
@@ -20,6 +20,7 @@ interface MinePageData {
   showRestoreModal: boolean;
   restoreUserId: string;
   restoring: boolean;
+  stats: { total: number; done: number; overdue: number; weekDue: number } | null;
 }
 
 
@@ -32,6 +33,8 @@ interface MinePageMethods {
   onMigrateConfirm: () => void;
   onMigrateSkip: () => void;
   onDeleteAccountTap: () => void;
+  onSettingsTap: () => void;
+  loadStats: () => Promise<void>;
   onRestoreTap: () => void;
   onRestoreCancel: () => void;
   showMigrationDialog: () => void;
@@ -51,6 +54,7 @@ Page<MinePageData, MinePageMethods>({
     showRestoreModal: false,
     restoreUserId: '',
     restoring: false,
+    stats: null,
   },
 
   onLoad() {
@@ -62,6 +66,14 @@ Page<MinePageData, MinePageMethods>({
       store: userStore,
       fields: ['user'],
     });
+  },
+
+  onShow() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+    (this as any).getTabBar?.().setData({ selected: 3 });
+    if (authStore.isLoggedIn) {
+      this.loadStats();
+    }
   },
 
   onUnload() {
@@ -78,13 +90,14 @@ Page<MinePageData, MinePageMethods>({
   },
 
   async onLoginTap() {
+    if (this.data.loading) return;
     const id = this.data.userId.trim();
     if (!id) {
-      wx.showToast({ title: '请输入用户 ID', icon: 'none' });
+      wx.showToast({ title: '请输入用�?ID', icon: 'none' });
       return;
     }
     if (!UUID_RE.test(id)) {
-      wx.showToast({ title: '请输入有效的用户 ID（UUID 格式）', icon: 'none' });
+      wx.showToast({ title: '请输入有效的用户 ID（UUID 格式�?, icon: 'none' });
       return;
     }
     this.setData({ loading: true });
@@ -96,7 +109,7 @@ Page<MinePageData, MinePageMethods>({
       this.setData({ userId: '' });
     } catch (e) {
       const msg = (e as Error).message || '登录失败';
-      if (msg.includes('账号待删除')) {
+      if (msg.includes('账号待删�?)) {
         this.setData({ showRestoreModal: true, restoreUserId: id });
       } else {
         wx.showToast({ title: msg, icon: 'none' });
@@ -142,7 +155,7 @@ Page<MinePageData, MinePageMethods>({
       return;
     }
     if (!UUID_RE.test(id)) {
-      wx.showToast({ title: 'UUID 格式不正确', icon: 'none' });
+      wx.showToast({ title: 'UUID 格式不正�?, icon: 'none' });
       return;
     }
     this.setData({ migrating: true });
@@ -177,7 +190,7 @@ Page<MinePageData, MinePageMethods>({
   onDeleteAccountTap() {
     wx.showModal({
       title: '注销账号',
-      content: '确定要注销账号吗？7 天内可以恢复，7 天后账号将永久删除。所有日程数据将被隐藏。',
+      content: '确定要注销账号吗？7 天内可以恢复�? 天后账号将永久删除。所有日程数据将被隐藏�?,
       success: async (res) => {
         if (!res.confirm) return;
         try {
@@ -196,12 +209,12 @@ Page<MinePageData, MinePageMethods>({
   async onRestoreTap() {
     const id = this.data.restoreUserId.trim() || this.data.userId.trim();
     if (!UUID_RE.test(id)) {
-      wx.showToast({ title: '无效的用户 ID', icon: 'none' });
+      wx.showToast({ title: '无效的用�?ID', icon: 'none' });
       return;
     }
     const restoreToken = storage.get('restore_token');
     if (!restoreToken) {
-      wx.showToast({ title: '未找到恢复令牌，请通过管理员恢复', icon: 'none' });
+      wx.showToast({ title: '未找到恢复令牌，请通过管理员恢�?, icon: 'none' });
       return;
     }
     this.setData({ restoring: true });
@@ -210,7 +223,7 @@ Page<MinePageData, MinePageMethods>({
       storage.remove('restore_token');
       authStore.setToken(res.accessToken);
       userStore.setUser(res.user);
-      wx.showToast({ title: '账号已恢复', icon: 'success' });
+      wx.showToast({ title: '账号已恢�?, icon: 'success' });
       this.setData({ showRestoreModal: false, restoreUserId: '' });
     } catch (e) {
       wx.showToast({ title: (e as Error).message || '恢复失败', icon: 'none' });
@@ -223,17 +236,32 @@ Page<MinePageData, MinePageMethods>({
     this.setData({ showRestoreModal: false, restoreUserId: '' });
   },
 
+  onSettingsTap() {
+    wx.navigateTo({ url: '/pages/mine/settings/index' });
+  },
+
+  async loadStats() {
+    try {
+      const s = await getTaskStats();
+      this.setData({
+        stats: { total: s.total, done: s.done, overdue: s.overdue, weekDue: s.week },
+      });
+    } catch {
+      // stats are non-critical
+    }
+  },
+
   onLogoutTap() {
     if (this.data.loggingOut) return;
     this.setData({ loggingOut: true });
     wx.showModal({
-      title: '退出登录',
-      content: '确定要退出登录吗？',
+      title: '退出登�?,
+      content: '确定要退出登录吗�?,
       success: (res) => {
         if (res.confirm) {
           authStore.clearToken();
           userStore.clearUser();
-          wx.showToast({ title: '已退出', icon: 'success' });
+          wx.showToast({ title: '已退�?, icon: 'success' });
         }
       },
       complete: () => {

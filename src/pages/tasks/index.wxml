@@ -1,5 +1,17 @@
 
 <scroll-view class="page" scroll-y refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onRefresh">
+  <privacy-agreement />
+  <view class="top-bar">
+    <view class="top-bar-title">任务</view>
+    <view class="top-bar-actions">
+      <view class="top-btn top-btn-search" bindtap="onSearchTap">🔍</view>
+      <view class="top-btn top-btn-plus" bindtap="onCreateTap">+</view>
+    </view>
+  </view>
+  <view wx:if="{{showSearch}}" class="search-bar">
+    <input class="search-input" placeholder="搜索任务标题…" value="{{searchKeyword}}" bindinput="onSearchInput" focus="{{true}}" />
+    <view class="search-cancel" bindtap="onSearchClose">取消</view>
+  </view>
   <!-- Stats cards row 1 -->
   <view class="stats-row" wx:if="{{stats}}">
     <view class="stat-card">
@@ -50,14 +62,17 @@
   <!-- Task list -->
   <view class="task-list">
     <view wx:if="{{displayTasks.length === 0 && !loading}}" class="empty-state">
-      <text class="empty-icon">📋</text>
+      <view class="empty-icon"></view>
       <text class="empty-text">暂无任务</text>
       <text class="empty-hint">点击下方按钮创建新任务</text>
     </view>
 
-    <view wx:for="{{displayTasks}}" wx:key="id" class="task-card" data-id="{{item.id}}" bindtap="onTaskTap">
+    <view wx:for="{{displayTasks}}" wx:key="id" class="task-card" data-id="{{item.id}}" bindtap="onTaskTap" bindtouchstart="onTaskTouchStart" bindtouchmove="onTaskTouchMove" bindtouchend="onTaskTouchEnd" style="transform: translateX({{swipeOffset[item.id] || 0}}rpx); transition: transform 0.2s ease">
       <view class="task-left">
         <view class="task-title {{item._isDone ? 'task-title-done' : ''}}">{{item.title}}</view>
+        <view wx:if="{{item._progress > 0 && item._progress < 100}}" class="task-progress-bar">
+          <view class="task-progress-fill" style="width: {{item._progress}}%"></view>
+        </view>
         <view wx:if="{{item._dueLabel}}" class="task-due {{item._isOverdue ? 'task-due-overdue' : ''}}">{{item._dueLabel}}</view>
       </view>
       <view class="task-right">
@@ -68,8 +83,7 @@
     </view>
   </view>
 
-  <view wx:if="{{loading && displayTasks.length === 0}}" class="loading-hint">加载中...</view>
-  <view wx:elif="{{error && displayTasks.length === 0}}" class="error-hint">{{error}}</view>
+  <view wx:if="{{loading && displayTasks.length === 0}}" class="skeleton-wrap"><skeleton rowCount="5" /></view>
+  <view wx:if="{{!(loading && displayTasks.length === 0) && error && displayTasks.length === 0}}" class="error-hint">{{error}}</view>
 
-  <view class="fab" bindtap="onCreateTap">+</view>
 </scroll-view>

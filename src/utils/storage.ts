@@ -3,6 +3,12 @@
 
 const PREFIX = 'timeslots_';
 
+/** 用户是否已授权订阅消息（不拒绝即视为授权） */
+export const REMINDER_SUBSCRIBED = 'reminder_subscribed';
+
+/** 用户是否已同意隐私协议 */
+export const PRIVACY_AGREED = 'privacy_agreed';
+
 
 function key(k: string): string {
   return `${PREFIX}${k}`;

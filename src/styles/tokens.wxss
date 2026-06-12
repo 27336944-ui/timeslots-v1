@@ -1,49 +1,107 @@
 
 
 page {
-  
-  --ts-primary: #4A6CF7;
-  --ts-primary-light: #6B8AFF;
-  --ts-primary-bg: #EEF2FF;
+  /* ── Brand (mint green) ── */
+  --ts-primary: #10B981;
+  --ts-primary-light: #34D399;
+  --ts-primary-bg: #E6F7F0;
 
-  
-  --ts-success: #07C160;
-  --ts-warning: #FF8C00;
-  --ts-danger: #EE0A24;
+  /* ── Category ── */
+  --ts-category-work: #10B981;
+  --ts-category-work-bg: #E6F7F0;
+  --ts-category-life: #059669;
+  --ts-category-life-bg: #E8F8EE;
+  --ts-category-private: #D97706;
+  --ts-category-private-bg: #FFFBE6;
 
-  
-  --ts-text-primary: #1A1A1A;
-  --ts-text-secondary: #666666;
-  --ts-text-tertiary: #999999;
-  --ts-text-placeholder: #CCCCCC;
-  --ts-bg-page: #F5F5F5;
+  /* ── Priority ── */
+  --ts-priority-high: #DC2626;
+  --ts-priority-high-bg: #FDE8EA;
+  --ts-priority-medium: #D97706;
+  --ts-priority-medium-bg: #FFFBE6;
+  --ts-priority-low: #9CA3AF;
+  --ts-priority-low-bg: #F3F4F6;
+
+  /* ── Status ── */
+  --ts-status-todo: #10B981;
+  --ts-status-todo-bg: #E6F7F0;
+  --ts-status-done: #059669;
+  --ts-status-done-bg: #E8F8EE;
+
+  /* ── Semantic ── */
+  --ts-success: #059669;
+  --ts-warning: #D97706;
+  --ts-danger: #DC2626;
+
+  /* ── Text Color (4-level gray scale) ── */
+  --ts-text-primary: #1F2937;
+  --ts-text-secondary: #6B7280;
+  --ts-text-tertiary: #9CA3AF;
+  --ts-text-placeholder: #D1D5DB;
+
+  /* ── Font Family ── */
+  --ts-font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+
+  /* ── Font Weight ── */
+  --weight-bold: 700;
+  --weight-semibold: 600;
+  --weight-medium: 500;
+  --weight-regular: 400;
+  --ts-weight-bold: 700;
+  --ts-weight-semibold: 600;
+  --ts-weight-medium: 500;
+  --ts-weight-regular: 400;
+
+  /* ── Font Size (spec px → rpx, 1px≈2rpx) ── */
+  --ts-font-large-title: 34rpx;
+  --ts-font-title1: 28rpx;
+  --ts-font-body: 26rpx;
+  --ts-font-callout: 24rpx;
+  --ts-font-caption: 22rpx;
+  --ts-font-tiny: 20rpx;
+
+  /* ── Letter Spacing (spec px → rpx) ── */
+  --ts-ls-large-title: -0.6rpx;
+  --ts-ls-nav-title: -0.4rpx;
+  --ts-ls-card-title: -0.3rpx;
+  --ts-ls-form-label: 0.4rpx;
+  --ts-ls-tab: 0.2rpx;
+  --ts-ls-time: 0.2rpx;
+
+  /* ── Background ── */
+  --ts-bg-page: #FAFCFB;
   --ts-bg-card: #FFFFFF;
-  --ts-bg-disabled: #F0F0F0;
-  --ts-border: #E5E5E5;
-  --ts-border-light: #F0F0F0;
+  --ts-bg-disabled: #F3F4F6;
+  --ts-bg-hover: #F0F9F5;
 
-  
+  /* ── Border ── */
+  --ts-border: #E5E7EB;
+  --ts-border-light: #F3F4F6;
+
+  /* ── Spacing ── */
   --ts-space-xs: 8rpx;
   --ts-space-sm: 12rpx;
   --ts-space-md: 16rpx;
   --ts-space-lg: 24rpx;
   --ts-space-xl: 32rpx;
 
-  
-  --ts-font-xs: 22rpx;
-  --ts-font-sm: 24rpx;
-  --ts-font-md: 28rpx;
-  --ts-font-lg: 32rpx;
-  --ts-font-xl: 36rpx;
-  --ts-font-xxl: 48rpx;
-
-  
+  /* ── Radius ── */
   --ts-radius-sm: 8rpx;
   --ts-radius-md: 12rpx;
   --ts-radius-lg: 16rpx;
   --ts-radius-full: 999rpx;
 
-  
+  /* ── Card spec ── */
+  --ts-card-radius: 20rpx;
+  --ts-card-padding: 24rpx 28rpx;
+  --ts-card-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
+  --ts-card-gap: 12rpx;
+
+  /* ── Detail card spec ── */
+  --ts-card-detail-radius: 24rpx;
+  --ts-card-detail-padding: 36rpx;
+
+  /* ── Shadow ── */
   --ts-shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
   --ts-shadow-modal: 0 4rpx 24rpx rgba(0, 0, 0, 0.12);
 }

@@ -1,11 +1,12 @@
 
 
 import { storage } from './storage';
+import { APP_CONFIG } from './config';
 import type { ApiResponse, WxRequestData, WxRequestMethod } from '../types/api';
 
 
-const BASE_URL = 'http://localhost:7777';
-const TOKEN_KEY = 'token';
+const BASE_URL = APP_CONFIG.BASE_URL;
+const TOKEN_KEY = APP_CONFIG.TOKEN_KEY;
 
 
 function getToken(): string | null {
@@ -51,19 +52,20 @@ async function request<T>(
         }
       },
       fail(err) {
-        const msg = err.errMsg || 'Network error';
-        
+        const msg = err.errMsg || '';
+        let errorMsg = '网络请求失败';
         if (msg.includes('合法域名') || msg.includes('domain')) {
-          reject(new Error('开发环境请在微信开发者工具勾选"不校验合法域名"，或配置 HTTPS 域名'));
+          errorMsg = '开发环境请在微信开发者工具勾选「不校验合法域名」，或配置 HTTPS 域名';
         } else if (msg.includes('timeout')) {
-          reject(new Error('请求超时，请检查后端服务是否运行'));
-        } else if (
-          msg.includes('ECONNREFUSED') || msg.includes('ERR_CONNECTION_REFUSED')
-        ) {
-          reject(new Error('后端服务未启动，请在 server/ 目录执行 npm run start:dev 启动后端'));
-        } else {
-          reject(new Error(msg));
+          errorMsg = '请求超时，请检查后端服务是否运行';
+        } else if (msg.includes('fail -118') || msg.includes('连接失败') || msg.includes('ERR_CONNECTION_REFUSED')) {
+          errorMsg = '后端服务未启动，请在 server/ 目录执行 npm run start:dev 启动后端';
+        } else if (msg.startsWith('request:fail')) {
+          errorMsg = '网络请求失败，请检查后端服务是否运行';
+        } else if (msg) {
+          errorMsg = msg;
         }
+        reject(new Error(errorMsg));
       },
     });
   });

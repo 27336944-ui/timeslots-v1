@@ -1,5 +1,6 @@
 
 <view class="page">
+  <privacy-agreement />
   <!-- Create / Edit mode -->
   <block wx:if="{{mode === 'create' || mode === 'edit'}}">
     <view class="form-group">
@@ -83,7 +84,7 @@
   </block>
 
   <!-- View mode -->
-  <block wx:elif="{{mode === 'view'}}">
+  <block wx:if="{{mode === 'view'}}">
     <view class="view-card">
       <view class="view-title">{{viewTitle}}</view>
       <view wx:if="{{viewGoal}}" class="view-row">
@@ -147,6 +148,7 @@
     </view>
 
     <view class="action-row">
+      <button wx:if="{{viewStatus !== 'done'}}" class="done-btn" bindtap="onMarkDone">标记完成</button>
       <button class="edit-btn" bindtap="onEditTap">编辑任务</button>
       <button class="schedule-btn" bindtap="onCreateScheduleTap">创建日程</button>
       <button class="delete-btn" bindtap="onDelete">删除任务</button>

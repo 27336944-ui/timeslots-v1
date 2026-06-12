@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/schedule/index", "pages/schedule/detail/index", "pages/tasks/index", "pages/tasks/task-detail/index", "pages/mine/index", "pages/index/index"],
+  "pages": ["pages/schedule/index", "pages/schedule/detail/index", "pages/tasks/index", "pages/tasks/task-detail/index", "pages/collab/index", "pages/collab/detail/index", "pages/collab/approval-detail/index", "pages/collab/approval-create/index", "pages/collab/approval-share/index", "pages/mine/index", "pages/mine/settings/index", "pages/index/index"],
   "window": {
     "navigationBarTitleText": "timeslots",
     "navigationBarTextStyle": "black",
@@ -7,14 +7,19 @@
     "backgroundColor": "#f5f5f5"
   },
   "tabBar": {
-    "color": "#999",
-    "selectedColor": "#4A6CF7",
+    "custom": true,
+    "color": "#9CA3AF",
+    "selectedColor": "#10B981",
     "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/schedule/index",
         "text": "日程"
+      },
+      {
+        "pagePath": "pages/collab/index",
+        "text": "协作"
       },
       {
         "pagePath": "pages/tasks/index",
@@ -26,5 +31,9 @@
       }
     ]
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "usingComponents": {
+    "skeleton": "components/skeleton/index",
+    "privacy-agreement": "components/privacy-agreement/index"
+  }
 }
