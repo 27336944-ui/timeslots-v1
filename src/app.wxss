@@ -9,3 +9,545 @@ page {
   font-size: var(--ts-font-body);
   box-sizing: border-box;
 }
+
+/* ============================================================
+   全局工具类（ts-* 前缀）
+   所有页面渐进采用，不破坏现有页面类名
+   ============================================================ */
+
+/* ── Page 容器 ── */
+.ts-page {
+  padding: var(--ts-space-xl);
+  box-sizing: border-box;
+}
+
+.ts-page-list {
+  padding-bottom: 120rpx;   /* tab 页底部留 tab-bar 空间 */
+  box-sizing: border-box;
+}
+
+/* ── Card 通用配方 ── */
+.ts-card {
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-card-radius);
+  padding: var(--ts-card-padding);
+  box-shadow: var(--ts-card-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── 左色条（分类卡片通用，配合 .cat-work / .cat-life / .cat-private） ── */
+.ts-card::before,
+.ts-accent-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+  background: var(--ts-category-accent-work);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ts-card.cat-work::before,
+.ts-accent-bar.cat-work::before {
+  background: var(--ts-category-accent-work);
+}
+
+.ts-card.cat-life::before,
+.ts-accent-bar.cat-life::before {
+  background: var(--ts-category-accent-life);
+}
+
+.ts-card.cat-private::before,
+.ts-accent-bar.cat-private::before {
+  background: var(--ts-category-accent-private);
+}
+
+/* ── Button 通用配方 ── */
+.ts-btn {
+  width: 100%;
+  height: var(--ts-btn-height);
+  border-radius: var(--ts-btn-radius);
+  font-size: var(--ts-btn-font);
+  font-weight: var(--ts-weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+}
+
+.ts-btn-primary {
+  background: var(--ts-primary);
+  color: var(--ts-bg-card);
+}
+
+.ts-btn-success {
+  background: var(--ts-success);
+  color: var(--ts-bg-card);
+}
+
+.ts-btn-danger {
+  background: var(--ts-danger);
+  color: var(--ts-bg-card);
+}
+
+.ts-btn-outline {
+  background: var(--ts-bg-card);
+  color: var(--ts-text-secondary);
+  border: 1rpx solid var(--ts-border);
+}
+
+.ts-btn-outline:active {
+  background: var(--ts-bg-disabled);
+}
+
+.ts-btn-sm {
+  height: var(--ts-btn-height-sm);
+  border-radius: var(--ts-btn-radius-sm);
+}
+
+/* ── Form 通用配方 ── */
+.ts-form-item {
+  margin-bottom: var(--ts-space-lg);
+}
+
+.ts-label {
+  font-size: var(--ts-font-caption);
+  color: var(--ts-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--ts-ls-form-label);
+  margin-bottom: var(--ts-space-xs);
+}
+
+.ts-input {
+  width: 100%;
+  height: 72rpx;
+  border: 1rpx solid var(--ts-border);
+  border-radius: var(--ts-radius-lg);
+  padding: 0 var(--ts-space-lg);
+  font-size: var(--ts-font-body);
+  background: var(--ts-bg-card);
+  box-sizing: border-box;
+}
+
+/* ── 通用 flex 工具 ── */
+.ts-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.ts-row-between {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ts-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   iOS HIG 工具类（v0.50+ H5 改版对齐）
+   来源：timeslots-v1-design-principles 第九、十一章
+   独立命名空间，不污染既有 .form-* / .ts-card 等旧类
+   ============================================================ */
+
+/* ── Inset Grouped 表单组（H5 9.7） ── */
+.ts-inset-group {
+  background: var(--ts-bg-inset);
+  border-radius: var(--ts-radius-card-ios);
+  margin: var(--ts-space-lg);
+  overflow: hidden;
+  box-shadow: var(--ts-shadow-card-ios);
+}
+
+.ts-inset-group-header {
+  padding: var(--ts-space-sm) var(--ts-space-lg) var(--ts-space-xs);
+  font-size: var(--ts-font-small);
+  font-weight: var(--ts-weight-semibold);
+  color: var(--ts-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5rpx;
+}
+
+/* ── Inset Row（表单行） ── */
+.ts-inset-row {
+  display: flex;
+  align-items: center;
+  min-height: var(--ts-inset-row-min-height);
+  padding: var(--ts-space-md) var(--ts-space-lg);
+  border-bottom: 1rpx solid var(--ts-border-inset);
+}
+
+.ts-inset-row:last-child {
+  border-bottom: none;
+}
+
+.ts-inset-row:active {
+  background: var(--ts-bg-disabled);
+}
+
+.ts-inset-row-label {
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+  flex-shrink: 0;
+  width: var(--ts-inset-label-width);
+}
+
+.ts-inset-row-value {
+  flex: 1;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-secondary);
+  text-align: right;
+}
+
+.ts-inset-row-placeholder {
+  color: var(--ts-text-placeholder);
+}
+
+.ts-inset-row-arrow {
+  color: var(--ts-text-placeholder);
+  font-size: var(--ts-font-xl);
+  margin-left: var(--ts-space-xs);
+}
+
+.ts-inset-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+  text-align: right;
+  background: transparent;
+  font-family: inherit;
+}
+
+.ts-inset-textarea {
+  padding: var(--ts-space-md) var(--ts-space-lg);
+}
+
+.ts-inset-textarea-field {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+  min-height: 160rpx;
+  resize: none;
+  font-family: inherit;
+  background: transparent;
+}
+
+/* ── Segmented Control（H5 9.8） ── */
+.ts-segmented {
+  display: flex;
+  background: var(--ts-bg-segmented);
+  border-radius: var(--ts-radius-md);
+  padding: 4rpx;
+}
+
+.ts-segmented-item {
+  flex: 1;
+  text-align: center;
+  padding: var(--ts-space-sm) var(--ts-space-md);
+  font-size: var(--ts-font-sm);
+  font-weight: var(--ts-weight-medium);
+  border-radius: var(--ts-radius-md);
+  color: var(--ts-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.ts-segmented-item.active {
+  background: var(--ts-bg-card);
+  color: var(--ts-text-primary);
+  font-weight: var(--ts-weight-semibold);
+  box-shadow: var(--ts-shadow-segmented);
+}
+
+/* ── Capsule Button（H5 9.6） ── */
+.ts-capsule {
+  display: block;
+  width: calc(100% - 32rpx);
+  margin: var(--ts-space-md) auto;
+  height: var(--ts-btn-capsule-height);
+  line-height: var(--ts-btn-capsule-height);
+  border-radius: var(--ts-radius-full);
+  background: var(--ts-primary);
+  color: #FFFFFF;
+  border: none;
+  font-size: var(--ts-btn-capsule-font);
+  font-weight: var(--ts-weight-semibold);
+  font-family: inherit;
+  text-align: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.ts-capsule::after {
+  border: none;
+}
+
+.ts-capsule:active {
+  opacity: 0.85;
+}
+
+.ts-capsule.secondary {
+  background: var(--ts-bg-card);
+  color: var(--ts-primary);
+  border: 2rpx solid var(--ts-primary);
+}
+
+.ts-capsule.danger {
+  background: var(--ts-bg-card);
+  color: var(--ts-danger);
+  border: 2rpx solid var(--ts-danger);
+}
+
+.ts-capsule.amber {
+  background: var(--ts-amber);
+  color: var(--ts-text-on-brand);
+}
+
+.ts-capsule[disabled] {
+  opacity: 0.5;
+}
+
+/* ── 按钮行（多按钮并排） ── */
+.ts-capsule-row {
+  display: flex;
+  gap: var(--ts-btn-capsule-gap);
+  margin: var(--ts-space-md);
+}
+
+.ts-capsule-row .ts-capsule {
+  margin: 0;
+  flex: 1;
+  width: auto;
+}
+
+/* ── 分类徽章（H5 9.12） ── */
+.ts-badge {
+  display: inline-block;
+  padding: 4rpx var(--ts-space-sm);
+  border-radius: var(--ts-radius-sm);
+  font-size: var(--ts-font-small);
+  font-weight: var(--ts-weight-medium);
+}
+
+.ts-badge-work {
+  background: var(--ts-category-work-bg);
+  color: var(--ts-category-work);
+}
+
+.ts-badge-life {
+  background: var(--ts-category-life-bg);
+  color: var(--ts-category-life);
+}
+
+.ts-badge-private {
+  background: var(--ts-category-private-bg);
+  color: var(--ts-category-private);
+}
+
+.ts-badge-pending {
+  background: var(--ts-amber-bg);
+  color: var(--ts-amber);
+}
+
+.ts-badge-approved {
+  background: var(--ts-ios-green-bg);
+  color: var(--ts-ios-green);
+}
+
+.ts-badge-todo {
+  background: var(--ts-primary-bg);
+  color: var(--ts-primary);
+}
+
+.ts-badge-done {
+  background: var(--ts-ios-green-bg);
+  color: var(--ts-ios-green);
+}
+
+/* ── iOS Hero 卡片（详情页顶部） ── */
+.ts-hero {
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-radius-card-ios);
+  padding: var(--ts-card-padding-ios);
+  margin: var(--ts-space-lg);
+  box-shadow: var(--ts-shadow-hero);
+  position: relative;
+  overflow: hidden;
+}
+
+.ts-hero::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+}
+
+.ts-hero.cat-work::before {
+  background: var(--ts-category-work);
+}
+
+.ts-hero.cat-life::before {
+  background: var(--ts-category-life);
+}
+
+.ts-hero.cat-private::before {
+  background: var(--ts-category-private);
+}
+
+.ts-hero-title {
+  font-size: var(--ts-font-body);
+  font-weight: var(--ts-weight-bold);
+  color: var(--ts-text-primary);
+  margin-bottom: var(--ts-space-sm);
+  letter-spacing: var(--ts-ls-card-title);
+}
+
+.ts-hero-subtitle {
+  font-size: var(--ts-font-lg);
+  color: var(--ts-text-secondary);
+  margin-bottom: var(--ts-space-md);
+}
+
+/* ── iOS View Section（详情页信息区） ── */
+.ts-view-section {
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-radius-card-ios);
+  padding: var(--ts-card-padding-ios);
+  margin: 0 var(--ts-space-lg) var(--ts-space-sm);
+  box-shadow: var(--ts-shadow-card-ios);
+}
+
+.ts-view-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: var(--ts-space-sm);
+}
+
+.ts-view-row:last-child {
+  margin-bottom: 0;
+}
+
+.ts-view-label {
+  width: 112rpx;
+  font-size: var(--ts-font-small);
+  font-weight: var(--ts-weight-semibold);
+  color: var(--ts-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5rpx;
+  flex-shrink: 0;
+  padding-top: 4rpx;
+}
+
+.ts-view-value {
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-secondary);
+  flex: 1;
+  line-height: 1.5;
+}
+
+/* ── 创建入口卡片（H5 9.10） ── */
+.ts-create-card {
+  border-radius: var(--ts-radius-xl);
+  padding: var(--ts-space-xl) var(--ts-space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ts-space-sm);
+  text-align: center;
+}
+
+.ts-create-card:active {
+  opacity: 0.8;
+}
+
+.ts-create-card-icon {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+  font-weight: var(--ts-weight-bold);
+}
+
+.ts-create-card-label {
+  font-size: var(--ts-font-body);
+  font-weight: var(--ts-weight-semibold);
+}
+
+.ts-create-card-desc {
+  font-size: var(--ts-font-small);
+  opacity: 0.75;
+}
+
+.ts-create-card.voice {
+  background: var(--ts-create-voice-bg);
+  color: var(--ts-create-voice-fg);
+}
+
+.ts-create-card.voice .ts-create-card-icon {
+  background: var(--ts-create-voice-bg);
+}
+
+.ts-create-card.image {
+  background: var(--ts-create-image-bg);
+  color: var(--ts-create-image-fg);
+}
+
+.ts-create-card.image .ts-create-card-icon {
+  background: var(--ts-create-image-bg);
+}
+
+.ts-create-card.ai {
+  background: var(--ts-create-ai-bg);
+  color: var(--ts-create-ai-fg);
+}
+
+.ts-create-card.ai .ts-create-card-icon {
+  background: rgba(147, 51, 234, 0.15);
+}
+
+.ts-create-card.template {
+  background: var(--ts-create-template-bg);
+  color: var(--ts-create-template-fg);
+}
+
+.ts-create-card.template .ts-create-card-icon {
+  background: var(--ts-create-template-bg);
+}
+
+.ts-create-card.manual {
+  background: var(--ts-create-manual-bg);
+  color: var(--ts-create-manual-fg);
+}
+
+.ts-create-card.manual .ts-create-card-icon {
+  background: rgba(0, 122, 255, 0.15);
+}
+
+/* ── Animations（H5 11.5） ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}

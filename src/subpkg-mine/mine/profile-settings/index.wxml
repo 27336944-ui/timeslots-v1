@@ -1,0 +1,59 @@
+<view class="page">
+  <privacy-agreement />
+
+  <!-- ===== 头像区域 ===== -->
+  <view class="avatar-section">
+    <view class="avatar-wrapper">
+      <image wx:if="{{userAvatar}}" class="avatar-img" src="{{userAvatar}}" mode="aspectFill" />
+      <view wx:else class="avatar-placeholder">{{userNicknameFirstChar}}</view>
+    </view>
+    <text class="user-nickname">{{userNickname}}</text>
+  </view>
+
+  <!-- ===== 基本信息 ===== -->
+  <view class="form-group">
+    <text class="form-section-title">基本信息</text>
+
+    <view class="form-item">
+      <view class="form-label">年龄</view>
+      <input class="form-input" cursor-spacing="40" type="number" placeholder="不显示" value="{{age}}" bindinput="onAgeInput" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">婚姻状况</view>
+      <picker mode="selector" range="{{MARITAL_OPTIONS}}" range-key="label" value="{{maritalIndex}}" bindchange="onMaritalChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{maritalLabel}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item" wx:if="{{maritalStatus === 'married'}}">
+      <view class="form-label">配偶称呼</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：另一半" value="{{spouseName}}" bindinput="onSpouseInput" />
+    </view>
+  </view>
+
+  <!-- ===== 个人标签 ===== -->
+  <view class="form-group">
+    <text class="form-section-title">个人标签</text>
+
+    <view class="form-item">
+      <view class="form-label">居住地</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：北京" value="{{residence}}" bindinput="onResidenceInput" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">公司</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：XX 科技有限公司" value="{{company}}" bindinput="onCompanyInput" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">职业</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：产品经理" value="{{occupation}}" bindinput="onOccupationInput" />
+    </view>
+  </view>
+
+  <button class="save-btn" bindtap="onSave">{{saving ? '保存中...' : '保存'}}</button>
+</view>

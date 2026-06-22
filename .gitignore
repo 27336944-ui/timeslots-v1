@@ -29,3 +29,55 @@ coverage/
 server/coverage/
 
 *.tsbuildinfo
+
+# WeChat DevTools logs
+bug/
+
+# IDE / editor
+*.user.json
+
+# Build artifacts
+*.tar.gz
+*.zip
+
+# Autostart / desktop scripts (not part of the app)
+setup-autostart*
+create-*.vbs
+create-*.ps1
+create-*.js
+create-*.py
+create-*.cmd
+setup-autostart.cmd
+setup-autostart.py
+setup-autostart.vbs
+create-desktop-link.*
+create-links.*
+create-lnk.py
+start-backend.cmd
+start-timeslots.cmd
+Timeslots\ v1.url
+nul
+
+# Session/conversation logs
+conversations/
+.agents/
+wxbug-v1/
+
+# Audit & planning artifacts (not app code)
+AUDIT_REPORT.md
+BUILD_PLAN.md
+CODING_RULES.md
+EXECUTION_READINESS_REPORT.md
+EXPERIENCE.md
+MVP_PLAN.md
+ONBOARDING.md
+TEAM_RULES.md
+backend-card-review-report.md
+frontend-card-audit-report.md
+task_plan.md
+findings.md
+progress.md
+cards/
+
+# Archive
+archive-v1/

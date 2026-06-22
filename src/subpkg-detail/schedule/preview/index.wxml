@@ -1,0 +1,52 @@
+<view class="page">
+  <view class="ts-hero cat-{{heroCategory}}">
+    <view class="ts-hero-title">{{heroTitle}}</view>
+    <view class="ts-hero-subtitle">{{heroSubtitle}}</view>
+    <view class="ts-badge ts-badge-{{heroBadgeClass}}">{{heroBadge}}</view>
+  </view>
+
+  <view class="ts-view-section">
+    <view wx:if="{{viewLocation}}" class="ts-view-row">
+      <text class="ts-view-label">位置</text>
+      <text class="ts-view-value">{{viewLocation}}</text>
+    </view>
+    <view wx:if="{{viewDescription}}" class="ts-view-row">
+      <text class="ts-view-label">备注</text>
+      <text class="ts-view-value">{{viewDescription}}</text>
+    </view>
+    <view wx:if="{{viewCategory}}" class="ts-view-row">
+      <text class="ts-view-label">分类</text>
+      <text class="ts-view-value">{{viewCategory}}</text>
+    </view>
+  </view>
+
+  <view class="capsule-row">
+    <capsule-button text="返回修改" type="secondary" block="{{false}}" bind:tap="onBack" />
+    <capsule-button text="分享" type="secondary" block="{{false}}" bind:tap="onShare" />
+  </view>
+  <capsule-button text="确认" type="primary" loading="{{saving}}" disabled="{{saving}}" bind:tap="onConfirm" />
+
+  <!-- Share bottom sheet -->
+  <view wx:if="{{showShareSheet}}" class="modal-overlay" bindtap="onShareClose">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-header">
+        <text class="modal-title">分享到</text>
+        <text class="modal-close" bindtap="onShareClose">关闭</text>
+      </view>
+      <view class="share-options">
+        <view class="share-option" bindtap="onShareWechat">
+          <text class="share-option-icon">💬</text>
+          <text class="share-option-text">微信好友</text>
+        </view>
+        <view class="share-option" bindtap="onShareMoments">
+          <text class="share-option-icon">📱</text>
+          <text class="share-option-text">朋友圈</text>
+        </view>
+        <view class="share-option" bindtap="onCopyLink">
+          <text class="share-option-icon">🔗</text>
+          <text class="share-option-text">复制链接</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

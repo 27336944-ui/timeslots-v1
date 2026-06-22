@@ -1,0 +1,51 @@
+<scroll-view class="page" scroll-y>
+  <view class="header-bar">
+    <text class="header-title">管理分类</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <text>加载中…</text>
+  </view>
+
+  <view wx:if="{{editing}}" class="edit-overlay">
+    <view class="edit-dialog">
+      <text class="edit-title">{{editId ? '编辑分类' : '新增分类'}}</text>
+      <input class="edit-input" cursor-spacing="40" placeholder="分类名称" value="{{editName}}" bindinput="onEditNameInput" focus="{{true}}" />
+      <view class="edit-actions">
+        <view class="edit-btn edit-btn-cancel" bindtap="onCancelEdit">取消</view>
+        <view class="edit-btn edit-btn-save" bindtap="onSaveEdit">保存</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:for="{{trees}}" wx:key="id" class="cat-group">
+    <view class="cat-item cat-header" data-id="{{item.id}}" bindtap="onToggleExpand">
+      <view class="cat-color" style="background:{{item.color}}"></view>
+      <text class="cat-name">{{item.name}}</text>
+      <text class="cat-badge" wx:if="{{item.isFixed}}">固定</text>
+      <text class="cat-arrow {{expanded[item.id] ? 'expanded' : ''}}">›</text>
+    </view>
+
+    <view wx:if="{{expanded[item.id]}}" class="cat-children">
+      <view wx:for="{{item.children}}" wx:key="id" class="cat-item cat-child" style="padding-left:32rpx">
+        <view class="cat-color" style="background:{{item.color}}"></view>
+        <text class="cat-name">{{item.name}}</text>
+        <text class="cat-badge" wx:if="{{item.isDefault}}">默认</text>
+        <view class="cat-actions">
+          <text class="cat-action" data-item="{{item}}" bindtap="onBeginEdit">✎</text>
+          <text class="cat-action cat-action-del" wx:if="{{!item.isDefault}}" data-id="{{item.id}}" bindtap="onDelete">✕</text>
+        </view>
+      </view>
+
+      <view class="cat-item cat-add" style="padding-left:32rpx" data-parentid="{{item.id}}" bindtap="onAddChild">
+        <text class="cat-add-icon">+</text>
+        <text class="cat-add-text">新增子分类</text>
+      </view>
+    </view>
+
+    <view wx:if="{{!expanded[item.id] && item.children.length === 0}}" class="cat-item cat-add" data-parentid="{{item.id}}" bindtap="onAddChild">
+      <text class="cat-add-icon">+</text>
+      <text class="cat-add-text">新增子分类</text>
+    </view>
+  </view>
+</scroll-view>

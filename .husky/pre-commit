@@ -1,1 +1,29 @@
-npx tsc --noEmit && npx eslint src/ server/src/ && cd server && npx jest
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "========================================"
+echo "Gate: Pre-commit Quality Check"
+echo "========================================"
+echo ""
+
+# Frontend gate
+echo "[1/2] Running frontend gate..."
+/C/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/gate-frontend.ps1
+if [ $? -ne 0 ]; then
+  echo "[FAIL] Frontend gate failed. Commit blocked."
+  exit 1
+fi
+
+# Backend gate
+echo ""
+echo "[2/2] Running backend gate..."
+/C/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/gate-backend.ps1
+if [ $? -ne 0 ]; then
+  echo "[FAIL] Backend gate failed. Commit blocked."
+  exit 1
+fi
+
+echo ""
+echo "========================================"
+echo "[PASS] All gates passed. Proceeding with commit."
+echo "========================================"

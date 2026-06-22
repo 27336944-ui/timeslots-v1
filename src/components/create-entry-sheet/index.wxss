@@ -1,0 +1,155 @@
+.ces-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--ts-overlay-bg);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: cesFadeIn 0.2s ease;
+}
+
+@keyframes cesFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ces-sheet {
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-radius-sheet-top) var(--ts-radius-sheet-top) 0 0;
+  width: 100%;
+  padding: var(--ts-space-sm) var(--ts-space-lg) calc(var(--ts-space-xl) + env(safe-area-inset-bottom, 20rpx));
+  animation: cesSlideUp 0.3s ease;
+}
+
+@keyframes cesSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.ces-handle {
+  display: flex;
+  justify-content: center;
+  padding: var(--ts-space-xs) 0 var(--ts-space-sm);
+}
+
+.ces-handle-bar {
+  width: 64rpx;
+  height: 8rpx;
+  border-radius: var(--ts-radius-full);
+  background: var(--ts-border);
+}
+
+.ces-title {
+  text-align: center;
+  font-size: var(--ts-font-small);
+  font-weight: var(--ts-weight-semibold);
+  color: var(--ts-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1rpx;
+  margin-bottom: var(--ts-space-xl);
+}
+
+.ces-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ts-space-md);
+}
+
+.ces-card {
+  flex: 0 0 calc((100% - 2 * var(--ts-space-md)) / 3);
+  border-radius: var(--ts-radius-xl);
+  padding: var(--ts-space-xl) var(--ts-space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ts-space-sm);
+  text-align: center;
+}
+
+.ces-card:active {
+  opacity: 0.8;
+}
+
+.ces-icon {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+  font-weight: var(--ts-weight-bold);
+}
+
+.ces-label {
+  font-size: var(--ts-font-body);
+  font-weight: var(--ts-weight-semibold);
+}
+
+.ces-desc {
+  font-size: var(--ts-font-small);
+  opacity: 0.75;
+}
+
+.ces-card-voice {
+  background: var(--ts-create-voice-bg);
+  color: var(--ts-create-voice-fg);
+}
+.ces-card-voice .ces-icon {
+  background: var(--ts-create-voice-bg);
+}
+
+.ces-card-image {
+  background: var(--ts-create-image-bg);
+  color: var(--ts-create-image-fg);
+}
+.ces-card-image .ces-icon {
+  background: var(--ts-create-image-bg);
+}
+
+.ces-card-ai {
+  background: var(--ts-create-ai-bg);
+  color: var(--ts-create-ai-fg);
+}
+.ces-card-ai .ces-icon {
+  background: var(--ts-create-ai-bg);
+}
+
+.ces-card-template {
+  background: var(--ts-create-template-bg);
+  color: var(--ts-create-template-fg);
+}
+.ces-card-template .ces-icon {
+  background: var(--ts-create-template-bg);
+}
+
+.ces-card-manual {
+  background: var(--ts-create-manual-bg);
+  color: var(--ts-create-manual-fg);
+}
+.ces-card-manual .ces-icon {
+  background: var(--ts-create-manual-bg);
+}
+
+.ces-cancel {
+  width: 100%;
+  height: 96rpx;
+  border-radius: var(--ts-radius-full);
+  border: 2rpx solid var(--ts-border);
+  background: var(--ts-bg-card);
+  color: var(--ts-text-secondary);
+  font-size: var(--ts-font-body);
+  font-weight: var(--ts-weight-medium);
+  margin-top: var(--ts-space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ces-cancel:active {
+  background: var(--ts-bg-disabled);
+}

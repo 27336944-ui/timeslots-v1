@@ -1,26 +1,28 @@
 
 <scroll-view class="page" scroll-y refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onRefresh">
   <privacy-agreement />
-  <view class="top-bar">
-    <view class="top-bar-title">任务</view>
-    <view class="top-bar-actions">
-      <view class="top-btn top-btn-search" bindtap="onSearchTap">🔍</view>
-      <view class="top-btn top-btn-plus" bindtap="onCreateTap">+</view>
+  <compact-header date="{{headerDateStr}}" week-days="{{weekDays}}" selected-day="{{selectedDay}}" bind:search="onSearchTap" bind:plus="onCreateTap" bind:weekdaytap="onWeekDayTap">
+    <view slot="overview">
+      <view class="overview-panel" wx:if="{{stats}}">
+        <text class="ov-line">全部{{stats.total}}个任务，进行中{{stats.inProgress}}，完成了{{stats.done}}</text>
+      </view>
     </view>
+  </compact-header>
+  <view wx:if="{{showSwipeHint}}" class="swipe-hint-bar" bindtap="dismissSwipeHint">
+    <text class="swipe-hint-arrow">←</text>
+    <text class="swipe-hint-text">左滑任务卡片可完成或删除</text>
+    <text class="swipe-hint-close">✕</text>
   </view>
   <view wx:if="{{showSearch}}" class="search-bar">
     <input class="search-input" placeholder="搜索任务标题…" value="{{searchKeyword}}" bindinput="onSearchInput" focus="{{true}}" />
     <view class="search-cancel" bindtap="onSearchClose">取消</view>
   </view>
-  <!-- Stats cards row 1 -->
+
+  <!-- Stats card -->
   <view class="stats-row" wx:if="{{stats}}">
-    <view class="stat-card">
+    <view class="stat-card stat-arranged">
       <text class="stat-num">{{stats.total}}</text>
       <text class="stat-label">全部</text>
-    </view>
-    <view class="stat-card stat-pending">
-      <text class="stat-num">{{stats.pending}}</text>
-      <text class="stat-label">待办</text>
     </view>
     <view class="stat-card stat-progress">
       <text class="stat-num">{{stats.inProgress}}</text>
@@ -32,24 +34,9 @@
     </view>
   </view>
 
-  <!-- Stats cards row 2 -->
-  <view class="stats-row" wx:if="{{stats}}">
-    <view class="stat-card stat-today">
-      <text class="stat-num">{{stats.today}}</text>
-      <text class="stat-label">今日</text>
-    </view>
-    <view class="stat-card stat-week">
-      <text class="stat-num">{{stats.week}}</text>
-      <text class="stat-label">本周</text>
-    </view>
-    <view class="stat-card stat-overdue">
-      <text class="stat-num">{{stats.overdue}}</text>
-      <text class="stat-label">逾期</text>
-    </view>
-    <view class="stat-card stat-arranged">
-      <text class="stat-num">{{stats.arranged}}/{{stats.unarranged}}</text>
-      <text class="stat-label">已排/未排</text>
-    </view>
+  <!-- Delegation incoming count -->
+  <view wx:if="{{incomingDelegationCount > 0}}" class="delegation-banner" bindtap="onDelegationBannerTap">
+    <text class="delegation-banner-text">⚠ 你有 {{incomingDelegationCount}} 个待处理的委托</text>
   </view>
 
   <!-- Category tabs -->
@@ -61,13 +48,9 @@
 
   <!-- Task list -->
   <view class="task-list">
-    <view wx:if="{{displayTasks.length === 0 && !loading}}" class="empty-state">
-      <view class="empty-icon"></view>
-      <text class="empty-text">暂无任务</text>
-      <text class="empty-hint">点击下方按钮创建新任务</text>
-    </view>
+    <state-view wx:if="{{displayTasks.length === 0 && !loading}}" empty="{{true}}" emptyText="当前分类暂无任务" actionText="创建第一个任务" bind:action="onCreateTap" />
 
-    <view wx:for="{{displayTasks}}" wx:key="id" class="task-card" data-id="{{item.id}}" bindtap="onTaskTap" bindtouchstart="onTaskTouchStart" bindtouchmove="onTaskTouchMove" bindtouchend="onTaskTouchEnd" style="transform: translateX({{swipeOffset[item.id] || 0}}rpx); transition: transform 0.2s ease">
+    <view wx:for="{{displayTasks}}" wx:key="id" class="task-card cat-{{item.category}}" data-id="{{item.id}}" bindtap="onTaskTap" bindtouchstart="onTaskTouchStart" bindtouchmove="onTaskTouchMove" bindtouchend="onTaskTouchEnd" style="transform: translateX({{swipeOffset[item.id] || 0}}rpx); transition: transform 0.2s ease">
       <view class="task-left">
         <view class="task-title {{item._isDone ? 'task-title-done' : ''}}">{{item.title}}</view>
         <view wx:if="{{item._progress > 0 && item._progress < 100}}" class="task-progress-bar">
@@ -78,7 +61,7 @@
       <view class="task-right">
         <view wx:if="{{item._isDone}}" class="task-done-badge">✓</view>
         <view class="task-badge {{'badge-' + item.category}}">{{item._categoryLabel}}</view>
-        <view class="task-priority {{'priority-' + item.priority}}"></view>
+        <view class="swipe-hint">›</view>
       </view>
     </view>
   </view>

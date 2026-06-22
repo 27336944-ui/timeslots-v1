@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "日程"
+  "navigationBarTitleText": "日程",
+  "usingComponents": {
+    "create-entry-sheet": "/components/create-entry-sheet/index",
+    "state-view": "/components/state-view/index"
+  }
 }

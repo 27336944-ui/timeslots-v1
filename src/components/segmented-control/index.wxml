@@ -1,0 +1,11 @@
+<view class="seg {{disabled ? 'seg-disabled' : ''}}">
+  <view
+    wx:for="{{items}}"
+    wx:key="value"
+    class="seg-item {{item.value === value ? 'seg-item-active' : ''}}"
+    data-idx="{{index}}"
+    bindtap="onTap"
+  >
+    <text>{{item.label}}</text>
+  </view>
+</view>

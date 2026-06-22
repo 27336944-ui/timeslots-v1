@@ -1,0 +1,44 @@
+<view class="page">
+  <privacy-agreement />
+  <view wx:if="{{loading && !delegation}}" class="skeleton-wrap">
+    <skeleton rowCount="4" />
+  </view>
+
+  <view wx:if="{{!loading && !delegation}}" class="empty-state">
+    <view class="empty-icon"></view>
+    <text class="empty-text">暂无委托详情</text>
+  </view>
+
+  <view wx:if="{{delegation}}" class="detail-card">
+    <view class="detail-type">{{delegation.type === 'step_execution' ? '步骤执行委托' : '日程委托'}}</view>
+    <view class="detail-title">{{delegation.taskTitle || '待办委托'}}</view>
+    <view wx:if="{{delegation.stepText}}" class="detail-row">
+      <text class="detail-label">步骤</text>
+      <text class="detail-value">{{delegation.stepText}}</text>
+    </view>
+    <view wx:if="{{delegation.message}}" class="detail-row">
+      <text class="detail-label">说明</text>
+      <text class="detail-value">{{delegation.message}}</text>
+    </view>
+    <view wx:if="{{delegation.deadline}}" class="detail-row">
+      <text class="detail-label">截止</text>
+      <text class="detail-value">{{delegation.deadline}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="detail-label">状态</text>
+      <text class="detail-status {{'status-' + delegation.status}}">{{delegation.status === 'pending' ? '待回应' : delegation.status === 'accepted' ? '已接受' : delegation.status === 'rejected' ? '已拒绝' : delegation.status === 'completed' ? '已完成' : delegation.status === 'cancelled' ? '已取消' : delegation.status}}</text>
+    </view>
+  </view>
+
+  <!-- Action buttons for recipient -->
+  <view wx:if="{{delegation && !isInitiator && delegation.status === 'pending'}}" class="action-bar">
+    <button class="btn-reject" bindtap="onReject">拒绝</button>
+    <button class="btn-accept" bindtap="onAccept">接受</button>
+  </view>
+
+  <view wx:if="{{delegation && !isInitiator && delegation.status === 'accepted'}}" class="deliver-section">
+    <view class="form-label">交付说明</view>
+    <textarea class="deliver-input" value="{{deliverNote}}" bindinput="onDeliverNoteInput" placeholder="描述完成情况" />
+    <button class="btn-deliver" bindtap="onDeliver">交付</button>
+  </view>
+</view>

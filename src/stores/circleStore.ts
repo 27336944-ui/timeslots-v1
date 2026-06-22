@@ -8,6 +8,7 @@ import {
   removeCircleMember as apiRemoveCircleMember,
 } from '../services/api';
 import type { Circle } from '../types/api';
+import { errorMsg } from '../utils/error';
 
 
 interface CircleStore {
@@ -38,7 +39,7 @@ export const circleStore: CircleStore = observable({
     try {
       this.circles = await getMyCircles();
     } catch (e) {
-      this.error = (e as Error).message || '加载失败';
+      this.error = errorMsg(e) || '加载失败';
       this.circles = [];
     } finally {
       this.loading = false;
@@ -65,7 +66,7 @@ export const circleStore: CircleStore = observable({
     try {
       this.currentCircle = await apiGetCircleDetail(id);
     } catch (e) {
-      this.error = (e as Error).message || '加载失败';
+      this.error = errorMsg(e) || '加载失败';
       this.currentCircle = null;
     } finally {
       this.loading = false;

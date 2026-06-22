@@ -2,6 +2,11 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings';
 import { taskStore } from '../../stores/taskStore';
 import { authStore } from '../../stores/authStore';
+import { delegationStore } from '../../stores/delegationStore';
+import { weekNavData, weekNavMethods } from '../../behaviors/week-nav';
+import { initGesture, analyzeSwipe, SWIPE_ACTION_THRESHOLD, CANCEL_MOVE_THRESHOLD } from '../../utils/gesture';
+import { CATEGORY_LABELS } from '../../constants/categories';
+import { logError } from '../../utils/logError';
 import type { Task } from '../../types/api';
 
 
@@ -17,31 +22,37 @@ interface TasksPageData {
   filterList: { key: string; label: string }[];
   displayTasks: TaskDisplayItem[];
   loadingTab: boolean;
+  loadError: boolean;
   showSearch: boolean;
   searchKeyword: string;
   swipeOffset: Record<string, number>;
-  _touchStartX?: number;
-  _touchStartY?: number;
-  _touchTaskId?: string;
+  incomingDelegationCount: number;
+  dateStr: string;
+  selectedDay: string;
+  weekDays: { dateStr: string; dayLabel: string; dateNum: number; isToday: boolean; lunarStr: string; festival: string | null }[];
+  monthDays: { dateStr: string; dayNum: number; isToday: boolean; isCurrentMonth: boolean; lunarStr: string; festival: string | null }[];
+  currentMonthStr: string;
+  monthWeekDays: string[];
+  weekStartsOn: number;
+  showMonthCalendar: boolean;
+  showSwipeHint: boolean;
 }
 
-const CATEGORY_LABEL: Record<string, string> = { work: '工作', life: '生活', private: '私有' };
 
 function enrichTask(t: Task): TaskDisplayItem {
   const now = new Date();
-  let _isOverdue = false;
-  let _dueLabel = '';
-  if (t.dueAt) {
-    const due = new Date(t.dueAt);
-    _dueLabel = due.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
-    _isOverdue = t.status !== 'done' && due < now;
-  }
-  const stepsArr = t.steps || [];
-  const doneSteps = stepsArr.filter((s) => s.isDone).length;
+  const due = t.dueAt ? new Date(t.dueAt) : null;
+  const _isOverdue = due ? (t.status !== 'done' && due < now) : false;
+  const _dueLabel = due ? due.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }) : '';
+  // Prefer stepRows (Step table association), fall back to deprecated steps JSON
+  const stepsArr = t.stepRows ?? t.steps ?? [];
+  const doneSteps = stepsArr.filter((s) =>
+    'isDone' in s ? (s as { isDone: boolean }).isDone : (s as { status: string }).status === 'done'
+  ).length;
   const progress = stepsArr.length > 0 ? Math.round((doneSteps / stepsArr.length) * 100) : 0;
   return {
     ...t,
-    _categoryLabel: CATEGORY_LABEL[t.category] || t.category,
+    _categoryLabel: CATEGORY_LABELS[t.category] || t.category,
     _dueLabel,
     _isOverdue,
     _isDone: t.status === 'done',
@@ -62,18 +73,22 @@ interface TasksPageMethods {
   onTaskTouchStart: (e: WechatMiniprogram.TouchEvent) => void;
   onTaskTouchMove: (e: WechatMiniprogram.TouchEvent) => void;
   onTaskTouchEnd: (e: WechatMiniprogram.TouchEvent) => void;
+  onDelegationBannerTap: () => void;
   storeBindings?: { destroyStoreBindings: () => void };
   authBindings?: { destroyStoreBindings: () => void };
-  _touchStartX?: number;
-  _touchStartY?: number;
-  _touchTaskId?: string;
+  delegationBindings?: { destroyStoreBindings: () => void };
+  _gesture?: ReturnType<typeof initGesture>;
+  initWeekNav: (centerDate?: string) => void;
+  dismissSwipeHint: () => void;
+  loadWeekInternal: (centerDate: string) => void;
+  onWeekDayTap: (e: WechatMiniprogram.TouchEvent) => void;
 }
 
 const CATEGORIES = [
   { key: '', label: '全部' },
   { key: 'work', label: '工作' },
   { key: 'life', label: '生活' },
-  { key: 'private', label: '私有' },
+  { key: 'private', label: '自有' },
 ];
 
 
@@ -83,10 +98,16 @@ Page<TasksPageData, TasksPageMethods>({
     filterList: CATEGORIES,
     displayTasks: [],
     loadingTab: false,
+    loadError: false,
     showSearch: false,
     searchKeyword: '',
     swipeOffset: {},
+    incomingDelegationCount: 0,
+    showSwipeHint: false,
+    ...weekNavData,
   },
+
+  ...weekNavMethods,
 
   onLoad() {
     this.storeBindings = createStoreBindings(this, {
@@ -97,19 +118,38 @@ Page<TasksPageData, TasksPageMethods>({
       store: authStore,
       fields: ['isLoggedIn'],
     });
+    this.delegationBindings = createStoreBindings(this, {
+      store: delegationStore,
+      fields: ['incomingCount'],
+      transform: { incomingCount: 'incomingDelegationCount' },
+    });
   },
 
   onShow() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any  
-    (this as any).getTabBar?.().setData({ selected: 2 });
+    (this as unknown as WechatMiniprogram.Page.TrivialInstance).getTabBar?.().setData({ selected: 2 });
+    this.initWeekNav();
     if (authStore.isLoggedIn) {
-      taskStore.fetchTasks().then(() => this.refreshDisplay()).catch(() => {});
+      taskStore.fetchTasks().then(() => this.refreshDisplay()).catch((e) => logError('Tasks fetchTasks', e));
+      delegationStore.fetchMyDelegations().catch((e) => logError('Tasks fetchDelegations', e));
     }
+    // Swipe hint for first-time visitors
+    try {
+      const shown = wx.getStorageSync('ts_tasks_swipe_hint_shown');
+      if (!shown) {
+        this.setData({ showSwipeHint: true });
+      }
+    } catch { /* storage read — non-critical */ }
+  },
+
+  dismissSwipeHint() {
+    this.setData({ showSwipeHint: false });
+    try { wx.setStorageSync('ts_tasks_swipe_hint_shown', '1'); } catch { /* ignore */ }
   },
 
   onUnload() {
     this.storeBindings!.destroyStoreBindings();
     this.authBindings!.destroyStoreBindings();
+    this.delegationBindings!.destroyStoreBindings();
   },
 
   refreshDisplay() {
@@ -142,7 +182,8 @@ Page<TasksPageData, TasksPageMethods>({
     taskStore.fetchByCategory(category).then(() => {
       this.refreshDisplay();
       this.setData({ loadingTab: false });
-    }).catch(() => {
+    }).catch((e) => {
+      logError('Tasks onTabTap', e);
       this.setData({ loadingTab: false });
     });
   },
@@ -151,44 +192,41 @@ Page<TasksPageData, TasksPageMethods>({
 
   onTaskTouchStart(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as string;
-    this._touchTaskId = id;
-    this._touchStartX = e.touches[0].clientX;
-    this._touchStartY = e.touches[0].clientY;
+    this._gesture = initGesture(id, e.touches[0].clientX, e.touches[0].clientY);
   },
 
   onTaskTouchMove(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as string;
-    if (!id) return;
-    const dx = e.touches[0].clientX - (this._touchStartX || 0);
-    const clamped = Math.max(-80, Math.min(0, dx));
+    if (!id || !this._gesture) return;
+    const g = analyzeSwipe(this._gesture, e.touches[0].clientX, e.touches[0].clientY);
+    const clamped = Math.max(-80, Math.min(0, g.dx));
     this.setData({ [`swipeOffset.${id}`]: clamped });
   },
 
   onTaskTouchEnd(e: WechatMiniprogram.TouchEvent) {
-    const id = this._touchTaskId;
-    const sx = this._touchStartX;
-    const sy = this._touchStartY;
-    this._touchTaskId = undefined;
-    this._touchStartX = undefined;
-    this._touchStartY = undefined;
-    if (id) {
-      this.setData({ [`swipeOffset.${id}`]: 0 });
-    }
-    if (!id || !e.changedTouches[0]) return;
-    const dx = e.changedTouches[0].clientX - (sx || 0);
-    const dy = Math.abs(e.changedTouches[0].clientY - (sy || 0));
-    if (dy > 30) return;
-    if (dx < -60) {
-      if (dx < -120) {
+    const gst = this._gesture;
+    this._gesture = undefined;
+    if (!gst) return;
+    const id = gst.targetId;
+    this.setData({ [`swipeOffset.${id}`]: 0 });
+    if (!e.changedTouches[0]) return;
+    const result = analyzeSwipe(gst, e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    if (result.dy > CANCEL_MOVE_THRESHOLD) return;
+    if (result.dx < -SWIPE_ACTION_THRESHOLD) {
+      if (result.dx < -120) {
         wx.showModal({
           title: '确认删除',
-          content: '删除后不可恢�?,
+          content: '移除了就不会出现在时间轴上',
           confirmColor: '#DC2626',
           success: (m) => {
             if (m.confirm) {
               taskStore.deleteTask(id).then(() => {
-                taskStore.fetchTasks().then(() => this.refreshDisplay());
-              }).catch(() => {
+                taskStore.fetchTasks().then(() => {
+                  this.refreshDisplay();
+                  wx.showToast({ title: '已删除', icon: 'none', duration: 5000 });
+                });
+              }).catch((e) => {
+                logError('Tasks deleteTask', e);
                 wx.showToast({ title: '删除失败', icon: 'none' });
               });
             }
@@ -198,8 +236,9 @@ Page<TasksPageData, TasksPageMethods>({
         taskStore.updateTask(id, { status: 'done' }).then(() => {
           wx.showToast({ title: '标记完成', icon: 'success', duration: 1000 });
           taskStore.fetchTasks().then(() => this.refreshDisplay());
-        }).catch(() => {
-          wx.showToast({ title: '操作失败', icon: 'none' });
+        }).catch((e) => {
+          logError('Tasks updateTask done', e);
+          wx.showToast({ title: '出了点问题，再试一次', icon: 'none' });
         });
       }
     }
@@ -217,5 +256,10 @@ Page<TasksPageData, TasksPageMethods>({
   async onRefresh() {
     await taskStore.fetchTasks();
     this.refreshDisplay();
+    delegationStore.fetchMyDelegations().catch((e) => logError('Tasks fetchDelegations', e));
+  },
+
+  onDelegationBannerTap() {
+    wx.navigateTo({ url: '/pages/collab/index' });
   },
 });

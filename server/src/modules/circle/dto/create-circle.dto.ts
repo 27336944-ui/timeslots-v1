@@ -1,4 +1,4 @@
-import { IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { IsString, MinLength, MaxLength, IsOptional, IsUUID } from 'class-validator';
 
 
 export class CreateCircleDto {
@@ -11,4 +11,8 @@ export class CreateCircleDto {
   @IsString()
   @MaxLength(500)
   description?: string;
+
+  @IsOptional()
+  @IsUUID()
+  parentId?: string;
 }

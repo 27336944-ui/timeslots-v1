@@ -13,7 +13,5 @@
   
   <slot name="extra"></slot>
   
-  <view wx:if="{{arrow}}" class="cell-arrow">
-    <text>›</text>
-  </view>
+  <view wx:if="{{arrow}}" class="cell-arrow" />
 </view>

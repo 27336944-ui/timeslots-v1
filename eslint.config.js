@@ -12,7 +12,14 @@ module.exports = [
     },
   },
   {
-    files: ['**/*.spec.ts'],
+    files: ['eslint.config.js', 'scripts/**/*.js', 'server/scripts/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-console': 'off',
+    },
+  },
+  {
+    files: ['**/*.spec.ts', 'src/behaviors/**', 'src/pages/schedule/index.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
     },

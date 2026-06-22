@@ -1,11 +1,12 @@
 .skeleton {
   padding: var(--ts-card-padding) 0;
+  overflow: hidden;
 }
 
 .skeleton-row {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 20rpx;
+  margin-bottom: var(--ts-space-lg);
 }
 
 .skeleton-avatar {
@@ -14,7 +15,7 @@
   background: linear-gradient(90deg, var(--ts-bg-disabled) 25%, var(--ts-border) 50%, var(--ts-bg-disabled) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-  margin-right: 16rpx;
+  margin-right: var(--ts-space-md);
   flex-shrink: 0;
 }
 
@@ -31,7 +32,7 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: var(--ts-radius-sm);
-  margin-bottom: 16rpx;
+  margin-bottom: var(--ts-space-md);
 }
 
 .skeleton-line:last-child { margin-bottom: 0; }

@@ -20,8 +20,8 @@ async function bootstrap() {
 
   
   const port = process.env.APP_PORT ? parseInt(process.env.APP_PORT, 10) : 7777;
-  await app.listen(port);
-  console.warn(`Server running on http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0');
+  console.warn(`Server running on http://0.0.0.0:${port}`);
 }
 
 bootstrap();

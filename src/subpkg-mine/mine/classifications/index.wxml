@@ -1,0 +1,129 @@
+<scroll-view class="page" scroll-y>
+  <privacy-agreement />
+
+  <view class="header-bar">
+    <text class="header-title">分类设置</text>
+  </view>
+
+  <!-- ===== 任务分类 ===== -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">任务分类</text>
+    </view>
+    <view class="cat-navigate" bindtap="onOpenCatPicker">
+      <text class="cat-navigate-text">管理任务分类</text>
+      <text class="cat-navigate-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- ===== 圈层分类 ===== -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">圈层分类</text>
+      <view class="section-add" bindtap="onShowCreateCircle" data-parentid="{{''}}">
+        <text class="section-add-icon">+</text>
+        <text class="section-add-text">创建分组</text>
+      </view>
+    </view>
+
+    <view class="action-bar">
+      <view class="action-btn action-join" bindtap="onShowJoin">加入分组</view>
+    </view>
+
+    <view wx:if="{{circleLoading}}" class="loading-wrap">
+      <text>加载中…</text>
+    </view>
+
+    <view wx:if="{{!circleLoading && circleTrees.length === 0}}" class="empty-wrap">
+      <text class="empty-text">还没有加入任何分组</text>
+    </view>
+
+    <view wx:for="{{circleTrees}}" wx:key="id" class="circle-group">
+      <view class="circle-item circle-header" data-id="{{item.id}}" bindtap="onToggleCircleExpand">
+        <text class="circle-name">{{item.name}}</text>
+        <text class="circle-badge" wx:if="{{item.isFixed}}">固定</text>
+        <text class="circle-count">{{item.memberCount}} 人</text>
+        <view class="circle-header-actions">
+          <text class="circle-action circle-action-member" data-id="{{item.id}}" data-name="{{item.name}}" catchtap="onManageMembers">成员</text>
+          <text class="circle-action" data-parentid="{{item.id}}" catchtap="onShowCreateCircle">+子分组</text>
+        </view>
+        <text class="circle-arrow {{circleExpanded[item.id] ? 'expanded' : ''}}">›</text>
+      </view>
+
+      <view wx:if="{{circleExpanded[item.id]}}" class="circle-children">
+        <view wx:for="{{item.children}}" wx:key="id" class="circle-item circle-child" data-id="{{item.id}}" bindtap="onCircleTap">
+          <view class="circle-icon">👥</view>
+          <text class="circle-name">{{item.name}}</text>
+          <text class="circle-role role-{{item.myRole}}">{{item.myRole === 'OWNER' ? '圈主' : item.myRole === 'ADMIN' ? '管理员' : '成员'}}</text>
+          <text class="circle-count-tiny">{{item.memberCount}}</text>
+          <view class="circle-child-actions">
+            <text class="circle-action circle-action-member" data-id="{{item.id}}" data-name="{{item.name}}" catchtap="onManageMembers">成员</text>
+            <text class="circle-action" wx:if="{{item.myRole !== 'OWNER'}}" data-id="{{item.id}}" catchtap="onLeaveCircle">退出</text>
+            <text class="circle-action circle-action-del" wx:if="{{item.myRole === 'OWNER'}}" data-id="{{item.id}}" catchtap="onDeleteCircle">删除</text>
+          </view>
+        </view>
+
+        <view class="circle-item circle-add" data-parentid="{{item.id}}" bindtap="onShowCreateCircle">
+          <text class="circle-add-icon">+</text>
+          <text class="circle-add-text">新增子分组</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== category picker modal ===== -->
+  <category-picker visible="{{showCatPicker}}" autoCloseOnSelect="{{false}}" bind:select="onCatSelected" bind:close="onCloseCatPicker" />
+
+  <!-- ===== 编辑弹窗（圈层） ===== -->
+  <view wx:if="{{circleEditing}}" class="edit-overlay" catchtouchmove="{{true}}">
+    <view class="edit-dialog">
+      <text class="edit-title">新建分组</text>
+      <input class="edit-input" cursor-spacing="40" placeholder="分组名称" value="{{circleCreateName}}" bindinput="onCircleCreateNameInput" focus="{{true}}" />
+      <view class="edit-actions">
+        <view class="edit-btn edit-btn-cancel" bindtap="onHideCircleCreate">取消</view>
+        <view class="edit-btn edit-btn-save" bindtap="onConfirmCircleCreate">创建</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 加入弹窗 ===== -->
+  <view wx:if="{{circleJoining}}" class="edit-overlay" catchtouchmove="{{true}}">
+    <view class="edit-dialog">
+      <text class="edit-title">加入分组</text>
+      <input class="edit-input" cursor-spacing="40" placeholder="输入 8 位邀请码" value="{{circleJoinCode}}" bindinput="onCircleJoinCodeInput" focus="{{true}}" />
+      <view class="edit-actions">
+        <view class="edit-btn edit-btn-cancel" bindtap="onHideJoin">取消</view>
+        <view class="edit-btn edit-btn-save" bindtap="onConfirmJoin">加入</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 成员管理弹窗 ===== -->
+  <view wx:if="{{showMemberDialog}}" class="edit-overlay" catchtouchmove="{{true}}">
+    <view class="member-dialog">
+      <view class="member-dialog-header">
+        <text class="member-dialog-title">管理成员 - {{memberCircleName}}</text>
+        <text class="member-dialog-close" bindtap="onHideMemberDialog">✕</text>
+      </view>
+      <view class="member-dialog-body">
+        <view class="member-add-section">
+          <text class="member-add-label">添加成员（每行一个用户 ID）</text>
+          <textarea class="member-input" value="{{memberInput}}" bindinput="onMemberInput" placeholder="粘贴用户 ID，每行一个&#10;或逗号/分号分隔" />
+          <button class="member-add-btn" loading="{{addingMembers}}" bindtap="onAddMembers">添加</button>
+        </view>
+        <view class="member-list-section">
+          <text class="member-list-title">当前成员（{{members.length}} 人）</text>
+          <view wx:for="{{members}}" wx:key="id" class="member-item">
+            <view class="member-avatar">{{item.nickname ? item.nickname[0] : '?'}}</view>
+            <view class="member-info">
+              <text class="member-nickname">{{item.nickname}}</text>
+              <text class="member-userid">{{item.displayUserId}}</text>
+            </view>
+            <text class="member-role-badge role-{{item.role}}">{{item.role === 'OWNER' ? '圈主' : item.role === 'ADMIN' ? '管理员' : '成员'}}</text>
+            <text class="member-remove" wx:if="{{item.role !== 'OWNER'}}" data-memberid="{{item.id}}" bindtap="onRemoveMember">移除</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</scroll-view>

@@ -10,6 +10,7 @@ type PrismaClientMock = {
         findFirstOrThrow: ReturnType<typeof jest.fn>;
         findUniqueOrThrow: ReturnType<typeof jest.fn>;
         count: ReturnType<typeof jest.fn>;
+        aggregate: ReturnType<typeof jest.fn>;
         create: ReturnType<typeof jest.fn>;
         update: ReturnType<typeof jest.fn>;
         updateMany: ReturnType<typeof jest.fn>;
@@ -29,6 +30,7 @@ type MockTransaction = {
         findFirstOrThrow: ReturnType<typeof jest.fn>;
         findUniqueOrThrow: ReturnType<typeof jest.fn>;
         count: ReturnType<typeof jest.fn>;
+        aggregate: ReturnType<typeof jest.fn>;
         create: ReturnType<typeof jest.fn>;
         update: ReturnType<typeof jest.fn>;
         updateMany: ReturnType<typeof jest.fn>;
@@ -49,23 +51,23 @@ const NOW = new Date('2026-06-11T10:00:00.000Z');
 
 const DEFAULT_UUID = '550e8400-e29b-41d4-a716-446655440000';
 const OTHER_UUID = '660e8400-e29b-41d4-a716-446655440001';
-const THIRD_UUID = '770e8400-e29b-41d4-a716-446655440002';
 
 
 function createModelMock(overrides: Record<string, unknown> = {}) {
   return {
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-    findUnique: jest.fn(),
-    findFirstOrThrow: jest.fn(),
-    findUniqueOrThrow: jest.fn(),
-    count: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    updateMany: jest.fn(),
-    delete: jest.fn(),
-    deleteMany: jest.fn(),
-    upsert: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    findFirst: jest.fn().mockResolvedValue(null),
+    findUnique: jest.fn().mockResolvedValue(null),
+    findFirstOrThrow: jest.fn().mockResolvedValue(null),
+    findUniqueOrThrow: jest.fn().mockResolvedValue(null),
+    count: jest.fn().mockResolvedValue(0),
+    aggregate: jest.fn().mockResolvedValue(null),
+    create: jest.fn().mockResolvedValue({}),
+    update: jest.fn().mockResolvedValue({}),
+    updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+    delete: jest.fn().mockResolvedValue({}),
+    deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+    upsert: jest.fn().mockResolvedValue({}),
     ...overrides,
   };
 }
@@ -78,6 +80,12 @@ export function createPrismaMock() {
   const circle = createModelMock();
   const circleMember = createModelMock();
   const reminder = createModelMock();
+  const category = createModelMock();
+  const step = createModelMock();
+  const approvalRequest = createModelMock();
+  const approvalRecipient = createModelMock();
+  const template = createModelMock();
+  const shareRecipient = createModelMock();
 
   const client = {
     user,
@@ -86,6 +94,12 @@ export function createPrismaMock() {
     circle,
     circleMember,
     reminder,
+    category,
+    step,
+    approvalRequest,
+    approvalRecipient,
+    template,
+    shareRecipient,
     $transaction: jest.fn().mockImplementation(
       (arg: unknown) => {
         if (typeof arg === 'function') {
@@ -108,6 +122,12 @@ export function createPrismaMock() {
     circle,
     circleMember,
     reminder,
+    category,
+    step,
+    approvalRequest,
+    approvalRecipient,
+    template,
+    shareRecipient,
     checkConnection: jest.fn().mockResolvedValue(true),
     isConnected: true,
     onModuleInit: jest.fn(),
@@ -123,11 +143,16 @@ function createTxMock(): MockTransaction {
     circle: createModelMock(),
     circleMember: createModelMock(),
     reminder: createModelMock(),
+    category: createModelMock(),
+    step: createModelMock(),
+    approvalRequest: createModelMock(),
+    approvalRecipient: createModelMock(),
+    template: createModelMock(),
+    shareRecipient: createModelMock(),
   } as unknown as MockTransaction;
 }
 
 
 export const MOCK_DATE_STR = '2026-06-11';
-export const MOCK_DATETIME_STR = '2026-06-11T08:00:00.000Z';
 
-export { DEFAULT_UUID, OTHER_UUID, THIRD_UUID, NOW };
+export { DEFAULT_UUID, OTHER_UUID, NOW };

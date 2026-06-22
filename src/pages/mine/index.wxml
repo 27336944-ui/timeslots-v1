@@ -1,87 +1,182 @@
 
-<view class="container">
+<view class="page">
   <privacy-agreement />
+
+  <!-- ===== Top Bar ===== -->
   <view class="top-bar">
-    <view class="top-bar-title">我的</view>
-  </view>
-  <view class="profile" wx:if="{{isLoggedIn && user && user.nickname}}">
-    <image wx:if="{{user.avatar}}" class="avatar avatar-img" src="{{user.avatar}}" />
-    <view wx:else class="avatar">{{user.nickname[0]}}</view>
-    <text class="nickname">{{user.nickname}}</text>
+    <text class="top-bar-title">我的</text>
   </view>
 
-  
-  <view class="profile" wx:else>
-    <view class="avatar avatar-placeholder">?</view>
-    <text class="nickname">未登录</text>
-  </view>
-
-  
-  <view class="login-form" wx:if="{{!isLoggedIn}}">
-    <view class="section-title">Dev 登录</view>
-    <input class="input" placeholder="输入用户 ID" value="{{userId}}" bindinput="onUserIdInput" />
-    <button class="btn btn-primary" loading="{{loading}}" bindtap="onLoginTap">Dev 登录</button>
-
-    <view class="divider-text">或</view>
-
-    <view class="section-title">微信登录</view>
-    <button class="btn btn-wechat" loading="{{wxLoading}}" bindtap="onWxLoginTap">微信一键登录</button>
-  </view>
-
-  
-  <view wx:if="{{isLoggedIn && stats}}" class="stats-section">
-    <view class="stat-card">
-      <text class="stat-value">{{stats.total}}</text>
-      <text class="stat-label">全部任务</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-value">{{stats.done}}</text>
-      <text class="stat-label">已完成</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-value {{stats.overdue > 0 ? 'stat-warning' : ''}}">{{stats.overdue}}</text>
-      <text class="stat-label">逾期</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-value">{{stats.weekDue}}</text>
-      <text class="stat-label">本周截止</text>
+  <!-- ===== Login Form (unlogged in) ===== -->
+  <view class="login-section" wx:if="{{!isLoggedIn}}">
+    <view class="login-title">登录 TimeSlots</view>
+    <view class="login-desc">Demo 模式：输入任意 UUID 即可登录</view>
+    <view class="login-form">
+      <input class="login-input" placeholder="用户 ID（UUID）" value="{{userId}}" bindinput="onUserIdInput" maxlength="38" />
+      <button class="login-btn" loading="{{loading}}" bindtap="onLoginTap">用户登录</button>
+      <view class="login-divider">或</view>
+      <button class="login-btn wx-login-btn" loading="{{wxLoading}}" bindtap="onWxLoginTap" type="primary">微信登录</button>
     </view>
   </view>
 
-  <view class="settings-section" wx:if="{{isLoggedIn}}">
-    <view class="settings-row" bindtap="onSettingsTap">
-      <text class="settings-icon">⚙️</text>
-      <text class="settings-text">设置</text>
-      <text class="settings-arrow">›</text>
+  <!-- ===== Profile Card ===== -->
+  <view class="profile-card" bindtap="onProfileCardTap" wx:if="{{isLoggedIn}}">
+    <view class="profile-top">
+      <view class="avatar {{user.avatar ? 'avatar-img' : ''}}" style="{{user.avatar ? '' : 'background-color: var(--ts-primary);'}}">
+        <image wx:if="{{user.avatar}}" class="avatar-img-inner" src="{{user.avatar}}" />
+        <text wx:else>{{userNicknameFirstChar}}</text>
+      </view>
+      <view class="profile-info">
+        <text class="profile-name">{{user.nickname || '未登录'}}</text>
+        <text class="profile-desc">查看资料、账户管理</text>
+      </view>
+      <text class="profile-arrow">›</text>
     </view>
-  </view>
-
-  <view class="logout-section" wx:if="{{isLoggedIn}}">
-    <button class="btn btn-danger" bindtap="onLogoutTap">退出登录</button>
-    <view class="delete-row">
-      <button class="btn btn-text" bindtap="onDeleteAccountTap">注销账号</button>
+    <view class="profile-divider"></view>
+    <view wx:if="{{!stats && loading}}" class="stats-skeleton">
+      <skeleton rowCount="1" />
     </view>
-  </view>
-
-  <view class="modal-overlay" wx:if="{{showRestoreModal}}" catchtouchmove="{{true}}">
-    <view class="modal">
-      <view class="modal-title">恢复账号</view>
-      <view class="modal-desc">您的账号已注销，7 天内可以恢复。确认要恢复吗？</view>
-      <view class="modal-actions">
-        <button class="btn btn-primary modal-btn" loading="{{restoring}}" bindtap="onRestoreTap">恢复账号</button>
-        <button class="btn btn-secondary modal-btn" bindtap="onRestoreCancel">取消</button>
+    <view class="profile-stats" wx:elif="{{stats}}">
+      <view class="profile-stat">
+        <text class="profile-stat-value">{{stats.total}}</text>
+        <text class="profile-stat-label">全部</text>
+      </view>
+      <view class="profile-stat">
+        <text class="profile-stat-value">{{stats.done}}</text>
+        <text class="profile-stat-label">已完成</text>
+      </view>
+      <view class="profile-stat">
+        <text class="profile-stat-value {{stats.overdue > 0 ? 'stat-warning' : ''}}">{{stats.overdue}}</text>
+        <text class="profile-stat-label">逾期</text>
+      </view>
+      <view class="profile-stat">
+        <text class="profile-stat-value">{{stats.weekDue}}</text>
+        <text class="profile-stat-label">本周截止</text>
       </view>
     </view>
   </view>
 
+  <!-- ===== Section: 功能 ===== -->
+  <view wx:if="{{isLoggedIn}}">
+    <view class="section-header">功能</view>
+    <view class="list-group">
+    <view class="list-cell" bindtap="onNamecardTap">
+      <view class="cell-icon blue">▨</view>
+      <text class="cell-label">时间名片</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="list-cell" bindtap="onClassificationsTap">
+      <view class="cell-icon green">⊞</view>
+      <text class="cell-label">分类管理</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="list-cell" bindtap="onTransparencyTap">
+      <view class="cell-icon amber">◐</view>
+      <text class="cell-label">透明度控制</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="list-cell" bindtap="onSettingsTap">
+      <view class="cell-icon gray">⚙</view>
+      <text class="cell-label">设置</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="list-cell" bindtap="onAboutTap">
+      <view class="cell-icon gray">ℹ</view>
+      <text class="cell-label">关于</text>
+      <text class="cell-arrow">›</text>
+    </view>
+  </view>
+  </view>
+
+  <!-- ===== Footer ===== -->
+  <view class="page-footer" wx:if="{{isLoggedIn}}">Timeslots v{{appVersion}}</view>
+
+  <!-- ===== Profile Subpage ===== -->
+  <view wx:if="{{isLoggedIn}}">
+  <view class="subpage-overlay {{showSubpage ? 'subpage-active' : ''}}" catchtouchmove="{{true}}">
+    <view class="subpage-header">
+      <view class="subpage-back" bindtap="onBackFromProfile">‹ 返回</view>
+      <text class="subpage-title">个人信息</text>
+    </view>
+    <view class="subpage-body">
+      <!-- Edit Card -->
+      <view class="edit-card">
+        <view class="edit-avatar {{user.avatar ? 'avatar-img' : ''}}" style="{{user.avatar ? '' : 'background-color: var(--ts-primary);'}}">
+          <image wx:if="{{user.avatar}}" class="avatar-img-inner" src="{{user.avatar}}" />
+          <text wx:else>{{userNicknameFirstChar}}</text>
+        </view>
+        <view class="edit-info">
+          <text class="edit-name">{{user.nickname || '未登录'}}</text>
+          <text class="edit-hint" bindtap="onEditProfileTap">编辑资料 ›</text>
+        </view>
+      </view>
+
+      <!-- Tags -->
+      <view class="list-group" wx:if="{{personalTags.length > 0}}">
+        <view class="list-cell">
+          <text class="cell-label cell-label-tag">标签: {{personalTagsStr}}</text>
+        </view>
+      </view>
+
+      <!-- Section: 账户 -->
+      <view class="section-header">账户</view>
+      <view class="list-group">
+        <view class="list-cell" bindtap="onLogoutTap">
+          <text class="cell-label cell-label-danger">退出登录</text>
+        </view>
+        <view class="list-cell" bindtap="onDeleteAccountTap">
+          <text class="cell-label cell-label-danger cell-label-bold">注销账号</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  </view>
+
+  <!-- ===== Logout Modal ===== -->
+  <view class="modal-overlay" wx:if="{{showLogoutModal}}" catchtouchmove="{{true}}" bindtap="onOverlayTap" data-target="logout">
+    <view class="modal" catchtap="{{noop}}">
+      <text class="modal-title">退出登录</text>
+      <text class="modal-desc">确定要退出当前账号吗？</text>
+      <view class="modal-actions">
+        <button class="modal-btn danger" loading="{{loggingOut}}" bindtap="confirmLogout">确认退出</button>
+        <button class="modal-btn cancel" bindtap="onCloseLogoutModal">取消</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Delete Account Modal ===== -->
+  <view class="modal-overlay" wx:if="{{showDeleteModal}}" catchtouchmove="{{true}}" bindtap="onOverlayTap" data-target="delete">
+    <view class="modal" catchtap="{{noop}}">
+      <text class="modal-title">注销账号</text>
+      <text class="modal-desc">确定要注销账号吗？7 天内可以恢复，7 天后账号将永久删除。所有日程数据将被隐藏。</text>
+      <view class="modal-actions">
+        <button class="modal-btn danger" loading="{{deleting}}" bindtap="confirmDeleteAccount">确认注销</button>
+        <button class="modal-btn cancel" bindtap="onCloseDeleteModal">取消</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Restore Modal (preserved) ===== -->
+  <view class="modal-overlay" wx:if="{{showRestoreModal}}" catchtouchmove="{{true}}">
+    <view class="modal" catchtap="{{noop}}">
+      <text class="modal-title">恢复账号</text>
+      <text class="modal-desc">您的账号已注销，7 天内可以恢复。确认要恢复吗？</text>
+      <view class="modal-actions">
+        <button class="modal-btn primary" loading="{{restoring}}" bindtap="onRestoreTap">恢复账号</button>
+        <button class="modal-btn cancel" bindtap="onRestoreCancel">取消</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Migration Modal (preserved) ===== -->
   <view class="modal-overlay" wx:if="{{showMigrationModal}}" catchtouchmove="{{true}}">
-    <view class="modal">
-      <view class="modal-title">迁移旧数据</view>
-      <view class="modal-desc">检测到您刚刚使用微信登录，是否将旧版 Dev 用户数据迁移过来？</view>
+    <view class="modal" catchtap="{{noop}}">
+      <text class="modal-title">迁移旧数据</text>
+      <text class="modal-desc">检测到您刚刚使用微信登录，是否将旧版 Dev 用户数据迁移过来？</text>
       <input class="modal-input" placeholder="输入旧 Dev 用户 ID" value="{{devUserId}}" bindinput="onDevUserIdInput" />
       <view class="modal-actions">
-        <button class="btn btn-primary modal-btn" loading="{{migrating}}" bindtap="onMigrateConfirm">迁移并删除旧数据</button>
-        <button class="btn btn-secondary modal-btn" bindtap="onMigrateSkip">跳过</button>
+        <button class="modal-btn primary" loading="{{migrating}}" bindtap="onMigrateConfirm">迁移并删除旧数据</button>
+        <button class="modal-btn cancel" bindtap="onMigrateSkip">跳过</button>
       </view>
     </view>
   </view>

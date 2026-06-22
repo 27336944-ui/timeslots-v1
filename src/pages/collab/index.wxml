@@ -1,53 +1,49 @@
 <scroll-view class="page" scroll-y refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onRefresh">
   <privacy-agreement />
-  <view class="top-bar">
-    <view class="top-bar-title">协作</view>
-    <view class="top-bar-actions">
-      <view class="top-btn top-btn-search" bindtap="onSearchTap">🔍</view>
-      <view class="top-btn top-btn-plus" bindtap="onPlusTap">+</view>
+  <compact-header date="{{headerDateStr}}" week-days="{{weekDays}}" selected-day="{{selectedDay}}" bind:search="onSearchTap" bind:plus="onPlusTap" bind:weekdaytap="onWeekDayTap">
+    <view slot="overview">
+      <text class="ov-line">
+        <text>待回应{{pendingList.length}}条邀约</text>
+        <text wx:if="{{initiatedList.length > 0}}">，已发出{{initiatedList.length}}条</text>
+      </text>
     </view>
-  </view>
+  </compact-header>
   <view wx:if="{{showSearch}}" class="search-bar">
-    <input class="search-input" placeholder="搜索审批请求…" value="{{searchKeyword}}" bindinput="onSearchInput" focus="{{true}}" />
+    <input class="search-input" adjust-position="{{true}}" cursor-spacing="{{100}}" placeholder="搜索邀约请求…" value="{{searchKeyword}}" bindinput="onSearchInput" focus="{{true}}" />
     <view class="search-cancel" bindtap="onSearchClose">取消</view>
   </view>
+
   <!-- Sub tabs -->
-  <view class="sub-tabs">
-    <view class="sub-tab {{activeTab === 'pending' ? 'active' : ''}}" bindtap="onTabPending">待我审批</view>
-    <view class="sub-tab {{activeTab === 'initiated' ? 'active' : ''}}" bindtap="onTabInitiated">我发起的</view>
+  <view class="tabs-row">
+    <view class="tab {{activeTab === 'pending' ? 'tab-active' : ''}}" bindtap="onTabPending">待赴约</view>
+    <view class="tab {{activeTab === 'initiated' ? 'tab-active' : ''}}" bindtap="onTabInitiated">已发出</view>
   </view>
 
   <!-- Pending tab -->
   <view wx:if="{{activeTab === 'pending'}}">
-    <view wx:if="{{pendingList.length === 0 && !loading}}" class="empty-state">
-      <text class="empty-text">暂无待审批</text>
-      <text class="empty-hint">别人发起的审批邀请会显示在这里</text>
-    </view>
+    <state-view wx:if="{{pendingList.length === 0 && !loading}}" empty="{{true}}" emptyText="还没有人分享给你" actionText="分享时间名片开始协作" bind:action="onShareNamecard" />
 
     <view wx:for="{{showSearch ? filteredPendingList : pendingList}}" wx:key="recipientId" class="approval-card" data-request-id="{{item.requestId}}" data-is-pending="true" bindtap="onApprovalTap">
       <view class="card-header">
         <view class="initiator-info">
-          <text class="initiator-avatar">{{item.initiator.nickname[0]}}</text>
+          <text class="initiator-avatar">{{item.initiator.nickname ? item.initiator.nickname[0] : '?'}}</text>
           <text class="initiator-name">{{item.initiator.nickname}}</text>
         </view>
-        <text class="badge-pending">待回应</text>
+        <text class="badge-pending">等 TA 确认</text>
       </view>
       <text class="block-title">{{item.title}}</text>
-      <text class="block-time">{{item.startTime}} - {{item.endTime}}</text>
+      <text class="block-time">{{item.triggerTime || item.startTime}}</text>
       <view wx:if="{{item.description}}" class="block-desc">{{item.description}}</view>
       <view class="card-actions">
-        <button class="btn-approve" bindtap="onApprove" data-request-id="{{item.requestId}}" data-recipient-id="{{item.recipientId}}">同意</button>
-        <button class="btn-reject" bindtap="onReject" data-request-id="{{item.requestId}}" data-recipient-id="{{item.recipientId}}">拒绝</button>
+        <button class="btn-approve" bindtap="onApprove" data-request-id="{{item.requestId}}" data-recipient-id="{{item.recipientId}}">好的</button>
+        <button class="btn-reject" bindtap="onReject" data-request-id="{{item.requestId}}" data-recipient-id="{{item.recipientId}}">不了</button>
       </view>
     </view>
   </view>
 
   <!-- Initiated tab -->
   <view wx:if="{{activeTab === 'initiated'}}">
-    <view wx:if="{{initiatedList.length === 0 && !loading}}" class="empty-state">
-      <text class="empty-text">暂无发起的审批</text>
-      <text class="empty-hint">在日程详情页发起审批邀请</text>
-    </view>
+    <state-view wx:if="{{initiatedList.length === 0 && !loading}}" empty="{{true}}" emptyText="暂无发起的邀约" actionText="创建邀约" bind:action="onPlusTap" />
 
     <view wx:for="{{showSearch ? filteredInitiatedList : initiatedList}}" wx:key="id" class="approval-card" data-request-id="{{item.id}}" data-is-pending="false" bindtap="onApprovalTap">
       <view class="card-header">
@@ -57,7 +53,7 @@
       <view class="progress-bar">
         <view class="progress-fill" style="width: {{item.progressPercent}}%"></view>
       </view>
-      <text class="progress-text">{{item.approvedCount}}/{{item.recipients.length}} 人同意</text>
+      <text class="progress-text">{{item.approvedCount}}/{{item.recipients.length}} 人好的</text>
     </view>
   </view>
 
@@ -66,67 +62,5 @@
   </view>
 
   <view wx:if="{{!loading && error && pendingList.length === 0 && initiatedList.length === 0}}" class="error-hint">{{error}}</view>
-
-  <!-- Circle management entry -->
-  <view class="circle-entry" bindtap="onCircleManage">圈子管理 ›</view>
-
-  <!-- My Circles section -->
-  <view class="circles-section" wx:if="{{circles.length > 0}}">
-    <view class="section-header">
-      <text class="section-title">我的圈子 ({{circles.length}})</text>
-    </view>
-    <view wx:for="{{circles}}" wx:key="id" class="circle-card" bindtap="onCircleTap" data-circle-id="{{item.id}}">
-      <view class="circle-info">
-        <text class="circle-name">{{item.name}}</text>
-        <text class="circle-meta">{{item.memberCount}}人 · {{item.myRole === 'OWNER' ? '圈主' : item.myRole === 'ADMIN' ? '管理员' : '成员'}}</text>
-        <text wx:if="{{item.description}}" class="circle-desc">{{item.description}}</text>
-      </view>
-      <text class="circle-arrow">›</text>
-    </view>
-  </view>
-
-  <!-- Empty circles hint -->
-  <view class="empty-circles" wx:if="{{circles.length === 0 && !loading}}">
-    <text class="empty-text">暂无圈子</text>
-    <text class="empty-hint">创建或加入圈子开始协作</text>
-  </view>
-
-  <!-- Create/Join Circle Dialog -->
-  <view wx:if="{{showCircleDialog}}" class="dialog-overlay" bindtap="onCloseCircleDialog">
-    <view class="dialog-content" catchtap="noop">
-      <view class="dialog-header">
-        <text class="dialog-title">{{dialogMode === 'create' ? '创建圈子' : '加入圈子'}}</text>
-        <text class="dialog-close" bindtap="onCloseCircleDialog">关闭</text>
-      </view>
-      <view class="dialog-tabs">
-        <view class="dialog-tab {{dialogMode === 'create' ? 'active' : ''}}" bindtap="onShowCreateCircle">创建圈子</view>
-        <view class="dialog-tab {{dialogMode === 'join' ? 'active' : ''}}" bindtap="onShowJoinCircle">加入圈子</view>
-      </view>
-
-      <view wx:if="{{dialogMode === 'create'}}">
-        <view class="dialog-form">
-          <view class="form-item">
-            <view class="form-label">圈子名称</view>
-            <input class="form-input" value="{{circleName}}" bindinput="onCircleNameInput" placeholder="如：工作组、家庭、读书会" />
-          </view>
-          <view class="form-item">
-            <view class="form-label">描述 (可选)</view>
-            <textarea class="form-textarea" value="{{circleDesc}}" bindinput="onCircleDescInput" placeholder="圈子描述" />
-          </view>
-          <button class="dialog-btn" bindtap="onCreateCircle">创建圈子</button>
-        </view>
-      </view>
-
-      <view wx:if="{{dialogMode === 'join'}}">
-        <view class="dialog-form">
-          <view class="form-item">
-            <view class="form-label">邀请码</view>
-            <input class="form-input" value="{{joinCode}}" bindinput="onJoinCodeInput" placeholder="输入8位邀请码" maxlength="8" />
-          </view>
-          <button class="dialog-btn" bindtap="onJoinCircle">加入圈子</button>
-        </view>
-      </view>
-    </view>
-  </view>
 
 </scroll-view>

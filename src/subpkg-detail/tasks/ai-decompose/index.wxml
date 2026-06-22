@@ -1,0 +1,71 @@
+<view class="container">
+  <text class="page-title">AI 拆解任务</text>
+  <text class="page-desc">输入任务标题，AI 将自动拆解为可执行的步骤</text>
+
+  <input class="text-input" placeholder="任务标题（如：下周完成季报）" value="{{title}}" bindinput="onTitleInput" maxlength="200" />
+  <input class="goal-input" placeholder="任务目标（可选）" value="{{goal}}" bindinput="onGoalInput" maxlength="500" />
+
+  <button class="decompose-btn" bindtap="onDecompose" disabled="{{!title.trim() || decomposing}}">
+    {{decomposing ? 'AI 拆解中...' : 'AI 拆解'}}
+  </button>
+
+  <text wx:if="{{decomposing}}" class="status-text">正在分析任务，请稍候...</text>
+  <text wx:if="{{error}}" class="error-text">{{error}}</text>
+
+  <view wx:if="{{decomposedSteps.length > 0}}" class="decomposed-section">
+    <text class="section-title">AI 拆解结果（{{decomposedSteps.length}} 步）</text>
+
+    <view class="summary-card">
+      <text class="summary-label">总估时</text>
+      <text class="summary-value">{{totalMinutes}} 分钟</text>
+    </view>
+
+    <view wx:for="{{decomposedSteps}}" wx:key="index" class="step-card">
+      <view class="step-index">{{item.index + 1}}</view>
+      <view class="step-content">
+        <text class="step-text">{{item.text}}</text>
+        <text class="step-meta">{{item.estimatedMinutes}} 分钟</text>
+        <text wx:if="{{item.dependsOnIndex !== -1}}" class="step-depends">依赖步骤 {{item.dependsOnIndex + 1}}</text>
+      </view>
+    </view>
+
+    <text wx:if="{{rationale}}" class="rationale-text">{{rationale}}</text>
+
+    <view class="action-row">
+      <button class="apply-btn" bindtap="onApply">一键创建步骤</button>
+      <button class="cancel-btn" bindtap="onRedo">重新拆解</button>
+    </view>
+  </view>
+
+  <view wx:if="{{stepsCreated}}" class="suggest-section">
+    <button class="suggest-btn" bindtap="onSuggestSlots" disabled="{{suggesting}}">
+      {{suggesting ? '计算中…' : '建议时间段安排'}}
+    </button>
+
+    <view wx:if="{{suggestions.length > 0}}" class="suggestion-list">
+      <view wx:for="{{suggestions}}" wx:key="stepId" class="suggestion-card">
+        <view class="sug-step-text">{{item.stepText}}</view>
+        <view wx:if="{{item.suggestedStart}}" class="sug-time">
+          <text>{{item.suggestedStart}} → {{item.suggestedEnd}}</text>
+          <text class="sug-reason">{{item.reason}}</text>
+        </view>
+        <view wx:else class="sug-time no-slot">{{item.reason}}</view>
+        <view wx:if="{{item.sugAction === 'pending'}}" class="sug-actions">
+          <button class="sug-accept" size="mini" data-idx="{{index}}" bindtap="onAcceptSuggestion">接受</button>
+          <button class="sug-edit" size="mini" data-idx="{{index}}" bindtap="onEditSuggestion">编辑</button>
+          <button class="sug-skip-btn" size="mini" data-idx="{{index}}" bindtap="onSkipSuggestion">跳过</button>
+          <button class="sug-reject" size="mini" data-idx="{{index}}" bindtap="onRejectSuggestion">暂不排期</button>
+        </view>
+        <view wx:if="{{item.sugAction === 'accept'}}" class="sug-done">✅ 已排期</view>
+        <view wx:if="{{item.sugAction === 'skip'}}" class="sug-skipped">⏭️ 已跳过</view>
+        <view wx:if="{{item.sugAction === 'reject'}}" class="sug-skipped">❌ 暂不排期</view>
+        <view wx:if="{{item.sugAction === 'edit'}}" class="sug-editing">
+          <input class="sug-time-input" placeholder="开始 (HH:mm)" value="{{item.customStart}}" data-idx="{{index}}" bindinput="onEditStartInput" />
+          <text> → </text>
+          <input class="sug-time-input" placeholder="结束 (HH:mm)" value="{{item.customEnd}}" data-idx="{{index}}" bindinput="onEditEndInput" />
+          <button class="sug-accept" size="mini" data-idx="{{index}}" bindtap="onConfirmEdited">确认排期</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

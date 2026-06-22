@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "任务"
+  "navigationBarTitleText": "任务",
+  "usingComponents": {
+    "state-view": "/components/state-view/index"
+  }
 }

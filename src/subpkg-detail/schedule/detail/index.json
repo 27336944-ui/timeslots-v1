@@ -1,0 +1,15 @@
+{
+  "navigationBarTitleText": "任务时间弹性",
+  "usingComponents": {
+    "privacy-agreement": "../../../components/privacy-agreement/index",
+    "bottom-sheet": "../../../components/bottom-sheet/index",
+    "confirm-modal": "../../../components/confirm-modal/index",
+    "capsule-button": "../../../components/capsule-button/index",
+    "category-picker": "../../../components/category-picker/index",
+    "block-hero": "../../../components/block-hero/index",
+    "block-sections": "../../../components/block-sections/index",
+    "inset-form": "../../../components/inset-form/index",
+    "segmented-control": "../../../components/segmented-control/index",
+    "loading": "../../../components/loading/index"
+  }
+}

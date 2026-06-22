@@ -1,5 +1,5 @@
 
-import { IsString, IsOptional, IsIn, IsArray, IsObject, MinLength, IsISO8601 } from 'class-validator';
+import { IsString, IsOptional, IsIn, IsArray, IsObject, MinLength, IsISO8601, IsNumber, Min } from 'class-validator';
 
 
 export class CreateTaskDto {
@@ -18,13 +18,8 @@ export class CreateTaskDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['pending', 'in_progress', 'done'])
+  @IsIn(['pending', 'in_progress', 'done', 'overdue'])
   status?: string;
-
-  @IsOptional()
-  @IsString()
-  @IsIn(['high', 'medium', 'low'])
-  priority?: string;
 
   @IsOptional()
   @IsString()
@@ -33,6 +28,25 @@ export class CreateTaskDto {
 
   @IsOptional()
   @IsString()
+  categoryId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsISO8601()
+  startDate?: string | null;
+
+  @IsOptional()
+  @IsString()
   @IsISO8601()
   dueAt?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @IsISO8601()
+  triggerTime?: string | null;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  estimatedDuration?: number;
 }

@@ -1,0 +1,72 @@
+<scroll-view class="page" scroll-y refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onRefresh">
+  <view class="header-bar">
+    <text class="header-title">统计</text>
+  </view>
+
+  <view class="range-bar">
+    <picker mode="date" value="{{rangeStart}}" bindchange="onRangeStartChange">
+      <text class="range-label">{{rangeStart}}</text>
+    </picker>
+    <text class="range-sep">~</text>
+    <picker mode="date" value="{{rangeEnd}}" bindchange="onRangeEndChange">
+      <text class="range-label">{{rangeEnd}}</text>
+    </picker>
+  </view>
+
+  <view wx:if="{{!tbStats && !loading}}" class="loading-wrap">
+    <text>暂无数据</text>
+  </view>
+
+  <view wx:if="{{tbStats}}" class="stats-section">
+    <text class="section-title">日程概览</text>
+    <view class="stat-grid">
+      <view class="stat-card">
+        <text class="stat-num">{{tbStats.totalBlocks}}</text>
+        <text class="stat-label">总块数</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{tbStats.totalHours}}</text>
+        <text class="stat-label">总时长(小时)</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{tbStats.avgDurationMinutes}}</text>
+        <text class="stat-label">平均时长(分钟)</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{tbStats && tbStats.byCategory}}" class="stats-section">
+    <text class="section-title">分类分布（小时）</text>
+    <view class="cat-list">
+      <view wx:for="{{catBars}}" wx:key="key" class="cat-row">
+        <text class="cat-key">{{item.label}}</text>
+        <view class="cat-bar-wrap">
+          <view class="cat-bar cat-{{item.key}}" style="width:{{item.pct}}%"></view>
+        </view>
+        <text class="cat-val">{{item.value}}h</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{taskStats}}" class="stats-section">
+    <text class="section-title">任务概览</text>
+    <view class="stat-grid stat-grid-4">
+      <view class="stat-card">
+        <text class="stat-num">{{taskStats.total}}</text>
+        <text class="stat-label">全部</text>
+      </view>
+      <view class="stat-card stat-done">
+        <text class="stat-num">{{taskStats.done}}</text>
+        <text class="stat-label">已完成</text>
+      </view>
+      <view class="stat-card stat-overdue">
+        <text class="stat-num">{{taskStats.overdue}}</text>
+        <text class="stat-label">逾期</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{taskStats.week}}</text>
+        <text class="stat-label">本周截止</text>
+      </view>
+    </view>
+  </view>
+</scroll-view>

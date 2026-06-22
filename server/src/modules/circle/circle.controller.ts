@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, UseGuards,
+  Body, Param, Query, UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -9,6 +9,8 @@ import { CreateCircleDto } from './dto/create-circle.dto';
 import { UpdateCircleDto } from './dto/update-circle.dto';
 import { CircleResponseDto } from './dto/circle-response.dto';
 import { InviteResponseDto } from './dto/invite-response.dto';
+import { AddCircleMembersDto } from './dto/add-circle-members.dto';
+import { MemberSlotsDto } from './dto/member-availability.dto';
 
 
 @Controller('api/v1/circles')
@@ -37,6 +39,15 @@ export class CircleController {
     @Param('id') id: string,
   ): Promise<CircleResponseDto> {
     return this.circleService.findById(userId, id);
+  }
+
+  @Get(':circleId/availability')
+  async getAvailability(
+    @CurrentUser('userId') userId: string,
+    @Param('circleId') circleId: string,
+    @Query('date') date: string,
+  ): Promise<MemberSlotsDto[]> {
+    return this.circleService.getMemberAvailability(userId, circleId, date);
   }
 
   @Patch(':id')
@@ -90,5 +101,14 @@ export class CircleController {
   ): Promise<{ deleted: boolean }> {
     await this.circleService.removeMember(userId, circleId, memberId);
     return { deleted: true };
+  }
+
+  @Post(':circleId/members')
+  async addMembers(
+    @CurrentUser('userId') userId: string,
+    @Param('circleId') circleId: string,
+    @Body() dto: AddCircleMembersDto,
+  ): Promise<CircleResponseDto> {
+    return this.circleService.addMembers(userId, circleId, dto.userIds);
   }
 }

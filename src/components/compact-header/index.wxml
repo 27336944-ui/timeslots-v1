@@ -1,0 +1,27 @@
+<view class="compact-header">
+  <view class="ch-row">
+    <view class="ch-left">
+      <text class="ch-date">{{date}}</text>
+    </view>
+    <view class="ch-actions">
+      <view class="top-btn top-btn-search" bindtap="onSearchTap" aria-label="搜索日程" aria-role="button">
+        <view class="search-el"></view>
+      </view>
+      <view class="top-btn top-btn-plus" bindtap="onPlusTap" aria-label="创建日程" aria-role="button">+</view>
+    </view>
+  </view>
+
+  <view class="overview-panel">
+    <slot name="overview"></slot>
+  </view>
+
+  <view class="ch-day-labels">
+    <view wx:for="{{weekDays}}" wx:for-item="wdl" wx:key="dateStr" class="ch-dl">{{wdl.dayLabel}}</view>
+  </view>
+  <view class="ch-day-nums">
+    <view wx:for="{{weekDays}}" wx:key="dateStr" class="ch-dn {{item.dateStr === selectedDay ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" data-date="{{item.dateStr}}" bindtap="onWeekDayTap">
+      <text class="ch-dn-num">{{item.dateNum}}</text>
+      <text wx:if="{{item.festival}}" class="ch-dn-festival">{{item.festival}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,59 @@
+<view class="page">
+  <privacy-agreement />
+
+  <!-- Stealth toggle -->
+  <view class="stealth-card" bindtap="onToggleStealth">
+    <view class="stealth-icon">{{stealthEnabled ? '👁️' : '👤'}}</view>
+    <view class="stealth-info">
+      <text class="stealth-title">{{stealthEnabled ? '隐身模式（已开启）' : '一键隐身'}}</text>
+      <text class="stealth-desc">{{stealthEnabled && stealthRemaining ? stealthRemaining : stealthEnabled ? '别人看不到你的日程' : '开启后其他人无法查看你的日程'}}</text>
+    </view>
+    <view class="stealth-switch {{stealthEnabled ? 'stealth-on' : ''}}">{{stealthEnabled ? 'ON' : 'OFF'}}</view>
+  </view>
+
+  <!-- Recipient list -->
+  <view class="section-header">
+    <text class="section-title">共享对象</text>
+    <text class="section-add" bindtap="onAddTap">+ 添加</text>
+  </view>
+
+  <view wx:if="{{loading && recipients.length === 0}}" class="skeleton-wrap">
+    <skeleton rowCount="3" />
+  </view>
+
+  <view wx:if="{{!loading && recipients.length === 0}}" class="empty-state">
+    <text class="empty-text">还没有共享对象</text>
+    <text class="empty-hint">添加后对方可在共享级别内查看你的日程</text>
+  </view>
+
+  <view wx:for="{{recipients}}" wx:key="id" class="recipient-card">
+    <view class="recipient-avatar">{{recipientInitials[item.id] || '?'}}</view>
+    <view class="recipient-info">
+      <text class="recipient-name">{{item.targetName}}</text>
+      <text class="recipient-level">{{item.level === 'full' ? '完整可见' : item.level === 'freebusy' ? '仅空闲' : '仅邀请'}}</text>
+    </view>
+    <view class="recipient-actions">
+      <picker mode="selector" range="{{['full', 'freebusy', 'invite_only']}}" value="{{item.level === 'full' ? 0 : item.level === 'freebusy' ? 1 : 2}}" bindchange="onLevelSelect" data-id="{{item.id}}">
+        <text class="recipient-level-btn">级别</text>
+      </picker>
+      <text class="recipient-remove" bindtap="onRemoveRecipient" data-id="{{item.id}}">✕</text>
+    </view>
+  </view>
+
+  <!-- Add dialog -->
+  <view wx:if="{{showAddDialog}}" class="dialog-overlay" bindtap="onCancelAdd">
+    <view class="dialog-box" catchtap="onDialogInnerTap">
+      <view class="dialog-title">添加共享对象</view>
+      <input class="dialog-input" cursor-spacing="40" placeholder="对方 user ID" value="{{addTargetUserId}}" bindinput="onTargetUserIdInput" />
+      <view class="dialog-levels">
+        <view class="dialog-level {{addLevel === 'full' ? 'active' : ''}}" bindtap="onLevelChange" data-value="full">完整可见</view>
+        <view class="dialog-level {{addLevel === 'freebusy' ? 'active' : ''}}" bindtap="onLevelChange" data-value="freebusy">仅空闲</view>
+        <view class="dialog-level {{addLevel === 'invite_only' ? 'active' : ''}}" bindtap="onLevelChange" data-value="invite_only">仅邀请</view>
+      </view>
+      <view class="dialog-actions">
+        <button class="dialog-cancel" bindtap="onCancelAdd">取消</button>
+        <button class="dialog-confirm" bindtap="onConfirmAdd">确认</button>
+      </view>
+    </view>
+  </view>
+</view>

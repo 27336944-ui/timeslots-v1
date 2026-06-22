@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "privacy-agreement": "/components/privacy-agreement/index"
+  },
+  "navigationBarTitleText": "关于"
+}

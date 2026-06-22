@@ -6,7 +6,7 @@
       <text class="privacy-section">一、信息收集</text>
       <text class="privacy-paragraph">1. 您主动创建的日程、待办、协作数据；2. 微信昵称、头像用于协作功能中的身份展示；3. 应用运行产生的日志信息（不涉及个人隐私内容）。</text>
       <text class="privacy-section">二、信息使用</text>
-      <text class="privacy-paragraph">1. 所有数据仅用于 timeslots 应用功能（日程管理、协作审批、统计展示）；2. 不会用于任何商业目的或第三方服务。</text>
+      <text class="privacy-paragraph">1. 所有数据仅用于 timeslots 应用功能（日程管理、协作邀约、统计展示）；2. 不会用于任何商业目的或第三方服务。</text>
       <text class="privacy-section">三、信息存储与安全</text>
       <text class="privacy-paragraph">1. 数据存储于开发者自建服务器（PostgreSQL 数据库），采用加密传输；2. 开发者采取合理的安全措施保护数据，但不对不可抗力导致的数据泄露承担责任。</text>
       <text class="privacy-section">四、信息分享</text>
@@ -19,7 +19,7 @@
       <text class="privacy-paragraph">如有疑问，请联系应用开发者。</text>
       <text class="privacy-paragraph">继续使用即表示您同意上述条款。</text>
     </scroll-view>
-    <button class="privacy-agree-btn" bindtap="onAgree" disabled="{{agreeing}}">
+    <button class="privacy-agree-btn {{agreeing ? 'privacy-agree-btn-disabled' : ''}}" bindtap="onAgree" disabled="{{agreeing}}">
       {{agreeing ? '处理中...' : '同意并继续'}}
     </button>
   </view>

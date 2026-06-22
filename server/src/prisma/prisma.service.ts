@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 
-const SOFT_DELETE_MODELS = ['Task', 'TimeBlock', 'Reminder', 'Circle', 'CircleMember', 'ApprovalRequest', 'ApprovalRecipient'];
+const SOFT_DELETE_MODELS = ['Task', 'Step', 'TimeBlock', 'Category', 'Reminder', 'Circle', 'CircleMember', 'ApprovalRequest', 'ApprovalRecipient', 'Template', 'ShareCard', 'ShareRecipient', 'Delegation'];
 
 
 function createExtendedClient(): PrismaClient {
@@ -83,7 +83,8 @@ export class PrismaService implements OnModuleInit {
       await this.client.$queryRaw`SELECT 1`;
       this.dbConnected = true;
       return true;
-    } catch {
+    } catch (err) {
+      this.logger.warn('Database connection check failed', err);
       this.dbConnected = false;
       return false;
     }

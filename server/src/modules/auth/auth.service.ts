@@ -1,11 +1,12 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import * as https from 'https';
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BusinessException, ErrorCodes } from '../../common/exceptions/business-exception';
+import { CategoryService } from '../category/category.service';
+import { CircleService } from '../circle/circle.service';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
 import { WxLoginDto } from './dto/wx-login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -19,6 +20,9 @@ const DEFAULT_SETTINGS = {
   dayStartsAt: '06:00',
   reminderLeadMinutes: 15,
   defaultNature: 'PUBLIC',
+  defaultDuration: '1h',
+  defaultCategory: 'last',
+  weekStartsOn: 1,
 };
 
 
@@ -28,6 +32,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly categoryService: CategoryService,
+    private readonly circleService: CircleService,
   ) {}
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
@@ -40,6 +46,9 @@ export class AuthService {
     }
 
     this.checkDeletedUser(user);
+
+    await this.categoryService.initDefaults(user.id);
+    await this.circleService.initDefaults(user.id);
 
     return this.buildLoginResponse(user);
   }
@@ -60,7 +69,10 @@ export class AuthService {
       if (body.errcode) {
         throw new BusinessException(ErrorCodes.VALIDATION_FAILED, `微信登录失败: ${body.errmsg || body.errcode}`);
       }
-      openid = body.openid as string;
+      if (!body.openid || typeof body.openid !== 'string') {
+        throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '微信登录失败：未获取到 openid');
+      }
+      openid = body.openid;
     } catch (e) {
       if (e instanceof BusinessException) throw e;
       throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '微信登录服务不可用');
@@ -76,6 +88,8 @@ export class AuthService {
       user = await this.prisma.client.user.create({
         data: { openid, nickname: '微信用户' },
       });
+      await this.categoryService.initDefaults(user.id);
+      await this.circleService.initDefaults(user.id);
     }
 
     return this.buildLoginResponse(user);
@@ -98,7 +112,7 @@ export class AuthService {
 
   async restoreAccount(dto: RestoreAccountDto): Promise<LoginResponseDto> {
     const user = await this.prisma.client.user.findFirst({
-      where: { id: dto.userId },
+      where: { id: dto.userId, isDeleted: true },
     });
     if (!user) {
       throw new BusinessException(ErrorCodes.USER_NOT_EXISTS, '用户不存在', HttpStatus.NOT_FOUND);
@@ -132,17 +146,25 @@ export class AuthService {
       throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '未找到可迁移的 Dev 数据');
     }
 
+    const operations: any[] = [];
     if (blockCount > 0) {
-      await this.prisma.client.timeBlock.updateMany({
-        where: { userId: devUserId, isDeleted: false },
-        data: { userId },
-      });
+      operations.push(
+        this.prisma.client.timeBlock.updateMany({
+          where: { userId: devUserId, isDeleted: false },
+          data: { userId },
+        }),
+      );
     }
     if (taskCount > 0) {
-      await this.prisma.client.task.updateMany({
-        where: { userId: devUserId, isDeleted: false },
-        data: { userId },
-      });
+      operations.push(
+        this.prisma.client.task.updateMany({
+          where: { userId: devUserId, isDeleted: false },
+          data: { userId },
+        }),
+      );
+    }
+    if (operations.length > 0) {
+      await this.prisma.client.$transaction(operations);
     }
 
     return { migrated: blockCount + taskCount };
@@ -163,17 +185,25 @@ export class AuthService {
       throw new BusinessException(ErrorCodes.VALIDATION_FAILED, '未找到可删除的 Dev 数据');
     }
 
+    const operations: any[] = [];
     if (blockCount > 0) {
-      await this.prisma.client.timeBlock.updateMany({
-        where: { userId: devUserId, isDeleted: false },
-        data: { isDeleted: true, deletedAt: new Date() },
-      });
+      operations.push(
+        this.prisma.client.timeBlock.updateMany({
+          where: { userId: devUserId, isDeleted: false },
+          data: { isDeleted: true, deletedAt: new Date() },
+        }),
+      );
     }
     if (taskCount > 0) {
-      await this.prisma.client.task.updateMany({
-        where: { userId: devUserId, isDeleted: false },
-        data: { isDeleted: true, deletedAt: new Date() },
-      });
+      operations.push(
+        this.prisma.client.task.updateMany({
+          where: { userId: devUserId, isDeleted: false },
+          data: { isDeleted: true, deletedAt: new Date() },
+        }),
+      );
+    }
+    if (operations.length > 0) {
+      await this.prisma.client.$transaction(operations);
     }
 
     return { deleted: blockCount + taskCount };
@@ -219,6 +249,16 @@ export class AuthService {
     if (dto.dayStartsAt !== undefined) merged.dayStartsAt = dto.dayStartsAt;
     if (dto.reminderLeadMinutes !== undefined) merged.reminderLeadMinutes = dto.reminderLeadMinutes;
     if (dto.defaultNature !== undefined) merged.defaultNature = dto.defaultNature;
+    if (dto.defaultDuration !== undefined) merged.defaultDuration = dto.defaultDuration;
+    if (dto.defaultCategory !== undefined) merged.defaultCategory = dto.defaultCategory;
+    if (dto.weekStartsOn !== undefined) merged.weekStartsOn = dto.weekStartsOn;
+    // Personal info
+    if (dto.age !== undefined) merged.age = dto.age;
+    if (dto.maritalStatus !== undefined) merged.maritalStatus = dto.maritalStatus;
+    if (dto.spouseName !== undefined) merged.spouseName = dto.spouseName;
+    if (dto.residence !== undefined) merged.residence = dto.residence;
+    if (dto.company !== undefined) merged.company = dto.company;
+    if (dto.occupation !== undefined) merged.occupation = dto.occupation;
     await this.prisma.client.user.update({
       where: { id: userId },
       data: { settings: merged as Prisma.InputJsonValue },
@@ -241,17 +281,14 @@ export class AuthService {
     throw new BusinessException(ErrorCodes.ACCOUNT_PENDING_DELETE, '账号待删除，请在 7 天内恢复账号后再登录', HttpStatus.FORBIDDEN);
   }
 
-  private httpsGet(url: string): Promise<Record<string, unknown>> {
-    return new Promise((resolve, reject) => {
-      https.get(url, (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-          try { resolve(JSON.parse(data)); }
-          catch { reject(new Error('Invalid response from WeChat API')); }
-        });
-      }).on('error', reject);
-    });
+  private async httpsGet(url: string): Promise<Record<string, unknown>> {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) {
+      throw new Error(`WeChat API error: ${res.status}`);
+    }
+    const data = await res.text();
+    try { return JSON.parse(data); }
+    catch { throw new Error('Invalid response from WeChat API'); }
   }
 
   private buildLoginResponse(user: {

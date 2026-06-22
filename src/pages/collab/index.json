@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "协作"
+  "navigationBarTitleText": "协作",
+  "usingComponents": {
+    "state-view": "/components/state-view/index"
+  }
 }

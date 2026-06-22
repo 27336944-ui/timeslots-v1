@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "委托详情",
+  "usingComponents": {
+    "skeleton": "../../../components/skeleton/index",
+    "privacy-agreement": "../../../components/privacy-agreement/index"
+  }
+}

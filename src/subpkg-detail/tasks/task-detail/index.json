@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "新任务",
+  "usingComponents": {
+    "privacy-agreement": "../../../components/privacy-agreement/index",
+    "capsule-button": "../../../components/capsule-button/index",
+    "inset-form": "../../../components/inset-form/index",
+    "segmented-control": "../../../components/segmented-control/index",
+    "loading": "../../../components/loading/index"
+  }
+}

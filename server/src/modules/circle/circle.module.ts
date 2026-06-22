@@ -8,5 +8,6 @@ import { CircleService } from './circle.service';
   imports: [PrismaModule],
   controllers: [CircleController],
   providers: [CircleService],
+  exports: [CircleService],
 })
 export class CircleModule {}

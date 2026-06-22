@@ -1,0 +1,20 @@
+<view wx:if="{{visible}}" class="ces-overlay" bindtap="onOverlayTap">
+  <view class="ces-sheet" catchtap="onSheetTap">
+    <view class="ces-handle"><view class="ces-handle-bar"></view></view>
+    <view class="ces-title">选择创建方式</view>
+    <view class="ces-grid">
+      <view
+        wx:for="{{entries}}"
+        wx:key="type"
+        class="ces-card ces-card-{{item.cls}}"
+        data-type="{{item.type}}"
+        bindtap="onSelect"
+      >
+        <view class="ces-icon">{{item.icon}}</view>
+        <text class="ces-label">{{item.label}}</text>
+        <text class="ces-desc">{{item.desc}}</text>
+      </view>
+    </view>
+    <view class="ces-cancel" bindtap="onClose">取消</view>
+  </view>
+</view>

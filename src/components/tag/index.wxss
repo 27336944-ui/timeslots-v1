@@ -1,30 +1,30 @@
 .tag {
   display: inline-flex;
   align-items: center;
-  border-radius: 999rpx;
-  padding: 4rpx 16rpx;
-  font-size: var(--ts-font-tiny);
+  border-radius: var(--ts-radius-full);
+  padding: var(--ts-space-xs) var(--ts-space-md);
+  font-size: var(--ts-font-small);
   line-height: 1.4;
 }
 
-.tag-sm { padding: 2rpx 12rpx; font-size: var(--ts-font-tiny); }
-.tag-md { padding: 4rpx 16rpx; font-size: var(--ts-font-tiny); }
+.tag-sm { padding: 2rpx var(--ts-space-sm); font-size: var(--ts-font-small); }
+.tag-md { padding: var(--ts-space-xs) var(--ts-space-md); font-size: var(--ts-font-small); }
 
-.tag-default { background: var(--ts-bg-disabled); color: #666; }
+.tag-default { background: var(--ts-bg-disabled); color: var(--ts-text-secondary); }
 
 .tag-primary { background: var(--ts-primary-bg); color: var(--ts-primary); }
 
-.tag-success { background: #E8F8EE; color: var(--ts-status-done); }
+.tag-success { background: var(--ts-status-done-bg); color: var(--ts-status-done); }
 
-.tag-warning { background: #FFF3E0; color: #FF8C00; }
+.tag-warning { background: var(--ts-bg-disabled); color: var(--ts-accent-amber); }
 
-.tag-danger { background: #FDE8EA; color: var(--ts-danger); }
+.tag-danger { background: var(--ts-priority-high-bg); color: var(--ts-danger); }
 
 .tag-text { flex: 1; }
 
 .tag-close {
-  margin-left: 8rpx;
-  padding: 2rpx;
+  margin-left: var(--ts-space-xs);
+  padding: var(--ts-space-xs);
   font-size: var(--ts-font-body);
   opacity: 0.6;
 }

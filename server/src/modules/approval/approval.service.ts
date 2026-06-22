@@ -2,9 +2,12 @@ import { Injectable, HttpStatus } from '@nestjs/common';
 import { ContactType, ApprovalRecipientStatus, ApprovalRequestStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BusinessException, ErrorCodes } from '../../common/exceptions/business-exception';
+import { EventLogService } from '../eventlog/event-log.service';
 import { CreateApprovalDto } from './dto/create-approval.dto';
 import { RespondApprovalDto } from './dto/respond-approval.dto';
 import { ApprovalResponseDto } from './dto/approval-response.dto';
+import { NotificationService } from '../notification/notification.service';
+import { SmsService } from '../notification/sms.service';
 import * as crypto from 'crypto';
 
 
@@ -65,11 +68,16 @@ function toISO(d: Date | string): string {
 
 @Injectable()
 export class ApprovalService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notification: NotificationService,
+    private readonly sms: SmsService,
+    private readonly eventLog: EventLogService,
+  ) {}
 
   async create(userId: string, dto: CreateApprovalDto): Promise<ApprovalResponseDto> {
     const block = await this.prisma.client.timeBlock.findFirst({
-      where: { id: dto.blockId, userId },
+      where: { id: dto.blockId, userId, isDeleted: false },
     });
     if (!block) throw new BusinessException(ErrorCodes.EVENT_NOT_FOUND, '日程不存在', HttpStatus.NOT_FOUND);
 
@@ -85,6 +93,9 @@ export class ApprovalService {
           endTime: block.endTime,
           description: block.description,
           category: block.category,
+          nature: block.nature,
+          categoryId: block.categoryId,
+          circleId: block.circleId,
           shareToken,
           recipients: {
             create: dto.recipients.map((r) => ({
@@ -101,9 +112,18 @@ export class ApprovalService {
 
     for (const recipient of request.recipients) {
       if (recipient.contactType === 'phone' && recipient.contactValue) {
-        console.warn(`[Approval] SMS to ${recipient.contactValue}: shareToken=${shareToken}`);
+        this.sms.send({
+          phoneNumber: recipient.contactValue,
+          content: `[timeslots] 邀请你参加：${request.title}`,
+          shortLink: `https://timeslots.app/d/${request.id}`,
+        });
       }
     }
+
+    this.eventLog.log(userId, 'approval_create', {
+      entityId: request.id,
+      source: `block:${request.blockId},recipients:${request.recipients.length}`,
+    });
 
     return this.toResponse(request, userId);
   }
@@ -148,7 +168,7 @@ export class ApprovalService {
 
   async findById(userId: string, requestId: string): Promise<ApprovalResponseDto> {
     const request = await this.prisma.client.approvalRequest.findFirst({
-      where: { id: requestId },
+      where: { id: requestId, OR: [{ initiatorId: userId }, { recipients: { some: { userId } } }] },
       include: { recipients: true },
     });
     if (!request) throw new BusinessException(ErrorCodes.EVENT_NOT_FOUND, '审批请求不存在', HttpStatus.NOT_FOUND);
@@ -176,6 +196,9 @@ export class ApprovalService {
     const reqEndTime = recipient.request.endTime;
     const reqDescription = recipient.request.description;
     const reqCategory = recipient.request.category;
+    const reqNature = recipient.request.nature ?? 'PRIVATE';
+    const reqCategoryId = recipient.request.categoryId;
+    const reqCircleId = recipient.request.circleId;
 
     await this.prisma.client.$transaction(async (tx) => {
       if (dto.action === 'approve') {
@@ -187,6 +210,11 @@ export class ApprovalService {
             endTime: reqEndTime,
             description: reqDescription,
             category: reqCategory,
+            categoryId: reqCategoryId,
+            nature: reqNature,
+            circleId: reqCircleId,
+            source: 'approval',
+            sourceId: recipient.id,
             status: 'todo',
           },
         });
@@ -213,6 +241,30 @@ export class ApprovalService {
     });
 
     await this.updateRequestStatus(requestId);
+
+    const initiatorId = recipient.request.initiatorId;
+    if (initiatorId && initiatorId !== currentUserId) {
+      const initiatorUser = await this.prisma.client.user.findFirst({
+        where: { id: initiatorId, isDeleted: false },
+        select: { openid: true },
+      });
+      if (initiatorUser?.openid) {
+        this.notification.sendSubscribeMessage({
+          userId: initiatorId,
+          openid: initiatorUser.openid,
+          scenario: 'approval_result',
+          data: {
+            thing1: reqTitle,
+            phrase2: dto.action === 'approve' ? '已通过' : '已拒绝',
+          },
+        });
+      }
+    }
+
+    this.eventLog.log(currentUserId, 'approval_respond', {
+      entityId: requestId,
+      source: `action:${dto.action},recipientId:${recipientId}`,
+    });
 
     return { action: dto.action, ok: true };
   }
@@ -254,7 +306,11 @@ export class ApprovalService {
     });
 
     if (recipient.contactType === 'phone' && recipient.contactValue) {
-      console.warn(`[Approval] Resend SMS to ${recipient.contactValue}`);
+      this.sms.send({
+        phoneNumber: recipient.contactValue,
+        content: `[timeslots] 重新邀请你：${recipient.request.title}`,
+        shortLink: `https://timeslots.app/d/${requestId}`,
+      });
     }
 
     return { ok: true };
@@ -286,6 +342,7 @@ export class ApprovalService {
         blockId,
         initiatorId: userId,
         status: { notIn: ['cancelled'] },
+        isDeleted: false,
       },
       include: { recipients: true },
     });
@@ -303,31 +360,39 @@ export class ApprovalService {
       endTime: block.endTime,
       description: block.description,
       category: block.category,
+      nature: block.nature,
+      categoryId: block.categoryId,
+      circleId: block.circleId,
       status: 'pending' as ApprovalRequestStatus,
     };
 
+    const reqIds = requests.map((r) => r.id);
+    const respondedRecipientIds: string[] = [];
     for (const req of requests) {
-      await this.prisma.client.$transaction(async (tx) => {
-        await tx.approvalRequest.update({
-          where: { id: req.id },
-          data: updateData,
-        });
-
-        const respondedRecipients = req.recipients.filter(
-          (r) => r.status !== 'pending',
-        );
-        for (const recipient of respondedRecipients) {
-          await tx.approvalRecipient.update({
-            where: { id: recipient.id },
-            data: {
-              status: 'pending' as ApprovalRecipientStatus,
-              respondedAt: null,
-              blockId: null,
-            },
-          });
+      for (const recipient of req.recipients) {
+        if (recipient.status !== 'pending') {
+          respondedRecipientIds.push(recipient.id);
         }
-      });
+      }
     }
+
+    await this.prisma.client.$transaction(async (tx) => {
+      await tx.approvalRequest.updateMany({
+        where: { id: { in: reqIds } },
+        data: updateData,
+      });
+
+      if (respondedRecipientIds.length > 0) {
+        await tx.approvalRecipient.updateMany({
+          where: { id: { in: respondedRecipientIds } },
+          data: {
+            status: 'pending' as ApprovalRecipientStatus,
+            respondedAt: null,
+            blockId: null,
+          },
+        });
+      }
+    });
   }
 
   async getByShareToken(token: string): Promise<ShareInfoResult> {

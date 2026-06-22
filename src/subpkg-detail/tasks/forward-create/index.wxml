@@ -1,0 +1,44 @@
+<view class="container">
+  <text class="page-title">从微信消息创建</text>
+  <text class="page-desc">粘贴从微信复制的消息内容，自动创建任务</text>
+
+  <textarea
+    class="text-input"
+    placeholder="在此粘贴微信消息内容……"
+    value="{{inputText}}"
+    bindinput="onTextInput"
+    maxlength="2000"
+    auto-height
+  />
+
+  <view wx:if="{{aiResult}}" class="preview-card">
+    <text class="preview-label">AI 解析结果</text>
+    <view class="preview-header">
+      <text class="preview-type-badge">{{aiResult.type === 'schedule' ? '📅 日程' : '📋 任务'}}</text>
+      <text wx:if="{{aiResult.confidence < 0.7}}" class="preview-confidence">低置信度</text>
+    </view>
+    <text class="preview-title">{{aiResult.title}}</text>
+    <view wx:if="{{aiResult.type === 'schedule' && aiResult.startTime}}" class="preview-meta">
+      <text>{{aiResult.startTime}} → {{aiResult.endTime}}</text>
+    </view>
+    <view class="preview-meta">
+      <text>{{aiResult.category === 'work' ? '工作' : aiResult.category === 'life' ? '生活' : '自有'}}</text>
+      <text wx:if="{{aiResult.recurrence !== 'none'}}">· {{aiResult.recurrence === 'daily' ? '每天' : aiResult.recurrence === 'weekdays' ? '工作日' : aiResult.recurrence === 'weekly' ? '每周' : '每月'}}</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{!aiResult && parsedTitle}}" class="preview-card">
+    <text class="preview-label">{{aiParsing ? 'AI 解析中…' : '手动解析结果'}}</text>
+    <text class="preview-title">{{parsedTitle}}</text>
+    <text wx:if="{{parsedGoal}}" class="preview-goal">{{parsedGoal}}</text>
+  </view>
+
+  <button class="create-btn" bindtap="onCreateTask" disabled="{{!inputText.trim() || creating}}">
+    {{creating ? '创建中...' : '创建为任务'}}
+  </button>
+
+  <view wx:if="{{created}}" class="success-card">
+    <text class="success-text">✅ 任务已创建</text>
+    <button class="view-btn" bindtap="onViewTask">查看任务</button>
+  </view>
+</view>

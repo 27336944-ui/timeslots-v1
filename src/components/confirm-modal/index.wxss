@@ -1,0 +1,69 @@
+.cm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--ts-overlay-bg);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cm-dialog {
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-radius-xl);
+  width: 560rpx;
+  padding: var(--ts-space-xl) var(--ts-space-xl) var(--ts-space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cm-title {
+  font-size: var(--ts-font-display);
+  font-weight: var(--weight-semibold);
+  color: var(--ts-text-primary);
+  margin-bottom: var(--ts-space-md);
+}
+
+.cm-content {
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-secondary);
+  text-align: center;
+  margin-bottom: var(--ts-space-xl);
+  line-height: 1.5;
+}
+
+.cm-actions {
+  display: flex;
+  gap: var(--ts-space-md);
+  width: 100%;
+}
+
+.cm-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ts-radius-md);
+  font-size: var(--ts-font-body);
+  font-weight: var(--weight-medium);
+}
+
+.cm-btn-cancel {
+  background: var(--ts-bg-disabled);
+  color: var(--ts-text-secondary);
+}
+
+.cm-btn-confirm {
+  background: var(--ts-primary);
+  color: var(--ts-text-on-brand);
+}
+
+.cm-btn-danger {
+  background: var(--ts-danger);
+  color: var(--ts-text-on-brand);
+}

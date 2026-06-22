@@ -1,0 +1,167 @@
+.page {
+  min-height: 100vh;
+  background: var(--ts-bg-page);
+  padding: 28rpx;
+}
+
+/* Step input row */
+.step-input-row {
+  display: flex;
+  gap: var(--ts-space-sm);
+  margin-bottom: 16rpx;
+}
+
+.step-input {
+  flex: 1;
+  height: 72rpx;
+  border: 1rpx solid var(--ts-border);
+  border-radius: var(--ts-radius-lg);
+  padding: 0 24rpx;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+}
+
+.step-add-btn {
+  height: 72rpx;
+  padding: 0 24rpx;
+  border-radius: var(--ts-radius-lg);
+  background: var(--ts-primary);
+  color: var(--ts-bg-card);
+  font-size: var(--ts-font-body);
+  font-weight: var(--weight-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Step list items */
+.step-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid var(--ts-border-light);
+}
+
+.step-item:last-child {
+  border-bottom: none;
+}
+
+.step-checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 1rpx solid var(--ts-text-placeholder);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ts-font-small);
+  color: var(--ts-bg-card);
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+
+.step-checked {
+  background: var(--ts-status-done);
+  border-color: var(--ts-status-done);
+}
+
+.step-text {
+  flex: 1;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+}
+
+.step-text-done {
+  text-decoration: line-through;
+  color: var(--ts-text-placeholder);
+}
+
+.step-text-blocked {
+  color: var(--ts-text-placeholder);
+}
+
+.step-blocked {
+  opacity: 0.6;
+}
+
+.step-lock {
+  font-size: var(--ts-font-small);
+  margin-right: 8rpx;
+  flex-shrink: 0;
+}
+
+.step-unlocked {
+  opacity: 0.5;
+}
+
+.step-remove {
+  font-size: var(--ts-font-small);
+  color: var(--ts-text-placeholder);
+  padding: 8rpx 16rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.step-remove:active {
+  opacity: 0.6;
+}
+
+.step-delegate-btn {
+  font-size: var(--ts-font-small);
+  color: var(--ts-primary);
+  padding: 8rpx 12rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 8rpx;
+  border: 1rpx solid var(--ts-primary);
+  border-radius: var(--ts-radius-sm);
+}
+
+/* Section card (view mode step/schedule containers) */
+.section-card {
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-card-radius);
+  padding: var(--ts-card-padding);
+  margin-bottom: var(--ts-card-gap);
+}
+
+.section-title {
+  font-size: var(--ts-font-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--ts-ls-card-title);
+  color: var(--ts-text-primary);
+  margin-bottom: 16rpx;
+}
+
+/* Associated schedule block items */
+.block-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--ts-border-light);
+}
+
+.block-item:last-child {
+  border-bottom: none;
+}
+
+.block-item-title {
+  font-size: var(--ts-font-callout);
+  color: var(--ts-text-primary);
+}
+
+.block-item-time {
+  font-size: var(--ts-font-small);
+  color: var(--ts-text-tertiary);
+}
+
+/* Overdue text color */
+.overdue-text {
+  color: var(--ts-danger);
+  font-weight: var(--weight-semibold);
+}

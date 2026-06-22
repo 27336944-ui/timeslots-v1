@@ -1,0 +1,6 @@
+<view class="inset">
+  <view wx:if="{{header}}" class="inset-header">{{header}}</view>
+  <view class="inset-body">
+    <slot />
+  </view>
+</view>

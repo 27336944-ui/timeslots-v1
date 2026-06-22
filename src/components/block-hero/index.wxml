@@ -1,0 +1,5 @@
+<view class="ts-hero cat-{{categoryRaw}}">
+  <view class="ts-hero-title">{{title}}</view>
+  <view class="ts-hero-subtitle">触发 {{triggerTime}}</view>
+  <view wx:if="{{status}}" class="ts-badge {{status === 'todo' ? 'ts-badge-todo' : 'ts-badge-done'}}">{{status === 'todo' ? '待完成' : '已完成'}}</view>
+</view>

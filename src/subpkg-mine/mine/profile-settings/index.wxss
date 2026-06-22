@@ -1,0 +1,137 @@
+.page {
+  min-height: 100vh;
+  background: var(--ts-bg-page);
+  padding: 28rpx;
+  padding-bottom: 120rpx;
+  box-sizing: border-box;
+}
+
+/* ===== 头像区域 ===== */
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32rpx 0 40rpx;
+  border-bottom: 1rpx solid var(--ts-border-light);
+  margin-bottom: 28rpx;
+}
+
+.avatar-wrapper {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: var(--ts-primary);
+  color: var(--ts-bg-card);
+  font-size: var(--ts-font-hero-title);
+  font-weight: var(--ts-weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.user-nickname {
+  font-size: var(--ts-font-display);
+  font-weight: var(--ts-weight-semibold);
+  color: var(--ts-text-primary);
+}
+
+/* ===== 表单组 ===== */
+.form-group {
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-card-radius);
+  padding: var(--ts-card-padding);
+  margin-bottom: var(--ts-card-gap);
+}
+
+.form-section-title {
+  font-size: var(--ts-font-callout);
+  font-weight: var(--weight-semibold);
+  color: var(--ts-text-primary);
+  display: block;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid var(--ts-border-light);
+}
+
+.form-item {
+  margin-bottom: 28rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: var(--ts-font-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--ts-ls-form-label);
+  text-transform: uppercase;
+  color: var(--ts-text-tertiary);
+  margin-bottom: 10rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 72rpx;
+  border: 1rpx solid var(--ts-border);
+  border-radius: var(--ts-radius-lg);
+  padding: 0 24rpx;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+  box-sizing: border-box;
+}
+
+.form-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 72rpx;
+  border: 1rpx solid var(--ts-border);
+  border-radius: var(--ts-radius-lg);
+  padding: 0 24rpx;
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+}
+
+.form-picker-text {
+  color: var(--ts-text-primary);
+}
+
+.form-picker-arrow {
+  font-size: var(--ts-font-callout);
+  color: var(--ts-text-placeholder);
+}
+
+/* ===== 保存按钮 ===== */
+.save-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: var(--ts-radius-xl);
+  background: var(--ts-primary);
+  color: var(--ts-bg-card);
+  font-size: var(--ts-font-body);
+  font-weight: var(--weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin-top: 20rpx;
+}
+
+.save-btn:active {
+  opacity: 0.85;
+}

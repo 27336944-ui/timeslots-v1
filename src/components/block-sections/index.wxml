@@ -1,0 +1,45 @@
+<view class="ts-view-section">
+  <view class="ts-view-row" wx:if="{{location}}">
+    <text class="ts-view-label">位置</text>
+    <text class="ts-view-value">{{location}}</text>
+  </view>
+  <view class="ts-view-row" wx:if="{{description}}">
+    <text class="ts-view-label">备注</text>
+    <text class="ts-view-value">{{description}}</text>
+  </view>
+</view>
+
+<view class="ts-view-section" style="opacity:0.7">
+  <view class="ts-view-row" wx:if="{{rigidityLabel}}">
+    <text class="ts-view-label">类型</text>
+    <text class="ts-view-value">{{rigidityLabel}}{{bufferLabel ? ' · ' + bufferLabel : ''}}</text>
+  </view>
+  <view class="ts-view-row" wx:if="{{categoryLabel}}">
+    <text class="ts-view-label">分类</text>
+    <text class="ts-view-value">{{categoryLabel}}</text>
+  </view>
+  <view class="ts-view-row" wx:if="{{natureLabel}}">
+    <text class="ts-view-label">可见</text>
+    <text class="ts-view-value">{{natureLabel}}{{circleName ? ' · ' + circleName : ''}}</text>
+  </view>
+  <view class="ts-view-row" wx:if="{{recurrenceLabel && recurrenceLabel !== '不重复'}}">
+    <text class="ts-view-label">重复</text>
+    <text class="ts-view-value">{{recurrenceLabel}}</text>
+  </view>
+  <view class="ts-view-row" wx:if="{{contacts}}">
+    <text class="ts-view-label">联系人</text>
+    <text class="ts-view-value">{{contacts}}</text>
+  </view>
+  <view class="ts-view-row" wx:if="{{weather}}">
+    <text class="ts-view-label">天气</text>
+    <text class="ts-view-value">{{weather}}</text>
+  </view>
+  <view class="ts-view-row" wx:if="{{reminderLabel}}">
+    <text class="ts-view-label">提醒</text>
+    <text class="ts-view-value">{{reminderLabel}}</text>
+  </view>
+  <view class="ts-view-row">
+    <text class="ts-view-label">创建</text>
+    <text class="ts-view-value">{{createdAt}}</text>
+  </view>
+</view>

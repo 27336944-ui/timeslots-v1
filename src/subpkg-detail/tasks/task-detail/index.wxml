@@ -1,0 +1,150 @@
+
+<view class="page">
+  <privacy-agreement />
+  <!-- Create / Edit mode -->
+  <block wx:if="{{mode === 'create' || mode === 'edit'}}">
+    <inset-form header="任务信息">
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">标题</text>
+        <input class="ts-inset-input" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formTitle}}" bindinput="onTitleInput" placeholder="任务标题" />
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">目标</text>
+        <textarea class="ts-inset-textarea-field" value="{{formGoal}}" bindinput="onGoalInput" placeholder="任务目标描述" />
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">开始日期</text>
+        <picker mode="date" value="{{formStartDate}}" bindchange="onStartDateChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formStartDate ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{formStartDate || '选择'}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">截止日期</text>
+        <picker mode="date" value="{{formDueAt}}" bindchange="onDueAtChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formDueAt ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{formDueAt || '选择'}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">触发时间</text>
+        <picker mode="time" value="{{formTriggerTime}}" bindchange="onTriggerTimeChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formTriggerTime ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{formTriggerTime || '选择'}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+    </inset-form>
+
+    <inset-form header="分类">
+      <view class="ts-inset-row">
+        <segmented-control items="{{categoryOptions}}" value="{{formCategory}}" bind:change="onCategorySegChange" />
+      </view>
+    </inset-form>
+
+    <!-- Steps: only in edit mode (H5 规定) -->
+    <block wx:if="{{mode === 'edit'}}">
+      <inset-form header="步骤清单">
+        <view class="step-input-row">
+          <input class="step-input" cursor-spacing="40" value="{{newStepText}}" bindinput="onNewStepInput" placeholder="添加步骤" />
+          <view class="step-add-btn" bindtap="onAddStep">添加</view>
+        </view>
+        <view wx:for="{{formSteps}}" wx:key="id" class="step-item {{item.isBlocked ? 'step-blocked' : ''}}" data-step-id="{{item.id}}">
+          <view wx:if="{{item.dependsOnId}}" class="step-lock {{item.isBlocked ? '' : 'step-unlocked'}}">{{item.isBlocked ? '🔒' : '🔓'}}</view>
+          <view class="step-checkbox {{item.isDone ? 'step-checked' : ''}}" bindtap="onToggleStep" data-step-id="{{item.id}}">{{item.isDone ? '✓' : ''}}</view>
+          <text class="step-text {{item.isDone ? 'step-text-done' : ''}} {{item.isBlocked ? 'step-text-blocked' : ''}}">{{item.text}}</text>
+          <text class="step-remove" bindtap="onRemoveStep" data-step-id="{{item.id}}">✕</text>
+        </view>
+      </inset-form>
+    </block>
+
+    <block wx:if="{{formStatus === 'done' || formCompletedNote || formRetrospective || formImprovements}}">
+      <inset-form header="完成记录">
+        <view class="ts-inset-row">
+          <textarea class="ts-inset-textarea-field" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formCompletedNote}}" bindinput="onCompletedNoteInput" placeholder="记录完成情况" />
+        </view>
+        <view class="ts-inset-row">
+          <textarea class="ts-inset-textarea-field" value="{{formRetrospective}}" bindinput="onRetrospectiveInput" placeholder="复盘总结" />
+        </view>
+        <view class="ts-inset-row">
+          <textarea class="ts-inset-textarea-field" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formImprovements}}" bindinput="onImprovementsInput" placeholder="后续改进" />
+        </view>
+      </inset-form>
+    </block>
+
+    <capsule-button text="{{mode === 'create' ? '创建' : '保存'}}" type="primary" block="{{true}}" loading="{{saving}}" disabled="{{saving}}" bind:tap="onSave" />
+  </block>
+
+  <!-- View mode -->
+  <block wx:if="{{mode === 'view'}}">
+    <view class="ts-hero cat-{{viewRawCategory}}">
+      <view class="ts-hero-title">{{viewTitle}}</view>
+      <view wx:if="{{viewGoal}}" class="ts-hero-subtitle">{{viewGoal}}</view>
+      <view style="display:flex;gap:8rpx;flex-wrap:wrap;margin-top:12rpx">
+        <view class="ts-badge ts-badge-{{viewCategory}}">{{viewCategoryLabel}}</view>
+        <view class="ts-badge ts-badge-{{viewStatus === 'done' ? 'done' : 'todo'}}">{{viewStatusLabel}}</view>
+      </view>
+    </view>
+
+    <view class="ts-view-section">
+      <view wx:if="{{viewStartDate}}" class="ts-view-row">
+        <text class="ts-view-label">开始</text>
+        <text class="ts-view-value">{{viewStartDate}}</text>
+      </view>
+      <view wx:if="{{viewDueAt}}" class="ts-view-row">
+        <text class="ts-view-label">截止</text>
+        <text class="{{viewDueAtOverdue ? 'overdue-text' : 'ts-view-value'}}">{{viewDueAt}}</text>
+      </view>
+      <view wx:if="{{viewTriggerTime}}" class="ts-view-row">
+        <text class="ts-view-label">触发</text>
+        <text class="ts-view-value">{{viewTriggerTime}}</text>
+      </view>
+    </view>
+
+    <!-- Steps -->
+    <view class="section-card" wx:if="{{viewSteps.length > 0}}">
+      <view class="section-title">步骤清单 ({{viewStepsDone}}/{{viewSteps.length}})</view>
+      <view wx:for="{{viewSteps}}" wx:key="idx" class="step-item {{item.isBlocked ? 'step-blocked' : ''}}" data-idx="{{idx}}">
+        <view wx:if="{{item.dependsOnId}}" class="step-lock {{item.isBlocked ? '' : 'step-unlocked'}}">{{item.isBlocked ? '🔒' : '🔓'}}</view>
+        <view class="step-checkbox {{item.isDone ? 'step-checked' : ''}}">{{item.isDone ? '✓' : ''}}</view>
+        <text class="step-text {{item.isDone ? 'step-text-done' : ''}} {{item.isBlocked ? 'step-text-blocked' : ''}}">{{item.text}}</text>
+        <text wx:if="{{!item.isDone && viewStatus !== 'done'}}" class="step-delegate-btn" bindtap="onDelegateStepTap" data-step-idx="{{idx}}">委托</text>
+      </view>
+    </view>
+
+    <!-- Completed note + Retrospective -->
+    <view class="section-card" wx:if="{{viewCompletedNote || viewRetrospective || viewImprovements}}">
+      <view wx:if="{{viewCompletedNote}}" class="ts-view-row">
+        <text class="ts-view-label">完成记录</text>
+        <text class="ts-view-value">{{viewCompletedNote}}</text>
+      </view>
+      <view wx:if="{{viewRetrospective}}" class="ts-view-row">
+        <text class="ts-view-label">复盘</text>
+        <text class="ts-view-value">{{viewRetrospective}}</text>
+      </view>
+      <view wx:if="{{viewImprovements}}" class="ts-view-row">
+        <text class="ts-view-label">改进</text>
+        <text class="ts-view-value">{{viewImprovements}}</text>
+      </view>
+    </view>
+
+    <!-- Associated schedules -->
+    <view class="section-card" wx:if="{{taskBlocks.length > 0}}">
+      <view class="section-title">关联日程 ({{taskBlocks.length}})</view>
+      <view wx:for="{{taskBlocks}}" wx:key="id" class="block-item" data-id="{{item.id}}" bindtap="onBlockTap">
+        <text class="block-item-title">{{item.title}}</text>
+        <text class="block-item-time">{{item._timeRange}}</text>
+      </view>
+    </view>
+
+    <capsule-button wx:if="{{viewStatus !== 'done'}}" text="标记完成" type="primary" block="{{true}}" bind:tap="onMarkDone" />
+    <capsule-button text="编辑任务" type="secondary" block="{{true}}" bind:tap="onEditTap" />
+    <capsule-button text="创建日程" type="secondary" block="{{true}}" bind:tap="onCreateScheduleTap" />
+    <capsule-button text="删除任务" type="danger" block="{{true}}" bind:tap="onDelete" />
+  </block>
+</view>

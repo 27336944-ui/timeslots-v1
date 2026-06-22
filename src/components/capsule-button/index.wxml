@@ -1,0 +1,7 @@
+<view
+  class="cap cap-{{type}} {{block ? 'cap-block' : 'cap-inline'}} {{disabled || loading ? 'cap-disabled' : ''}}"
+  bindtap="onTap"
+>
+  <loading wx:if="{{loading}}" class="cap-loading" />
+  <text class="cap-text">{{text}}</text>
+</view>

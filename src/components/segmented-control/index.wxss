@@ -1,0 +1,28 @@
+.seg {
+  display: flex;
+  background: var(--ts-bg-segmented);
+  border-radius: var(--ts-radius-md);
+  padding: 4rpx;
+}
+
+.seg-item {
+  flex: 1;
+  text-align: center;
+  padding: var(--ts-space-sm) var(--ts-space-md);
+  font-size: var(--ts-font-body);
+  font-weight: var(--ts-weight-medium);
+  border-radius: var(--ts-radius-md);
+  color: var(--ts-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.seg-item-active {
+  background: var(--ts-bg-card);
+  color: var(--ts-text-primary);
+  font-weight: var(--ts-weight-semibold);
+  box-shadow: var(--ts-shadow-segmented);
+}
+
+.seg-disabled {
+  opacity: 0.5;
+}

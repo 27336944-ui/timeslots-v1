@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:server": "cd server && tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,wxml,wxss,json}\" \"server/src/**/*.ts\"",
+    "detect-ip": "node scripts/detect-ip.js",
     "format:check": "prettier --check \"src/**/*.{ts,wxml,wxss,json}\" \"server/src/**/*.ts\"",
     "server:dev": "cd server && npx nest start --watch",
     "server:build": "cd server && npx nest build",
@@ -24,7 +25,6 @@
   },
   "dependencies": {
     "mobx-miniprogram": "^4.13.0",
-    "mobx-miniprogram-bindings": "^2.1.5",
-    "weui-miniprogram": "^1.5.6"
+    "mobx-miniprogram-bindings": "^2.1.5"
   }
 }

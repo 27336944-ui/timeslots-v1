@@ -1,0 +1,40 @@
+<view class="page">
+  <view class="header">
+    <text class="title">AI 任务拆解</text>
+    <text class="subtitle">输入任务，AI 自动拆解为可执行步骤</text>
+  </view>
+
+  <view class="input-area">
+    <textarea class="input" placeholder="例如：下周五之前完成季度销售报告" value="{{inputText}}" bindinput="onInput" maxlength="200" />
+    <button class="decompose-btn" type="primary" bindtap="onDecompose" disabled="{{!inputText.trim() || loading}}">
+      {{loading ? '拆解中…' : '开始拆解'}}
+    </button>
+  </view>
+
+  <view class="result" wx:if="{{showResult}}">
+    <view class="task-title">{{resultTitle}}</view>
+
+    <view class="steps">
+      <view class="step" wx:for="{{steps}}" wx:key="index">
+        <view class="step-number">{{index + 1}}</view>
+        <view class="step-content">
+          <text class="step-text">{{item.text}}</text>
+          <text class="step-time">{{item.estimatedMinutes}} 分钟</text>
+        </view>
+        <view class="step-dep" wx:if="{{item.dependsOnIndex !== -1}}">
+          <text class="dep-label">依赖步骤 {{item.dependsOnIndex + 1}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="rationale" wx:if="{{rationale}}">
+      <text class="rationale-label">拆解思路：</text>
+      <text class="rationale-text">{{rationale}}</text>
+    </view>
+
+    <view class="cta">
+      <button class="register-btn" type="primary" open-type="navigate" bindtap="onRegister">被惊艳到了？立即注册体验</button>
+      <button class="login-btn" plain bindtap="onLogin">已有账号？登录</button>
+    </view>
+  </view>
+</view>

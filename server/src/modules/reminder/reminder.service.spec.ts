@@ -3,6 +3,11 @@ import { BusinessException } from '../../common/exceptions/business-exception';
 import { createPrismaMock, DEFAULT_UUID, NOW } from '../../test-utils/prisma-mock';
 
 
+function mockNotificationService() {
+  return { sendSubscribeMessage: jest.fn().mockResolvedValue(true) };
+}
+
+
 describe('ReminderService', () => {
   let service: ReminderService;
   let prisma: ReturnType<typeof createPrismaMock>;
@@ -24,7 +29,8 @@ describe('ReminderService', () => {
 
   beforeEach(() => {
     prisma = createPrismaMock();
-    service = new ReminderService(prisma as unknown as any);
+    const mockEventLog = { log: jest.fn().mockResolvedValue(undefined) };
+    service = new ReminderService(prisma as unknown as any, mockNotificationService() as any, mockEventLog as any);
   });
 
   describe('create', () => {

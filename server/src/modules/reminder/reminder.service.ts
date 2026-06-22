@@ -1,9 +1,21 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EventLogService } from '../eventlog/event-log.service';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 import { ReminderResponseDto } from './dto/reminder-response.dto';
 import { BusinessException, ErrorCodes } from '../../common/exceptions/business-exception';
+import { NotificationService } from '../notification/notification.service';
+
+
+interface ReminderWithUser {
+  id: string;
+  userId: string;
+  remindAt: Date;
+  blockId: string;
+  leadMinutes: number;
+  user: { openid: string | null };
+}
 
 
 function toResponse(reminder: {
@@ -31,11 +43,15 @@ function toResponse(reminder: {
 
 @Injectable()
 export class ReminderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notification: NotificationService,
+    private readonly eventLog: EventLogService,
+  ) {}
 
   async create(userId: string, dto: CreateReminderDto): Promise<ReminderResponseDto> {
     const block = await this.prisma.client.timeBlock.findFirst({
-      where: { id: dto.blockId },
+      where: { id: dto.blockId, isDeleted: false },
     });
 
     if (!block) {
@@ -79,7 +95,7 @@ export class ReminderService {
 
   async findMyReminders(userId: string): Promise<ReminderResponseDto[]> {
     const reminders = await this.prisma.client.reminder.findMany({
-      where: { userId },
+      where: { userId, isDeleted: false },
       orderBy: { remindAt: 'asc' },
     });
     return reminders.map(toResponse);
@@ -87,7 +103,7 @@ export class ReminderService {
 
   async findByBlockId(userId: string, blockId: string): Promise<ReminderResponseDto[]> {
     const reminders = await this.prisma.client.reminder.findMany({
-      where: { userId, blockId },
+      where: { userId, blockId, isDeleted: false },
       orderBy: { createdAt: 'desc' },
     });
     return reminders.map(toResponse);
@@ -95,7 +111,7 @@ export class ReminderService {
 
   async findById(userId: string, id: string): Promise<ReminderResponseDto> {
     const reminder = await this.prisma.client.reminder.findFirst({
-      where: { id },
+      where: { id, isDeleted: false },
     });
 
     if (!reminder) {
@@ -192,8 +208,9 @@ export class ReminderService {
     let sent = 0;
     let failed = 0;
 
-    const toSend = await this.prisma.client.reminder.findMany({
-      where: { status: 'SENDING' },
+    const toSend: ReminderWithUser[] = await this.prisma.client.reminder.findMany({
+      where: { status: 'SENDING', isDeleted: false },
+      include: { user: { select: { openid: true } } },
     });
 
     if (toSend.length === 0) {
@@ -202,15 +219,25 @@ export class ReminderService {
 
     for (const reminder of toSend) {
       try {
-        // TODO: 实际发送微信订阅消息（需 templateId）
-        // 当前仅记录日志
-        console.warn(
-          `[ReminderCron] 发送提醒 userId=${reminder.userId} blockId=${reminder.blockId} remindAt=${reminder.remindAt.toISOString()}`,
-        );
+        const openid = reminder.user?.openid;
+        if (openid) {
+          await this.notification.sendSubscribeMessage({
+            userId: reminder.userId,
+            openid,
+            scenario: 'reminder',
+            data: {
+              thing1: '日程提醒',
+              time2: reminder.remindAt.toISOString(),
+            },
+          });
+        }
 
         await this.prisma.client.reminder.update({
           where: { id: reminder.id },
           data: { status: 'SENT' },
+        });
+        this.eventLog.log(reminder.userId, 'reminder_sent', {
+          source: `blockId:${reminder.blockId},leadMinutes:${reminder.leadMinutes}`,
         });
         sent++;
       } catch {

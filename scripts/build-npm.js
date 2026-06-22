@@ -8,7 +8,6 @@ const nodeModulesDir = path.join(__dirname, '..', 'node_modules');
 const packages = [
   { name: 'mobx-miniprogram', miniprogram: 'miniprogram_dist' },
   { name: 'mobx-miniprogram-bindings', miniprogram: 'dist' },
-  { name: 'weui-miniprogram', miniprogram: 'miniprogram_dist' },
 ];
 
 function copyDir(src, dest) {

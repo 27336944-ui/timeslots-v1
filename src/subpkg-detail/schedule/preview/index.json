@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "预览日程",
+  "usingComponents": {
+    "capsule-button": "../../../components/capsule-button/index"
+  }
+}

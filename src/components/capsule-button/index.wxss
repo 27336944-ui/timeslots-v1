@@ -1,0 +1,64 @@
+.cap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ts-space-sm);
+  height: var(--ts-btn-capsule-height);
+  border-radius: var(--ts-radius-full);
+  font-size: var(--ts-btn-capsule-font);
+  font-weight: var(--ts-weight-semibold);
+  font-family: inherit;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 var(--ts-space-xl);
+  transition: opacity 0.15s ease;
+}
+
+.cap-block {
+  width: calc(100% - 32rpx);
+  margin: var(--ts-space-md) auto;
+}
+
+.cap-inline {
+  flex: 1;
+}
+
+.cap:active {
+  opacity: 0.85;
+}
+
+.cap-primary {
+  background: var(--ts-primary);
+  color: var(--ts-text-on-brand);
+}
+
+.cap-secondary {
+  background: var(--ts-bg-card);
+  color: var(--ts-primary);
+  border: 2rpx solid var(--ts-primary);
+}
+
+.cap-danger {
+  background: var(--ts-bg-card);
+  color: var(--ts-danger);
+  border: 2rpx solid var(--ts-danger);
+}
+
+.cap-amber {
+  background: var(--ts-amber);
+  color: var(--ts-text-on-brand);
+}
+
+.cap-disabled {
+  opacity: 0.5;
+}
+
+.cap-loading {
+  width: var(--ts-font-body);
+  height: var(--ts-font-body);
+  flex-shrink: 0;
+}
+
+.cap-text {
+  line-height: 1;
+}

@@ -1,4 +1,4 @@
-import { IsString, IsISO8601, IsOptional, MaxLength, IsIn, IsUUID } from 'class-validator';
+import { IsString, IsISO8601, IsOptional, MaxLength, IsIn, IsUUID, IsInt, Min } from 'class-validator';
 
 
 export class UpdateTimeBlockDto {
@@ -16,8 +16,20 @@ export class UpdateTimeBlockDto {
   endTime?: string;
 
   @IsOptional()
+  @IsISO8601()
+  triggerTime?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  startDate?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  endDate?: string;
+
+  @IsOptional()
   @IsString()
-  @IsIn(['todo', 'in_progress', 'done'])
+  @IsIn(['todo', 'done', 'overdue'])
   status?: string;
 
   @IsOptional()
@@ -31,15 +43,11 @@ export class UpdateTimeBlockDto {
   description?: string;
 
   @IsOptional()
-  @IsIn(['high', 'medium', 'low'])
-  priority?: string;
-
-  @IsOptional()
   @IsIn(['work', 'life', 'private'])
   category?: string;
 
   @IsOptional()
-  @IsIn(['none', 'daily', 'weekly', 'monthly', 'yearly'])
+  @IsIn(['none', 'daily', 'weekdays', 'weekly', 'monthly', 'yearly'])
   recurrence?: string;
 
   @IsOptional()
@@ -67,4 +75,40 @@ export class UpdateTimeBlockDto {
   @IsOptional()
   @IsUUID()
   circleId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['single', 'all'])
+  updateMode?: string;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['manual', 'step', 'approval', 'flexible'])
+  source?: string;
+
+  @IsOptional()
+  @IsString()
+  sourceId?: string;
+
+  @IsOptional()
+  @IsIn(['absolute', 'relative'])
+  rigidity?: string;
+
+  @IsOptional()
+  @IsIn(['meeting', 'commute', 'social', 'medical', 'other'])
+  anchorType?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  bufferBefore?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  bufferAfter?: number;
 }

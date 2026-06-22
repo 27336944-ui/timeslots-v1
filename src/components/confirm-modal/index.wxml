@@ -1,0 +1,11 @@
+
+<view wx:if="{{visible}}" class="cm-overlay" bindtap="onOverlayTap">
+  <view class="cm-dialog" catchtap="noop">
+    <text class="cm-title">{{title}}</text>
+    <text class="cm-content">{{content}}</text>
+    <view class="cm-actions">
+      <view class="cm-btn cm-btn-cancel" bindtap="onCancel">{{cancelText}}</view>
+      <view class="cm-btn {{danger ? 'cm-btn-danger' : 'cm-btn-confirm'}}" bindtap="onConfirm">{{confirmText}}</view>
+    </view>
+  </view>
+</view>

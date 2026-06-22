@@ -5,9 +5,7 @@ import { APP_CONFIG } from './config';
 import type { ApiResponse, WxRequestData, WxRequestMethod } from '../types/api';
 
 
-const BASE_URL = APP_CONFIG.BASE_URL;
 const TOKEN_KEY = APP_CONFIG.TOKEN_KEY;
-
 
 function getToken(): string | null {
   return storage.get<string>(TOKEN_KEY);
@@ -19,6 +17,7 @@ async function request<T>(
   path: string,
   data?: WxRequestData,
 ): Promise<T> {
+  const BASE_URL = APP_CONFIG.getBaseUrl();
   const token = getToken();
   const header: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -28,12 +27,13 @@ async function request<T>(
   }
 
   return new Promise<T>((resolve, reject) => {
+    const isGet = method === 'GET';
     wx.request({
       url: `${BASE_URL}${path}`,
-      method,
+      method: method as 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'CONNECT',
       data,
       header,
-      timeout: 10000,
+      timeout: isGet ? 15000 : 10000,
       enableHttp2: false,
       success(res) {
         
@@ -72,18 +72,19 @@ async function request<T>(
 }
 
 
-export function get<T>(path: string): Promise<T> {
-  return request<T>('GET', path);
+export async function get<T>(path: string): Promise<T> {
+  try {
+    return await request<T>('GET', path);
+  } catch (_first) {
+    // Retry once after 1s
+    await new Promise((r) => setTimeout(r, 1000));
+    return request<T>('GET', path);
+  }
 }
 
 
 export function post<T>(path: string, data?: WxRequestData): Promise<T> {
   return request<T>('POST', path, data);
-}
-
-
-export function put<T>(path: string, data?: WxRequestData): Promise<T> {
-  return request<T>('PUT', path, data);
 }
 
 

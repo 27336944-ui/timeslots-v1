@@ -31,24 +31,29 @@ model User {
   circleMembers CircleMember[]
   initiatedApprovals ApprovalRequest[]
   approvalSlots      ApprovalRecipient[]
+  categories         Category[]
+  templates          Template[]
+  shareCards         ShareCard[]
+  eventLogs          EventLog[]
+  initiatedDelegations Delegation[] @relation("InitiatedDelegations")
+  receivedDelegations  Delegation[] @relation("ReceivedDelegations")
+  ownedShareRecipients  ShareRecipient[] @relation("OwnedShareRecipients")
+  targetedShareRecipients ShareRecipient[] @relation("TargetedShareRecipients")
 
   @@index([openid])
   @@map("users")
 }
 
-model Task {
+model Category {
   id        String   @id @default(uuid())
   userId    String
-  title     String
-  goal      String?
-  steps     Json?
-  status    String   @default("pending")
-  priority  String   @default("medium")
-  category  String   @default("life")
-  dueAt     DateTime? @db.Timestamptz
-  completedNote String?
-  retrospective String?
-  improvements  String?
+  name      String
+  parentId  String?
+  sortOrder Int      @default(0)
+  level     Int      @default(1)
+  isFixed   Boolean  @default(false)
+  isDefault Boolean  @default(false)
+  color     String   @default("#10B981")
 
   isDeleted Boolean  @default(false)
   deletedAt DateTime? @db.Timestamptz
@@ -58,31 +63,142 @@ model Task {
   updatedAt DateTime  @updatedAt @db.Timestamptz
 
   user      User       @relation(fields: [userId], references: [id])
+  parent    Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryChildren")
+  tasks     Task[]
   timeBlocks TimeBlock[]
 
   @@index([userId])
+  @@index([userId, level])
+  @@index([parentId])
+  @@unique([userId, name, parentId])
+  @@map("categories")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  goal        String?
+  steps       Json?
+  status      String   @default("pending")
+  category    String   @default("life")
+  categoryId  String?
+  startDate   DateTime? @db.Timestamptz
+  dueAt       DateTime? @db.Timestamptz
+  triggerTime DateTime? @db.Timestamptz
+  completedNote String?
+  retrospective String?
+  improvements  String?
+  estimatedDuration Int?
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  user        User       @relation(fields: [userId], references: [id])
+  timeBlocks  TimeBlock[]
+  stepRows    Step[]     @relation("TaskSteps")
+  categoryObj Category?  @relation(fields: [categoryId], references: [id])
+  delegations  Delegation[]
+
+  @@index([userId])
   @@index([userId, category])
+  @@index([userId, status])
+  @@index([userId, dueAt])
   @@map("tasks")
+}
+
+enum StepStatus {
+  unscheduled
+  scheduled
+  in_progress
+  done
+  overdue
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  done
+  overdue
+}
+
+enum TimeBlockStatus {
+  todo
+  done
+  overdue
+}
+
+model Step {
+  id              String    @id @default(uuid())
+  taskId          String
+  sortOrder       Int       @default(0)
+  text            String
+  estimatedMinutes Int?
+  status          StepStatus @default(unscheduled)
+  dependsOnId     String?
+  suggestedStart  DateTime? @db.Timestamptz
+  suggestedEnd    DateTime? @db.Timestamptz
+  timeBlockId     String?
+  scheduledDate   DateTime? @db.Timestamptz
+  completedAt     DateTime? @db.Timestamptz
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  task       Task?      @relation("TaskSteps", fields: [taskId], references: [id])
+  dependsOn  Step?      @relation("StepDependency", fields: [dependsOnId], references: [id])
+  dependents Step[]     @relation("StepDependency")
+  timeBlock  TimeBlock? @relation(fields: [timeBlockId], references: [id], onDelete: SetNull)
+  delegations Delegation[]
+
+  @@index([taskId, sortOrder])
+  @@index([timeBlockId])
+  @@index([dependsOnId])
+  @@map("steps")
 }
 
 model TimeBlock {
   id          String   @id @default(uuid())
   userId      String
   title       String
+  /// @deprecated 长期迁移计划：v1.0 前保持双轨并存，迁移时需先回填 triggerTime/startDate/endDate 数据后再移除 NOT NULL
   startTime   DateTime @db.Timestamptz
+  /// @deprecated 长期迁移计划：v1.0 前保持双轨并存，迁移时需先回填 triggerTime/startDate/endDate 数据后再移除 NOT NULL
   endTime     DateTime @db.Timestamptz
+  // 触发时间（替代 startTime/endTime）
+  triggerTime DateTime? @db.Timestamptz
+  // 截止日期（无时间，仅日期）
+  endDate     DateTime? @db.Timestamptz
+  // 开始日期（与 endDate 配合表示双日期范围）
+  startDate   DateTime? @db.Timestamptz
   status      String   @default("todo")
   location    String? 
   description String?
-  priority    String   @default("medium")
   category    String   @default("life")
-  recurrence     String     @default("none")
-  recurrenceEndAt DateTime?  @db.Timestamptz
+  categoryId  String?
+  source      String?
+  sourceId    String?
+  recurrence       String     @default("none")
+  recurrenceEndAt  DateTime?  @db.Timestamptz
+  recurrenceGroupId String?
   contacts    String?
   weather     String?
 
   nature    String   @default("PUBLIC")
   circleId  String?
+  rigidity      String?  @default("relative")
+  bufferBefore  Int?
+  bufferAfter   Int?
+  anchorType    String?  @default("other")
 
   isDeleted Boolean  @default(false)
   deletedAt DateTime? @db.Timestamptz
@@ -95,14 +211,19 @@ model TimeBlock {
   task             Task?              @relation(fields: [taskId], references: [id])
   user             User               @relation(fields: [userId], references: [id])
   circle           Circle?            @relation(fields: [circleId], references: [id])
+  categoryObj      Category?          @relation(fields: [categoryId], references: [id])
   reminders        Reminder[]
+  steps            Step[]
   approvalRequests ApprovalRequest[]
   recipientBlocks  ApprovalRecipient[]
+  delegations      Delegation[]
 
-  @@index([userId])
+  @@index([userId, startTime])
   @@index([startTime])
   @@index([taskId])
   @@index([circleId])
+  @@index([categoryId])
+  @@index([recurrenceGroupId])
   @@map("time_blocks")
 }
 
@@ -110,6 +231,11 @@ model Circle {
   id          String   @id @default(uuid())
   ownerId     String
   name        String
+  parentId    String?
+  sortOrder   Int      @default(0)
+  level       Int      @default(1)
+  isFixed     Boolean  @default(false)
+  isDefault   Boolean  @default(false)
   description String?
   inviteCode  String   @unique
   status      String   @default("active")
@@ -122,11 +248,15 @@ model Circle {
   updatedAt DateTime  @updatedAt @db.Timestamptz
 
   owner   User           @relation(fields: [ownerId], references: [id])
+  parent  Circle?        @relation("CircleChildren", fields: [parentId], references: [id])
+  children Circle[]      @relation("CircleChildren")
   members CircleMember[]
   timeBlocks TimeBlock[]
 
   @@index([ownerId])
-  @@index([inviteCode])
+  @@index([ownerId, level])
+  @@index([parentId])
+  @@unique([ownerId, name, parentId])
   @@map("circles")
 }
 
@@ -152,6 +282,35 @@ model CircleMember {
   @@map("circle_members")
 }
 
+model Template {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  type            String   // "task" | "timeblock"
+  title           String
+  goal            String?
+  priority        String?
+  categoryId      String?
+  estimatedMinutes Int?
+  defaultDuration Int?
+  defaultNature   String?
+  config          Json?  // JSON: { blocks: [{ title, startOffsetMinutes, durationMinutes, goal?, priority?, categoryId? }] }
+  sortOrder       Int      @default(0)
+  isSystem        Boolean  @default(false)
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, type])
+  @@map("templates")
+}
+
 model Reminder {
   id        String   @id @default(uuid())
   userId    String
@@ -168,10 +327,11 @@ model Reminder {
   updatedAt DateTime  @updatedAt @db.Timestamptz
 
   user  User      @relation(fields: [userId], references: [id])
-  block TimeBlock @relation(fields: [blockId], references: [id])
+  block TimeBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([blockId])
+  @@index([userId, remindAt])
   @@index([remindAt, status])
   @@map("reminders")
 }
@@ -206,6 +366,13 @@ model ApprovalRequest {
   endTime     DateTime @db.Timestamptz
   description String?
   category    String   @default("life")
+  nature      String   @default("PUBLIC")
+  categoryId    String?
+  circleId      String?
+  rigidity      String?
+  bufferBefore  Int?
+  bufferAfter   Int?
+  anchorType    String?
 
   status      ApprovalRequestStatus @default(pending)
   shareToken  String   @unique
@@ -224,6 +391,7 @@ model ApprovalRequest {
   @@index([initiatorId])
   @@index([blockId])
   @@index([shareToken])
+  @@index([status])
   @@map("approval_requests")
 }
 
@@ -250,10 +418,143 @@ model ApprovalRecipient {
 
   request   ApprovalRequest @relation(fields: [requestId], references: [id])
   recipient User?           @relation(fields: [userId], references: [id])
-  block     TimeBlock?      @relation(fields: [blockId], references: [id])
+  block     TimeBlock?      @relation(fields: [blockId], references: [id], onDelete: SetNull)
 
   @@unique([requestId, contactType, contactValue])
   @@index([requestId])
   @@index([userId])
+  @@index([blockId])
   @@map("approval_recipients")
+}
+
+enum DelegationStatus {
+  pending
+  accepted
+  rejected
+  negotiating
+  completed
+  cancelled
+}
+
+model Delegation {
+  id              String   @id @default(uuid())
+  type            String   // "step_execution" | "appointment"
+  initiatorId     String
+  recipientUserId String?
+  recipientPhone  String?
+  shareToken      String   @unique
+  stepId          String?
+  taskId          String?
+  blockId         String?
+  candidateSlots  Json?
+  status          DelegationStatus @default(pending)
+  message         String?
+  deadline        DateTime? @db.Timestamptz
+  acceptedSlot    Json?
+  deliverNote     String?
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  initiator     User       @relation("InitiatedDelegations", fields: [initiatorId], references: [id])
+  recipient     User?      @relation("ReceivedDelegations", fields: [recipientUserId], references: [id])
+  step          Step?      @relation(fields: [stepId], references: [id])
+  task          Task?      @relation(fields: [taskId], references: [id])
+  block         TimeBlock? @relation(fields: [blockId], references: [id])
+
+  @@index([initiatorId])
+  @@index([recipientUserId])
+  @@index([shareToken])
+  @@index([status])
+  @@map("delegations")
+}
+
+enum ShareLevel {
+  full
+  freebusy
+  invite_only
+}
+
+enum ShareStatus {
+  active
+  revoked
+}
+
+enum TimeBlockRigidity {
+  absolute
+  relative
+}
+
+enum AnchorType {
+  meeting
+  commute
+  social
+  medical
+  other
+}
+
+model ShareRecipient {
+  id            String      @id @default(uuid())
+  userId        String
+  targetUserId  String
+  level         ShareLevel  @default(freebusy)
+  status        ShareStatus @default(active)
+  expiresAt     DateTime?   @db.Timestamptz
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  owner  User @relation("OwnedShareRecipients", fields: [userId], references: [id])
+  target User @relation("TargetedShareRecipients", fields: [targetUserId], references: [id])
+
+  @@unique([userId, targetUserId])
+  @@index([userId])
+  @@index([targetUserId])
+  @@index([expiresAt])
+  @@map("share_recipients")
+}
+
+model ShareCard {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String?
+  userName  String
+  date      String
+  busySlots Json
+  freeSlots Json
+  responses Json     @default("[]")
+
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime? @db.Timestamptz
+  version   Int      @default(1)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("share_cards")
+}
+
+model EventLog {
+  id        String   @id @default(uuid())
+  userId    String
+  eventType String
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, eventType])
+  @@index([eventType, createdAt])
+  @@map("event_logs")
 }

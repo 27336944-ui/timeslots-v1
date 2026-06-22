@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "日程详情",
-  "usingComponents": {
-    "bottom-sheet": "../../../components/bottom-sheet/index"
-  }
-}

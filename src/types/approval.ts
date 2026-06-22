@@ -30,6 +30,7 @@ export interface ApprovalPendingItem {
   title: string;
   startTime: string;
   endTime: string;
+  triggerTime: string | null;
   description: string | null;
   status: string;
   initiator: { id: string; nickname: string; avatar: string | null };

@@ -3,6 +3,9 @@ import { BusinessException } from '../../common/exceptions/business-exception';
 import { createPrismaMock, DEFAULT_UUID, NOW, MOCK_DATE_STR } from '../../test-utils/prisma-mock';
 
 
+jest.mock('uuid', () => ({ v4: () => 'mocked-uuid-group-id' }));
+
+
 const mockVisibility = {
   filter: <T extends { id: string; userId: string; nature: string; circleId: string | null }>(_viewerId: string, blocks: T[]) => Promise.resolve(blocks),
   canView: <T extends { id: string; userId: string; nature: string; circleId: string | null }>(_block: T, _viewerId: string) => Promise.resolve(true),
@@ -18,8 +21,10 @@ describe('TimeBlockService', () => {
     id: 'block-1', userId: DEFAULT_UUID, title: '测试日程',
     startTime: new Date('2026-06-11T02:00:00.000Z'),
     endTime: new Date('2026-06-11T03:00:00.000Z'),
+    triggerTime: null, startDate: null, endDate: null,
     status: 'todo', location: null, description: null,
-    priority: 'medium', category: 'work', recurrence: 'none',
+    category: 'work', recurrence: 'none',
+    recurrenceEndAt: null, recurrenceGroupId: null,
     contacts: null, weather: null, taskId: null,
     nature: 'PUBLIC', circleId: null,
     isDeleted: false, deletedAt: null, version: 1,
@@ -28,7 +33,8 @@ describe('TimeBlockService', () => {
 
   beforeEach(() => {
     prisma = createPrismaMock();
-    service = new TimeBlockService(prisma as unknown as any, mockVisibility as any);
+    const mockEventLog = { log: jest.fn().mockResolvedValue(undefined) };
+    service = new TimeBlockService(prisma as unknown as any, mockVisibility as any, mockEventLog as any);
   });
 
   describe('create', () => {

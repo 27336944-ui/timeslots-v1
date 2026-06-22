@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, UseGuards,
+  Body, Param, Query, UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -9,6 +9,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
 import { TaskStatsDto } from './dto/task-stats.dto';
+import { ForwardCreateTaskDto } from './dto/forward-create-task.dto';
+import { CompleteTaskDto } from './dto/complete-task.dto';
 
 
 @Controller('api/v1/tasks')
@@ -24,11 +26,21 @@ export class TaskController {
     return this.taskService.create(userId, dto);
   }
 
+  @Post('from-text')
+  async forwardCreate(
+    @CurrentUser('userId') userId: string,
+    @Body() dto: ForwardCreateTaskDto,
+  ): Promise<TaskResponseDto> {
+    return this.taskService.forwardCreateTask(userId, dto);
+  }
+
   @Get('my')
   async findMyTasks(
     @CurrentUser('userId') userId: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ): Promise<TaskResponseDto[]> {
-    return this.taskService.findMyTasks(userId);
+    return this.taskService.findMyTasks(userId, limit, offset);
   }
 
   @Get('my/stats')
@@ -70,5 +82,14 @@ export class TaskController {
   ): Promise<{ deleted: boolean }> {
     await this.taskService.softDelete(userId, id);
     return { deleted: true };
+  }
+
+  @Post(':id/complete')
+  async completeWithReview(
+    @CurrentUser('userId') userId: string,
+    @Param('id') id: string,
+    @Body() dto: CompleteTaskDto,
+  ): Promise<TaskResponseDto> {
+    return this.taskService.completeWithReview(userId, id, dto.completedNote, dto.retrospective);
   }
 }

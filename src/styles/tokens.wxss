@@ -1,10 +1,10 @@
 
 
 page {
-  /* ── Brand (mint green) ── */
+  /* ── Brand (mint green, PRD #10B981) ── */
   --ts-primary: #10B981;
   --ts-primary-light: #34D399;
-  --ts-primary-bg: #E6F7F0;
+  --ts-primary-bg: #ECFDF5;
 
   /* ── Category ── */
   --ts-category-work: #10B981;
@@ -13,6 +13,16 @@ page {
   --ts-category-life-bg: #E8F8EE;
   --ts-category-private: #D97706;
   --ts-category-private-bg: #FFFBE6;
+
+  /* ── Category accent bar colors ── */
+  --ts-category-accent-work: #064E3B;
+  --ts-category-accent-life: #0C4A6E;
+  --ts-category-accent-private: #78350F;
+
+  /* ── Category gradients (pastel, for card backgrounds) ── */
+  --ts-gradient-work: linear-gradient(135deg, #E6F7ED, #C8E6D6);
+  --ts-gradient-life: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+  --ts-gradient-private: linear-gradient(135deg, #FFF3E0, #FFE0B2);
 
   /* ── Priority ── */
   --ts-priority-high: #DC2626;
@@ -23,8 +33,8 @@ page {
   --ts-priority-low-bg: #F3F4F6;
 
   /* ── Status ── */
-  --ts-status-todo: #10B981;
-  --ts-status-todo-bg: #E6F7F0;
+  --ts-status-todo: #007AFF;
+  --ts-status-todo-bg: #E6F0FF;
   --ts-status-done: #059669;
   --ts-status-done-bg: #E8F8EE;
 
@@ -35,30 +45,47 @@ page {
 
   /* ── Text Color (4-level gray scale) ── */
   --ts-text-primary: #1F2937;
-  --ts-text-secondary: #6B7280;
-  --ts-text-tertiary: #9CA3AF;
-  --ts-text-placeholder: #D1D5DB;
+  --ts-text-secondary: #4B5563;
+  --ts-text-tertiary: #6B7280;
+  --ts-text-placeholder: #6B7280;
 
   /* ── Font Family ── */
-  --ts-font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --ts-font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Noto Sans SC', sans-serif;
 
   /* ── Font Weight ── */
-  --weight-bold: 700;
-  --weight-semibold: 600;
-  --weight-medium: 500;
-  --weight-regular: 400;
+  /* --ts-* 别名为规范命名；旧 --weight-* 保留兼容 */
   --ts-weight-bold: 700;
   --ts-weight-semibold: 600;
   --ts-weight-medium: 500;
   --ts-weight-regular: 400;
+  --ts-weight-light: 300;
+  --weight-bold: var(--ts-weight-bold);
+  --weight-semibold: var(--ts-weight-semibold);
+  --weight-medium: var(--ts-weight-medium);
+  --weight-regular: var(--ts-weight-regular);
+  --weight-light: var(--ts-weight-light);
 
   /* ── Font Size (spec px → rpx, 1px≈2rpx) ── */
-  --ts-font-large-title: 34rpx;
-  --ts-font-title1: 28rpx;
-  --ts-font-body: 26rpx;
-  --ts-font-callout: 24rpx;
-  --ts-font-caption: 22rpx;
-  --ts-font-tiny: 20rpx;
+  --ts-font-hero-title: 40rpx;
+  --ts-font-display: 36rpx;
+  --ts-font-title: 32rpx;
+  --ts-font-body: 28rpx;
+  --ts-font-callout: 26rpx;
+  --ts-font-caption: 24rpx;
+  --ts-font-small: 22rpx;
+
+  /* Legacy aliases — 保持旧引用兼容 */
+  --ts-font-large-title: var(--ts-font-display);
+  --ts-font-title0: var(--ts-font-title);
+  --ts-font-sub-title: var(--ts-font-title);
+  --ts-font-title2: var(--ts-font-title);
+  --ts-font-title1: var(--ts-font-body);
+  --ts-font-tiny: var(--ts-font-small);
+  --ts-font-footnote: var(--ts-font-small);
+
+  /* ── Icon / Hero Sizes ── */
+  --ts-font-icon: 64rpx;
+  --ts-font-hero: 80rpx;
 
   /* ── Letter Spacing (spec px → rpx) ── */
   --ts-ls-large-title: -0.6rpx;
@@ -69,10 +96,28 @@ page {
   --ts-ls-time: 0.2rpx;
 
   /* ── Background ── */
-  --ts-bg-page: #FAFCFB;
+  --ts-bg-page: #F5F5F5;
   --ts-bg-card: #FFFFFF;
   --ts-bg-disabled: #F3F4F6;
-  --ts-bg-hover: #F0F9F5;
+  --ts-bg-hover: #F0F4FF;
+  --ts-bg-panel: #F0F0F0;           /* overview-panel 背景（3 个 tab 页原硬编码统一） */
+
+  /* ── Accent Colors ── */
+  --ts-time-accent: #FA5151;        /* 日程时间文字红色（微信红），参考图2 */
+  --ts-accent-blue: #007AFF;
+  --ts-accent-cyan: #13C2C2;
+  --ts-accent-amber: #F59E0B;
+  --ts-accent-orange: #E65100;
+  --ts-success-green: #07C160;
+  --ts-error-red: #EE0A24;
+
+  /* ── Badge/Status Backgrounds ── */
+  --ts-badge-blue-bg: #DBEAFE;
+  --ts-badge-yellow-bg: #FEF3C7;
+  --ts-badge-red-bg: #FEF2F2;
+  --ts-badge-rose-bg: #FFF0F0;
+  --ts-badge-green-light: #F0FFF0;
+  --ts-badge-orange-bg: #FFF3E0;
 
   /* ── Border ── */
   --ts-border: #E5E7EB;
@@ -84,24 +129,244 @@ page {
   --ts-space-md: 16rpx;
   --ts-space-lg: 24rpx;
   --ts-space-xl: 32rpx;
+  --ts-page-gutter: 16rpx;
+  --ts-card-gap-page: 20rpx;
 
   /* ── Radius ── */
+  --ts-radius-xs: 4rpx;
   --ts-radius-sm: 8rpx;
   --ts-radius-md: 12rpx;
   --ts-radius-lg: 16rpx;
+  --ts-radius-xl: 20rpx;
+  --ts-radius-xxl: 24rpx;
+  --ts-radius-2xl: 28rpx;
+  --ts-radius-3xl: 32rpx;
   --ts-radius-full: 999rpx;
 
   /* ── Card spec ── */
-  --ts-card-radius: 20rpx;
+  --ts-card-radius: var(--ts-radius-xl);
   --ts-card-padding: 24rpx 28rpx;
   --ts-card-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
   --ts-card-gap: 12rpx;
 
   /* ── Detail card spec ── */
-  --ts-card-detail-radius: 24rpx;
+  --ts-card-detail-radius: var(--ts-radius-xxl);
   --ts-card-detail-padding: 36rpx;
 
+  /* ── Button spec（全宽 CTA 统一规范） ── */
+  --ts-btn-height: 88rpx;           /* 主操作按钮 */
+  --ts-btn-height-sm: 80rpx;        /* 次操作按钮 */
+  --ts-btn-radius: var(--ts-radius-xl);   /* 全宽 CTA 圆角 */
+  --ts-btn-radius-sm: var(--ts-radius-lg);/* 次操作圆角 */
+  --ts-btn-font: var(--ts-font-title1);
+
+  /* ── Surface pastel（schedule 创建卡片等彩色入口） ── */
+  --ts-surface-voice-bg: #FFF0F5;
+  --ts-surface-voice-fg: #D63384;
+  --ts-surface-image-bg: #E8F4FD;
+  --ts-surface-image-fg: #0C6DFF;
+  --ts-surface-ai-bg: #E8F8EE;
+  --ts-surface-ai-fg: #0D9E4E;
+  --ts-surface-template-bg: #FFF8E1;
+  --ts-surface-template-fg: #F59E0B;
+
   /* ── Shadow ── */
-  --ts-shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+  --ts-shadow-card: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  --ts-shadow-card-raised: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
   --ts-shadow-modal: 0 4rpx 24rpx rgba(0, 0, 0, 0.12);
+  --ts-shadow-segmented: 0 1rpx 3rpx rgba(0, 0, 0, 0.1);
+  --ts-shadow-sheet-top: 0 -4rpx 12rpx rgba(0, 0, 0, 0.06);
+
+  /* ── Overlay ── */
+  --ts-overlay-bg: rgba(0, 0, 0, 0.5);
+
+  /* ── Month calendar fill levels (P1-UI1) ── */
+  --ts-fill-level-1: rgba(34, 197, 94, 0.35);
+  --ts-fill-level-2: rgba(34, 197, 94, 0.5);
+  --ts-fill-level-3: rgba(234, 179, 8, 0.45);
+  --ts-fill-level-4: rgba(249, 115, 22, 0.5);
+  --ts-fill-level-5: rgba(239, 68, 68, 0.55);
+
+  /* ── Extended surface colors ── */
+  --ts-surface-tertiary: rgba(242, 242, 247, 0.85);
+  --ts-surface-quaternary: #F9FAFB;
+
+  /* ════════════════════════════════════════════════════════════
+     iOS HIG 扩展 token（H5 改版对齐，v0.50+）
+     来源：timeslots-v1-design-principles 第八章
+     ════════════════════════════════════════════════════════════ */
+
+  /* ── Amber（邀约等待态、"告诉 TA"按钮） ── */
+  --ts-amber: #F59E0B;
+  --ts-amber-bg: rgba(245, 158, 11, 0.1);
+
+  /* ── iOS 系统绿（完成态开关、已好的） ── */
+  --ts-ios-green: #34C759;
+  --ts-ios-green-bg: rgba(52, 199, 89, 0.1);
+
+  /* ── iOS Inset Grouped 表单专用 ── */
+  --ts-bg-inset: #FFFFFF;              /* 分组容器背景 */
+  --ts-bg-segmented: #EFEFF4;          /* 分段控件灰底（iOS 经典） */
+  --ts-border-inset: rgba(60, 60, 67, 0.18); /* iOS 0.5px 分隔线近似色 */
+
+  /* ── iOS Card / Hero 规格 ── */
+  --ts-radius-card-ios: 32rpx;         /* H5 --card-radius: 16px ≈ 32rpx */
+  --ts-radius-sheet-top: 48rpx;        /* H5 --radius-2xl: 24px ≈ 48rpx */
+  --ts-card-padding-ios: 40rpx;        /* H5 --card-padding: 20px ≈ 40rpx */
+  --ts-card-gap-ios: 24rpx;            /* H5 --card-gap: 12px ≈ 24rpx */
+  --ts-shadow-card-ios: 0 2rpx 6rpx rgba(0, 0, 0, 0.06);
+  --ts-shadow-hero: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+
+  /* ── iOS 毛玻璃面板 ── */
+  --ts-bg-blur: rgba(255, 255, 255, 0.72);
+  --ts-blur-strength: 24px;
+
+  /* ── 胶囊按钮规格 ── */
+  --ts-btn-capsule-height: 100rpx;     /* H5 50px ≈ 100rpx */
+  --ts-btn-capsule-font: var(--ts-font-title1);
+  --ts-text-on-brand: #FFFFFF;
+  --ts-btn-capsule-gap: 24rpx;         /* 多按钮并排 gap */
+
+  /* ── Inset row 规格 ── */
+  --ts-inset-label-width: 160rpx;      /* H5 80px ≈ 160rpx */
+  --ts-inset-row-min-height: 96rpx;    /* H5 48px ≈ 96rpx */
+
+  /* ── 创建入口卡片配色（H5 9.10） ── */
+  --ts-create-voice-bg: rgba(220, 38, 38, 0.08);
+  --ts-create-voice-fg: #DC2626;
+  --ts-create-image-bg: rgba(234, 88, 12, 0.08);
+  --ts-create-image-fg: #EA580C;
+  --ts-create-ai-bg: rgba(147, 51, 234, 0.08);
+  --ts-create-ai-fg: #7C3AED;
+  --ts-create-template-bg: rgba(16, 185, 129, 0.08);
+  --ts-create-template-fg: #10B981;
+  --ts-create-manual-bg: rgba(0, 122, 255, 0.08);
+  --ts-create-manual-fg: #007AFF;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Dark Mode — prefers-color-scheme: dark
+   ════════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  page {
+    /* ── Brand (preserve hue, slight luminance boost) ── */
+    --ts-primary: #34D399;
+    --ts-primary-light: #6EE7B7;
+    --ts-primary-bg: rgba(52, 211, 153, 0.15);
+
+    /* ── Category (preserve hue) ── */
+    --ts-category-work: #34D399;
+    --ts-category-work-bg: rgba(16, 185, 129, 0.15);
+    --ts-category-life: #4ADE80;
+    --ts-category-life-bg: rgba(74, 222, 128, 0.15);
+    --ts-category-private: #FBBF24;
+    --ts-category-private-bg: rgba(251, 191, 36, 0.12);
+
+    /* ── Category accent bars ── */
+    --ts-category-accent-work: #34D399;
+    --ts-category-accent-life: #4ADE80;
+    --ts-category-accent-private: #FBBF24;
+
+    /* ── Priority ── */
+    --ts-priority-high: #F87171;
+    --ts-priority-high-bg: rgba(220, 38, 38, 0.15);
+    --ts-priority-medium: #FBBF24;
+    --ts-priority-medium-bg: rgba(251, 191, 36, 0.12);
+    --ts-priority-low: #6B7280;
+    --ts-priority-low-bg: rgba(107, 114, 128, 0.15);
+
+    /* ── Status ── */
+    --ts-status-todo: #4DA2FF;
+    --ts-status-todo-bg: rgba(77, 162, 255, 0.15);
+    --ts-status-done: #34D399;
+    --ts-status-done-bg: rgba(52, 211, 153, 0.15);
+
+    /* ── Semantic ── */
+    --ts-success: #34D399;
+    --ts-warning: #FBBF24;
+    --ts-danger: #F87171;
+
+    /* ── Text Color (4-level gray scale, inverted) ── */
+    --ts-text-primary: #E5E7EB;
+    --ts-text-secondary: #9CA3AF;
+    --ts-text-tertiary: #6B7280;
+    --ts-text-placeholder: #4B5563;
+
+    /* ── Background ── */
+    --ts-bg-page: #121218;
+    --ts-bg-card: #1E1E2E;
+    --ts-bg-disabled: #2A2A3C;
+    --ts-bg-hover: #2A2A4A;
+    --ts-bg-panel: #252536;
+
+    /* ── Accent Colors ── */
+    --ts-time-accent: #F87171;
+    --ts-accent-blue: #4DA2FF;
+    --ts-accent-cyan: #22D3EE;
+    --ts-accent-amber: #FBBF24;
+    --ts-accent-orange: #FB923C;
+    --ts-success-green: #34D399;
+    --ts-error-red: #F87171;
+
+    /* ── Badge/Status Backgrounds ── */
+    --ts-badge-blue-bg: rgba(59, 130, 246, 0.2);
+    --ts-badge-yellow-bg: rgba(251, 191, 36, 0.15);
+    --ts-badge-red-bg: rgba(239, 68, 68, 0.15);
+    --ts-badge-rose-bg: rgba(244, 114, 182, 0.15);
+    --ts-badge-green-light: rgba(52, 211, 153, 0.15);
+    --ts-badge-orange-bg: rgba(251, 146, 60, 0.15);
+
+    /* ── Border ── */
+    --ts-border: #374151;
+    --ts-border-light: #2D2D3F;
+
+    /* ── Shadow (stronger for dark surfaces) ── */
+    --ts-card-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+    --ts-shadow-card: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+    --ts-shadow-card-raised: 0 4rpx 16rpx rgba(0, 0, 0, 0.35);
+    --ts-shadow-modal: 0 4rpx 24rpx rgba(0, 0, 0, 0.45);
+    --ts-shadow-segmented: 0 1rpx 3rpx rgba(0, 0, 0, 0.4);
+    --ts-shadow-sheet-top: 0 -4rpx 12rpx rgba(0, 0, 0, 0.35);
+    --ts-shadow-card-ios: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
+    --ts-shadow-hero: 0 2rpx 8rpx rgba(0, 0, 0, 0.35);
+
+    /* ── Overlay ── */
+    --ts-overlay-bg: rgba(0, 0, 0, 0.65);
+
+    /* ── Surface pastel (dark variants) ── */
+    --ts-surface-voice-bg: rgba(214, 51, 132, 0.15);
+    --ts-surface-image-bg: rgba(12, 109, 255, 0.15);
+    --ts-surface-ai-bg: rgba(13, 158, 78, 0.15);
+    --ts-surface-template-bg: rgba(245, 158, 11, 0.15);
+
+    /* ── iOS HIG Dark ── */
+    --ts-amber: #FBBF24;
+    --ts-amber-bg: rgba(245, 158, 11, 0.15);
+    --ts-ios-green: #34D399;
+    --ts-ios-green-bg: rgba(52, 199, 89, 0.15);
+    --ts-bg-inset: #1E1E2E;
+    --ts-bg-segmented: #2A2A3C;
+    --ts-border-inset: rgba(255, 255, 255, 0.12);
+
+    /* ── Text on brand (stay white on dark bg) ── */
+    --ts-text-on-brand: #E5E7EB;
+
+    /* ── Create entry cards (dark) ── */
+    --ts-create-voice-bg: rgba(220, 38, 38, 0.15);
+    --ts-create-image-bg: rgba(234, 88, 12, 0.15);
+    --ts-create-ai-bg: rgba(147, 51, 234, 0.15);
+    --ts-create-template-bg: rgba(16, 185, 129, 0.15);
+    --ts-create-manual-bg: rgba(0, 122, 255, 0.15);
+
+    /* ── Month calendar fill levels (dark) ── */
+    --ts-fill-level-1: rgba(52, 211, 153, 0.25);
+    --ts-fill-level-2: rgba(52, 211, 153, 0.4);
+    --ts-fill-level-3: rgba(251, 191, 36, 0.35);
+    --ts-fill-level-4: rgba(251, 146, 60, 0.4);
+    --ts-fill-level-5: rgba(248, 113, 113, 0.45);
+
+    /* ── Extended surface colors (dark) ── */
+    --ts-surface-tertiary: rgba(42, 42, 60, 0.85);
+    --ts-surface-quaternary: #1A1A2E;
+  }
 }

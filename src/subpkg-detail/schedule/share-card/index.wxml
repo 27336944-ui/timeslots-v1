@@ -1,0 +1,85 @@
+<view class="container">
+  <block wx:if="{{!token}}">
+    <view class="generate-section">
+      <text class="page-title">生成时间连接器</text>
+      <text class="page-desc">选择日期，生成你的忙闲卡片，分享给好友</text>
+      <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+        <view class="date-picker">{{selectedDate || '请选择日期'}}</view>
+      </picker>
+      <button class="generate-btn" bindtap="onGenerate" disabled="{{generating}}">
+        {{generating ? '生成中...' : '生成分享卡片'}}
+      </button>
+      <view wx:if="{{shareUrl}}" class="share-result">
+        <text class="result-label">分享链接已生成</text>
+        <view class="share-url-box">{{shareUrl}}</view>
+        <button class="share-btn" open-type="share">转发给好友</button>
+        <view wx:if="{{responses.length > 0}}" class="responses-section">
+          <text class="section-title">收到的回应</text>
+          <view wx:for="{{responses}}" wx:key="startTime" class="response-card">
+            <text class="response-user">{{item.userName}}</text>
+            <text class="response-time">{{item.startTime}} - {{item.endTime}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="view-section">
+      <view class="user-badge">{{userName}} 的日程</view>
+      <text class="date-label">{{displayDate}}</text>
+
+      <view class="stats-row">
+        <view class="stat-item">
+          <text class="stat-num">{{busyCount}}</text>
+          <text class="stat-label">忙碌时段</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-num">{{freeCount}}</text>
+          <text class="stat-label">空闲时段</text>
+        </view>
+      </view>
+
+      <text class="section-title">忙碌时段</text>
+      <view wx:for="{{busySlots}}" wx:key="start" class="slot-row busy">
+        <text class="slot-icon">■</text>
+        <text class="slot-time">{{item.startTime}} - {{item.endTime}}</text>
+      </view>
+      <view wx:if="{{busySlots.length === 0}}" class="empty-hint">今天还没有安排</view>
+
+      <text class="section-title">空闲时段</text>
+      <view wx:for="{{freeSlots}}" wx:key="start" class="slot-row free">
+        <text class="slot-icon">□</text>
+        <text class="slot-time">{{item.startTime}} - {{item.endTime}}</text>
+      </view>
+      <view wx:if="{{freeSlots.length === 0}}" class="empty-hint">今天没有空闲时间</view>
+
+      <view class="respond-section">
+        <text class="section-title">回应时间</text>
+        <text class="respond-desc">选择一个空闲时段，告诉 <text class="bold">{{userName}}</text> 你什么时间方便</text>
+        <view class="respond-time-row">
+          <picker mode="time" value="{{respondStart}}" bindchange="onRespondStartChange">
+            <view class="time-picker">开始: {{respondStart}}</view>
+          </picker>
+          <text class="time-sep">至</text>
+          <picker mode="time" value="{{respondEnd}}" bindchange="onRespondEndChange">
+            <view class="time-picker">结束: {{respondEnd}}</view>
+          </picker>
+        </view>
+        <input class="respond-name-input" placeholder="你的称呼（选填）" value="{{respondName}}" bindinput="onRespondNameInput" />
+        <button class="respond-btn" bindtap="onRespond" disabled="{{responding}}">
+          {{responding ? '提交中...' : '提交我的空闲时间'}}
+        </button>
+        <view wx:if="{{responded}}" class="respond-success">已提交回应 ✓</view>
+      </view>
+
+      <view wx:if="{{responses.length > 0}}" class="responses-section">
+        <text class="section-title">已有 {{responses.length}} 人回应</text>
+        <view wx:for="{{responses}}" wx:key="startTime" class="response-card">
+          <text class="response-user">{{item.userName}}</text>
+          <text class="response-time">{{item.startTime}} - {{item.endTime}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

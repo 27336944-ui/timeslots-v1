@@ -1,0 +1,279 @@
+<view class="page">
+  <privacy-agreement />
+  <view wx:if="{{loading && !blockId}}" class="loading-skeleton">
+    <view class="skeleton-row skeleton-title" />
+    <view class="skeleton-row skeleton-line" />
+    <view class="skeleton-row skeleton-line" />
+    <view class="skeleton-row skeleton-line" />
+    <view class="skeleton-row skeleton-line" />
+    <view class="skeleton-row skeleton-line" />
+    <view class="skeleton-row skeleton-line" />
+  </view>
+  <view wx:if="{{!loading && error && !blockId}}" class="error-state">
+    <text class="error-text">{{error}}</text>
+  </view>
+  <block wx:if="{{!loading && !error && (mode === 'create' || mode === 'edit')}}">
+    <inset-form header="日程信息">
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">标题</text>
+        <input class="ts-inset-input" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formTitle}}" bindinput="onTitleInput" placeholder="日程标题" />
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">任务时间弹性</text>
+        <view class="ts-inset-row-btn-group">
+          <view wx:for="{{RIGIDITY_OPTIONS}}" wx:key="value" class="ts-inset-row-btn {{formRigidity === item.value ? 'active' : ''}}" bindtap="onRigidityChange" data-value="{{item.value}}">{{item.label}}</view>
+        </view>
+      </view>
+      <view wx:if="{{formRigidity !== 'absolute'}}" class="ts-inset-row">
+        <text class="ts-inset-row-label">预估耗时</text>
+        <view class="ts-inset-buffer-row">
+          <input class="ts-inset-buffer-input" type="digit" value="{{formEstimatedDuration}}" bindinput="onEstimatedDurationInput" placeholder="0" />
+          <text class="ts-inset-buffer-label">分钟</text>
+        </view>
+      </view>
+      <view class="ts-inset-row" bindtap="onOpenCatPicker">
+        <text class="ts-inset-row-label">任务分类</text>
+        <view class="ts-inset-row-value">
+          <text class="{{formCategory ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">
+            {{formCategoryLabel || categoryLabels[formCategory] || '选择分类'}}
+          </text>
+          <text class="ts-inset-row-arrow">›</text>
+        </view>
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">开始日期</text>
+        <picker mode="date" value="{{formStartDate}}" bindchange="onStartDateChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formStartDate ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{formStartDate || '选择'}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+      <view wx:if="{{formRigidity === 'absolute'}}" class="ts-inset-row">
+        <text class="ts-inset-row-label">触发时间</text>
+        <picker mode="time" value="{{formTriggerTime}}" bindchange="onTriggerTimeChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formTriggerTime ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{formTriggerTime || '选择'}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">截止日期</text>
+        <picker mode="date" value="{{formEndDate}}" bindchange="onEndDateChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formEndDate ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{formEndDate || '选择'}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">地点</text>
+        <input class="ts-inset-input" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formLocation}}" bindinput="onLocationInput" placeholder="日程地点" />
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">备注</text>
+        <textarea class="ts-inset-textarea-field" value="{{formDescription}}" bindinput="onDescriptionInput" placeholder="添加备注" />
+      </view>
+      <view wx:if="{{formRigidity === 'absolute'}}" class="ts-inset-row">
+        <text class="ts-inset-row-label">缓冲(分)</text>
+        <view class="ts-inset-buffer-row">
+          <text class="ts-inset-buffer-label">前</text>
+          <input class="ts-inset-buffer-input" type="digit" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formBufferBefore}}" bindinput="onBufferBeforeInput" placeholder="0" />
+          <text class="ts-inset-buffer-label">后</text>
+          <input class="ts-inset-buffer-input" type="digit" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formBufferAfter}}" bindinput="onBufferAfterInput" placeholder="0" />
+        </view>
+      </view>
+    </inset-form>
+
+    <inset-form header="分类与可见">
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">可见性</text>
+        <segmented-control items="{{natureOptions}}" value="{{formNature}}" bind:change="onNatureSegChange" />
+      </view>
+      <view wx:if="{{formNature === 'CIRCLE_ONLY' && circleOptions.length > 0}}" class="ts-inset-row">
+        <text class="ts-inset-row-label">圈子</text>
+        <picker mode="selector" range="{{circleOptions}}" range-key="name" bindchange="onCircleChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formCircleId ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{formCircleLabel || '选择圈子'}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+    </inset-form>
+
+    <!-- More options toggle -->
+    <view class="more-toggle" bindtap="onToggleMoreOptions">
+      <text>{{showMoreOptions ? '收起更多选项' : '更多选项'}}</text>
+      <text class="more-toggle-arrow {{showMoreOptions ? 'more-toggle-arrow-up' : ''}}">›</text>
+    </view>
+
+    <inset-form wx:if="{{showMoreOptions || mode === 'edit'}}" header="其他">
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">周期</text>
+        <view class="ts-inset-row-btn-group">
+          <view class="ts-inset-row-btn {{formRecurrence === 'none' ? 'active' : ''}}" bindtap="onRecurrenceChange" data-value="none">不重复</view>
+          <view class="ts-inset-row-btn {{formRecurrence === 'daily' ? 'active' : ''}}" bindtap="onRecurrenceChange" data-value="daily">每天</view>
+          <view class="ts-inset-row-btn {{formRecurrence === 'weekly' ? 'active' : ''}}" bindtap="onRecurrenceChange" data-value="weekly">每周</view>
+          <view class="ts-inset-row-btn {{formRecurrence === 'monthly' ? 'active' : ''}}" bindtap="onRecurrenceChange" data-value="monthly">每月</view>
+          <view class="ts-inset-row-btn {{formRecurrence === 'yearly' ? 'active' : ''}}" bindtap="onRecurrenceChange" data-value="yearly">每年</view>
+        </view>
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">联系人</text>
+        <input class="ts-inset-input" cursor-spacing="40" value="{{formContacts}}" bindinput="onContactsInput" placeholder="参与人姓名" />
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">天气</text>
+        <input class="ts-inset-input" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{formWeather}}" bindinput="onWeatherInput" placeholder="预留字段" />
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">提醒</text>
+        <picker mode="selector" range="{{reminderOptions}}" range-key="label" value="{{formReminderIndex}}" bindchange="onReminderChange">
+          <view class="ts-inset-row-value">
+            <text class="{{formReminderLead > 0 ? 'ts-inset-row-text' : 'ts-inset-row-placeholder'}}">{{reminderLabel}}</text>
+            <text class="ts-inset-row-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="ts-inset-row">
+        <text class="ts-inset-row-label">状态</text>
+        <view class="ts-inset-row-btn-group">
+          <view class="ts-inset-row-btn {{formStatus === 'todo' ? 'active' : ''}}" bindtap="onStatusChange" data-status="todo">待完成</view>
+          <view class="ts-inset-row-btn {{formStatus === 'done' ? 'active' : ''}}" bindtap="onStatusChange" data-status="done">已完成</view>
+        </view>
+      </view>
+    </inset-form>
+
+    <capsule-button text="{{mode === 'create' ? '预览日程' : '预览修改'}}" loading="{{saving}}" disabled="{{saving}}" block="{{true}}" bind:tap="onPreview" />
+    <view wx:if="{{mode === 'edit'}}" style="margin-top:var(--ts-space-sm)">
+      <capsule-button text="删除日程" type="danger" block="{{true}}" bind:tap="onDelete" loading="{{saving}}" disabled="{{saving}}" />
+    </view>
+  </block>
+
+  <block wx:if="{{mode === 'view'}}">
+    <block-hero
+      title="{{viewTitle}}"
+      triggerTime="{{viewTriggerTime}}"
+      status="{{viewStatus}}"
+      categoryRaw="{{viewCategoryRaw}}"
+    />
+    <block-sections
+      location="{{viewLocation}}"
+      description="{{viewDescription}}"
+      rigidityLabel="{{viewRigidityLabel}}"
+      bufferLabel="{{viewBufferLabel}}"
+      categoryLabel="{{viewCategory}}"
+      natureLabel="{{viewNature}}"
+      circleName="{{viewCircleName}}"
+      recurrenceLabel="{{viewRecurrence}}"
+      contacts="{{viewContacts}}"
+      weather="{{viewWeather}}"
+      reminderLabel="{{viewReminder}}"
+      createdAt="{{viewCreatedAt}}"
+    />
+
+    <capsule-button text="编辑" type="primary" block="{{true}}" bind:tap="onEditTap" />
+    <view style="margin-top:var(--ts-space-sm)" class="capsule-row">
+      <capsule-button text="删除日程" type="danger" block="{{false}}" bind:tap="onDelete" loading="{{saving}}" disabled="{{saving}}" />
+      <capsule-button text="告诉 TA" type="amber" block="{{false}}" bind:tap="onApproveTap" />
+    </view>
+  </block>
+
+  <!-- Approval BottomSheet -->
+  <bottom-sheet visible="{{showApprovalSheet}}" bind:close="onApprovalClose" height="auto">
+    <view class="approval-sheet-body">
+      <view class="approval-sheet-title">告诉 TA</view>
+
+      <view class="approval-sheet-tabs">
+        <view class="approval-sheet-tab {{approvalContactTab === 'phone' ? 'approval-sheet-tab-active' : ''}}" bindtap="onApprovalTabPhone">手机号</view>
+        <view class="approval-sheet-tab {{approvalContactTab === 'friend' ? 'approval-sheet-tab-active' : ''}}" bindtap="onApprovalTabFriend">微信好友</view>
+        <view class="approval-sheet-tab {{approvalContactTab === 'qr' ? 'approval-sheet-tab-active' : ''}}" bindtap="onApprovalTabQR">二维码</view>
+      </view>
+
+      <view wx:if="{{approvalContactTab === 'phone'}}" class="approval-sheet-section">
+        <view class="approval-sheet-label">手机号</view>
+        <view class="approval-sheet-row">
+          <input class="approval-sheet-input" adjust-position="{{true}}" cursor-spacing="{{100}}" value="{{approvalPhoneInput}}" bindinput="onApprovalPhoneInput" placeholder="输入手机号" type="number" maxlength="11" />
+          <view class="approval-sheet-add-btn" bindtap="onApprovalAddPhone">添加</view>
+        </view>
+
+        <view wx:if="{{approvalPhoneList.length > 0}}" class="approval-sheet-tags">
+          <view wx:for="{{approvalPhoneList}}" wx:key="*this" class="approval-sheet-tag">
+            <text>{{item}}</text>
+            <text class="approval-sheet-tag-close" data-value="{{item}}" bindtap="onApprovalRemovePhone">✕</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{approvalContactTab === 'friend'}}" class="approval-sheet-section">
+        <button wx:if="{{approvalShareToken}}" class="approval-sheet-share-btn" open-type="share">分享给微信好友</button>
+        <text wx:else class="approval-sheet-hint">将邀约卡片分享到微信聊天，好友打开即可查看</text>
+      </view>
+
+      <view wx:if="{{approvalContactTab === 'qr'}}" class="approval-sheet-section">
+        <text class="approval-sheet-hint">展示二维码，对方扫码后可查看邀约详情</text>
+      </view>
+
+      <view class="approval-sheet-actions">
+        <view class="approval-sheet-cancel" bindtap="onApprovalClose">取消</view>
+        <view wx:if="{{!approvalShareToken}}" class="approval-sheet-confirm" bindtap="onApprovalSubmit">确认发起</view>
+      </view>
+    </view>
+  </bottom-sheet>
+
+  <!-- Conflict sheet: time overlap warning -->
+  <view wx:if="{{showConflictSheet}}" class="modal-overlay" bindtap="onCancelConflict">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-header">
+        <text class="modal-title">时间冲突</text>
+      </view>
+      <view class="conflict-body">
+        <text class="conflict-desc">以下日程与当前时间段重叠：</text>
+        <view wx:for="{{conflictList}}" wx:key="title" class="conflict-item">
+          <text class="conflict-item-title">{{item.title}}</text>
+          <text class="conflict-item-time">{{item.time}}</text>
+        </view>
+      </view>
+      <view class="conflict-actions">
+        <view class="conflict-btn conflict-btn-back" bindtap="onCancelConflict">返回修改</view>
+        <view class="conflict-btn conflict-btn-force" bindtap="onSaveAfterConflict" hidden="{{saving}}">强制保存</view>
+        <view class="conflict-btn conflict-btn-force" wx:if="{{saving}}">
+          <loading class="btn-loading" />
+          <text>保存中...</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Recurring edit sheet -->
+  <view wx:if="{{showRecurringSheet}}" class="modal-overlay">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-header">
+        <text class="modal-title">编辑重复日程</text>
+      </view>
+      <view class="recurring-body">
+        <text class="recurring-desc">请选择编辑范围：</text>
+        <view class="recurring-option" data-value="single" bindtap="onRecurringModeSelect">
+          <text class="recurring-option-label">仅此实例</text>
+          <text class="recurring-option-desc">只修改当前日程</text>
+        </view>
+        <view class="recurring-option" data-value="all" bindtap="onRecurringModeSelect">
+          <text class="recurring-option-label">所有实例</text>
+          <text class="recurring-option-desc">修改此重复日程的全部</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <confirm-modal
+    visible="{{confirmDeleteVisible}}"
+    title="确认移除"
+    content="移除了就不会出现在时间轴上"
+    danger="{{true}}"
+    bind:confirm="onConfirmDelete"
+    bind:cancel="onCancelDelete"
+  />
+
+  <!-- Category picker modal -->
+  <category-picker visible="{{showCatPicker}}" autoCloseOnSelect="{{true}}" bind:select="onCatSelected" bind:close="onCloseCatPicker" />
+</view>

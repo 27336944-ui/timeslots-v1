@@ -1,0 +1,37 @@
+<view class="cp-overlay {{visible ? 'cp-overlay-show' : ''}}" catchtap="onOverlayTap">
+  <view class="cp-content {{visible ? 'cp-content-show' : ''}}" catchtap="noop">
+    <view class="cp-header">
+      <text class="cp-title">任务分类</text>
+      <text class="cp-close" catchtap="onOverlayTap">✕</text>
+    </view>
+
+    <scroll-view scroll-y class="cp-scroll">
+      <view wx:if="{{catLoading && catDisplayList.length === 0}}" class="cp-loading">加载中…</view>
+
+      <view wx:for="{{catDisplayList}}" wx:key="id" class="cp-row" style="padding-left:calc(var(--ts-space-md) + {{item.depth}} * var(--ts-space-xl))">
+        <!-- Category item -->
+        <view wx:if="{{item.type === 'cat'}}" class="cp-cat" data-id="{{item.id}}" data-rootvalue="{{item.rootValue}}" data-name="{{item.name}}" data-labelfull="{{item.fullLabel}}" bindtap="onSelectCat">
+          <view class="cp-dot" style="background:{{item.color}}"></view>
+          <text class="cp-name">{{item.name}}</text>
+          <text class="cp-badge" wx:if="{{item.isFixed}}">固定</text>
+          <text class="cp-badge" wx:if="{{item.isDefault}}">默认</text>
+          <text class="cp-arrow {{catExpanded[item.id] ? 'expanded' : ''}}" wx:if="{{item.hasChildren}}" data-id="{{item.id}}" catchtap="onToggleExpand">›</text>
+        </view>
+        <!-- Add button -->
+        <view wx:elif="{{item.type === 'add'}}" class="cp-add" data-parentid="{{item.parentId}}" bindtap="onAddChild">
+          <text class="cp-add-icon">+</text>
+          <text class="cp-add-text">新建分类</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- Inline create form -->
+    <view wx:if="{{catEditing}}" class="cp-edit-bar">
+      <input class="cp-edit-input" cursor-spacing="40" placeholder="分类名称" value="{{catEditName}}" bindinput="onEditNameInput" focus="{{true}}" />
+      <view class="cp-edit-actions">
+        <text class="cp-edit-btn cp-edit-cancel" bindtap="onCancelEdit">取消</text>
+        <text class="cp-edit-btn cp-edit-confirm" bindtap="onConfirmEdit">确认</text>
+      </view>
+    </view>
+  </view>
+</view>

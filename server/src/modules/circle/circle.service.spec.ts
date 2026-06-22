@@ -26,7 +26,8 @@ describe('CircleService', () => {
 
   beforeEach(() => {
     prisma = createPrismaMock();
-    service = new CircleService(prisma as unknown as any);
+    const mockEventLog = { log: jest.fn().mockResolvedValue(undefined) };
+    service = new CircleService(prisma as unknown as any, mockEventLog as any);
 
     // Most tests need circleMember findMany and user lookup to work
     prisma.circleMember.findMany.mockResolvedValue([ownerShip, memberEntry]);

@@ -8,6 +8,7 @@ import {
   bindApprovalRecipient as apiBindRecipient,
 } from '../services/api';
 import type { ApprovalRequest, ApprovalPendingItem, RecipientInput } from '../types/approval';
+import { errorMsg } from '../utils/error';
 
 
 interface ApprovalStore {
@@ -24,6 +25,7 @@ interface ApprovalStore {
   cancelApproval: (id: string) => Promise<void>;
   bindRecipient: (requestId: string) => Promise<string>;
   clearCurrent: () => void;
+  clearAll: () => void;
 }
 
 
@@ -46,7 +48,7 @@ export const approvalStore: ApprovalStore = observable({
         return { ...item, progressPercent: total > 0 ? (nonPending / total) * 100 : 0, approvedCount: approved };
       });
     } catch (e) {
-      this.error = (e as Error).message || '加载失败';
+      this.error = errorMsg(e) || '加载失败';
       this.initiatedList = [];
     } finally {
       this.loading = false;
@@ -59,7 +61,7 @@ export const approvalStore: ApprovalStore = observable({
     try {
       this.pendingList = await getMyPendingApprovals();
     } catch (e) {
-      this.error = (e as Error).message || '加载失败';
+      this.error = errorMsg(e) || '加载失败';
       this.pendingList = [];
     } finally {
       this.loading = false;
@@ -72,7 +74,7 @@ export const approvalStore: ApprovalStore = observable({
     try {
       this.currentRequest = await apiGetApprovalDetail(id);
     } catch (e) {
-      this.error = (e as Error).message || '加载失败';
+      this.error = errorMsg(e) || '加载失败';
       this.currentRequest = null;
     } finally {
       this.loading = false;
@@ -107,6 +109,12 @@ export const approvalStore: ApprovalStore = observable({
   }),
 
   clearCurrent: action(function (this: ApprovalStore) {
+    this.currentRequest = null;
+  }),
+
+  clearAll: action(function (this: ApprovalStore) {
+    this.initiatedList.splice(0, this.initiatedList.length);
+    this.pendingList.splice(0, this.pendingList.length);
     this.currentRequest = null;
   }),
 });

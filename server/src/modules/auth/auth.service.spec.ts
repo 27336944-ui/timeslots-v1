@@ -11,8 +11,10 @@ describe('AuthService', () => {
     prisma = createPrismaMock();
     service = new AuthService(
       prisma as unknown as any,
-      { sign: jest.fn().mockReturnValue('mock-jwt-token') } as any,
-      { get: jest.fn().mockReturnValue('test-secret') } as any,
+      { sign: jest.fn().mockReturnValue('mock-jwt-token') } as unknown as any,
+      { get: jest.fn().mockReturnValue('test-secret') } as unknown as any,
+      { initDefaults: jest.fn().mockResolvedValue(undefined) } as unknown as any,
+      { initDefaults: jest.fn().mockResolvedValue(undefined) } as unknown as any,
     );
   });
 

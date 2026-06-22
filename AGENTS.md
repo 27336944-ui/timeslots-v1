@@ -1,4 +1,4 @@
-# AGENTS.md — timeslots-v1 项目规则 (v1.2)
+# AGENTS.md — timeslots-v1 项目规则 (v1.4)
 
 > 本文件是 AI Agent 在本仓库工作的**最高行动准则**。
 > 目标：生成高质量、可维护、零幻觉的工程级代码。
@@ -6,11 +6,115 @@
 
 ---
 
+## 🔧 开工前必读技能
+
+> 所有技能均随项目仓库分发，路径为项目相对路径。任何在本仓库工作的 AI Agent（Hermes、Claude Code、Cursor 等）必须加载这些技能。
+
+**kb-search skill** — 知识库语义搜索（每次开工前必加载）
+
+- 技能文件：`skills/kb-search/SKILL.md`（自包含，含关键词映射 + Top 陷阱速查 + 质量门禁命令）
+- 开工前直接执行搜索，获取项目上下文：
+  ```bash
+  grep -ri "关键词" knowledge-base/
+  ```
+  > 知识库已扁平化为 5 个根文件（project-structure.md / coding-rules.md / api-reference.md / experience-notes.md / README.md），grep 秒出结果，不需要 FAISS。
+- **常见搜索关键词映射**：
+  - 改前端页面 → "编码规范" "Page泛型" "WXML"
+  - 改后端接口 → "api-reference" "DTO" "事务"
+  - 新增组件 → "编码规范" "组件规范"
+  - 改工具函数 → "request" "storage" "date"
+  - 理解业务逻辑 → "PRD" "三条路径" "产品哲学"
+  - 排查历史问题 → "experience-notes" "陷阱" "L1-L43"
+  - 遵守编码规则 → "coding-rules" "受保护模块" "自检清单"
+  - 查看审计/Bug → "审核意见" "CSS 损坏" "404"
+- **强制规则**：不搜索直接改代码 = 违规
+
+**planning-with-files skill** — 持久化文件式规划（每次开工前加载）
+
+- 路径：`skills/planning-with-files/SKILL.md`
+- 开工前用 `skill` 工具加载
+- 复杂任务（3+ 步）必须先创建三个文件在项目根：`task_plan.md`（阶段/进展/决策）、`findings.md`（研究发现）、`progress.md`（会话日志）
+- **2-Action Rule**：每 2 次查看/搜索操作后，立即保存关键发现
+- **重大决定前重读 plan**
+- **阶段完成立即更新状态**
+- **记录 ALL 错误**到 plan 文件
+- 禁止用 `todowrite` 做持久跟踪（用 `task_plan.md` 替代）
+
+**ponytail skill (full)** — YAGNI/最少代码原则（每次开工前加载，始终激活）
+
+- 路径：`skills/ponytail/SKILL.md`
+- 开工前用 `skill` 工具加载，保持 `full` 级别，直到明确说"stop ponytail"才退出
+- **The Ladder**（上下级阶梯，停在第一个成立的台阶）：
+  1. 这东西真的需要存在吗？（YAGNI）
+  2. 标准库能实现吗？
+  3. 原生平台特性覆盖吗？（CSS 替代 JS、DB 约束替代应用代码）
+  4. 已有的依赖能解决吗？（禁止加新依赖换几行代码）
+  5. 能一行写完吗？
+  6. 最后：写最少代码
+- **铁律**：无未请求的抽象、无样板代码、删除优先于添加、最少文件、最短 diff 胜出
+- 非平凡逻辑（分支/循环/解析器/金额或安全路径）必须留一个 `assert` 自检
+- **何时不懒**：输入校验、数据丢失保护、安全措施、无障碍，以及用户明确要求的
+
+**ponytail-audit skill** — 全仓库过度工程审计
+
+- 路径：`skills/ponytail-audit/SKILL.md`
+- 扫描整个仓库，输出可删除/简化/替换为 stdlib 的条目排名列表
+- 触发词："ponytail-audit"、"审计过度工程"、"找冗余"
+
+**ponytail-review skill** — 代码审查（专注过度工程）
+
+- 路径：`skills/ponytail-review/SKILL.md`
+- 审查 diff 中不必要的复杂度，每行一个发现：位置、删除什么、替换为什么
+- 标签：`delete:` / `stdlib:` / `native:` / `yagni:` / `shrink:`
+- 触发词："ponytail-review"、"审查过度工程"、"能删什么"
+
+**ponytail-debt skill** — 技术债追踪
+
+- 路径：`skills/ponytail-debt/SKILL.md`
+- 收集代码中所有 `ponytail:` 标记注释，生成技术债账本
+- 标记无升级路径的条目（silent rot 风险）
+- 触发词："ponytail debt"、"列出延迟项"
+
+**ponytail-gain skill** — 性能收益展示
+
+- 路径：`skills/ponytail-gain/SKILL.md`
+- 显示基准测试中 ponytail 节省的代码行数、成本、速度
+- 只读展示，不修改任何内容
+
+**wechat-miniprogram-spec skill** — 微信小程序开发规范（强制执行）
+
+> ⚠️ **SKILL.md 文件尚未创建**。编码规范已内联到 `knowledge-base/coding-rules.md` §2（前端规则）+ §3（组件规范）+ §5.2.2（AGENTS.md 原版铁律）。
+> 在技能文件到位前，Agent 应直接读取 `knowledge-base/coding-rules.md` 中的前端规则。
+
+---
+
 ## 1. 项目一句话
 
-`timeslots-v1` 是一款基于时间块（Time Block）的微信小程序日程管理工具，把待办和日历融合在一天 24 小时的时间轴上。定位：朋友内测工具，纯手动 CRUD + 协作体验，不计费、无 AI、无商业化。
+`timeslots-v1` 是一款基于时间块（Time Block）的微信小程序日程管理工具，把待办和日历融合在一天 24 小时的时间轴上。定位：朋友内测工具，纯手动 CRUD + 协作体验，不计费、无商业化。
+
+> **当前阶段：v0.49（三条路径已闭环，准备进入 v0.50 强制验证门禁）**
 
 完整产品需求见 [`PRD.md`](./PRD.md)。开发计划以 [`VERSION_PLAN.md`](./VERSION_PLAN.md) 为唯一依据。
+
+### 常用命令
+
+| 命令 | 用途 |
+|------|------|
+| `cd server && npx tsc --noEmit` | 后端类型检查 |
+| `cd server && npx jest` | 后端单元测试（113 tests） |
+| `cd server && node scripts/e2e-test.js` | 后端端到端测试（16 sections） |
+| `cd server && npx prisma validate` | Prisma schema 校验 |
+| `cd server && npx prisma generate` | Prisma client 生成 |
+| `cd server && npx nest start` | 启动后端（port 7777） |
+| `cd server && node scripts/start-server.js` | 后台启动（PID 文件管理） |
+| `cd server && node scripts/stop-server.js` | 停止后台服务 |
+| `cd server && npx prisma migrate dev` | 本地迁移（交互式） |
+| `cd server && npx prisma migrate deploy` | 生产迁移 |
+| `cd server && npx prisma db push` | Schema 同步（非迁移场景） |
+| `npm run detect-ip` | 自动检测 LAN IP 写入 DEV_URL（DHCP 变动后执行） |
+| | |
+| `npx tsc --noEmit` | 前端类型检查（src/） |
+| `grep -rE "\b(TODO|FIXME)\b" src/ --include='*.ts' --include='*.wxml'` | 检查残留标记 |
 
 ---
 
@@ -79,7 +183,9 @@
 - 禁止以「优化」「重构」为名修改无关代码、格式、命名
 
 ### 4.4 先计划，再实施 (Plan First, Then Implement)
-- 用户发出任何需求后，**必须先输出影响分析 + 实施方案**（含版本冲突检查），等待人工确认后再开始开发
+- 用户发出任何需求后（复杂 3+ 步），**必须先创建 `task_plan.md` 规划阶段和步骤**，等待人工确认后再开始开发
+- 需求输出格式：按 `task_plan.md` 模板用 Markdown 阶段+步骤清单，不做长篇影响分析文本
+- 规划期间搜索/查看每 2 次后立刻更新 `findings.md`
 - 禁止收到需求后直接编码
 - trivial 改动（单行修正、typo、明显重命名）可省略
 
@@ -95,6 +201,7 @@
 - `tsconfig.json` 必须开启 `"strict": true`
 - **严禁** `any`；不确定类型时用 `unknown` + 类型守卫 (Type Guard)
 - 所有 API 响应 / 组件 Props / Store 状态**必须**有 `interface` 定义，集中放 `types/`
+- `var` 和 `let`（未被重赋值时）必须用 `const`（ESLint `prefer-const` 0 容忍）
 
 ### 5.2 微信小程序（前端）
 
@@ -190,6 +297,9 @@ src/
     - 页面连接 store 用 `createStoreBindings(this, { store, fields })`，返回的 `storeBindings` 对象必须在 methods 接口中声明为可选属性（`storeBindings?: { destroyStoreBindings: () => void }`）
     - 销毁在 `onUnload` 中调用 `this.storeBindings!.destroyStoreBindings()`
     - Store 内部 `action(async function(...){...})` 的 async 部分不在 action 事务内，需直接修改 observable 属性触发渲染
+25. **WXSS 文件禁止 UTF-8 BOM + 重复函数零容忍**：
+    - Write/Edit 工具写入 UTF-8 文件时会附带 BOM（`EF BB BF`）。微信 WXSS 编译器**不接受 BOM** → 白屏。每次修改 `.wxss` 文件后必须验证无 BOM
+    - `todayStr()` / `toLocalTime()` / `toLocalDate()` 等纯工具函数**必须**集中在 `src/utils/date.ts`；新增页面时先 grep 确认，禁止拷贝粘贴
 
 ### 5.3 后端（NestJS — Module 切分，DDD 风格）
 
@@ -229,10 +339,13 @@ server/
 │   │   ├── reminder/           # 订阅消息触发 + cron
 │   │   ├── llm/                # MiniMax 代理（受保护）
 │   │   └── export/             # 数据导出
-│   ├── prisma/                 # Prisma schema 与迁移
-│   │   ├── schema.prisma
-│   │   ├── migrations/
-│   │   └── prisma.service.ts   # 全局 PrismaService（含软删 middleware）
+│   ├── prisma/                 # Prisma 模块（NestJS 注入层）
+│   │   ├── prisma.module.ts
+│   │   └── prisma.service.ts   # 全局 PrismaService（含软删 $extends 拦截）
+│   ├── ...                     # 以下为项目级目录（非 src/ 内）
+├── prisma/                     # Prisma schema 文件与迁移历史
+│   ├── schema.prisma
+│   └── migrations/
 │   └── jobs/                   # 定时任务（30 天物理删、提醒发送等）
 ├── test/                       # E2E 测试
 ├── docker-compose.yml          # 本地 PG
@@ -292,12 +405,16 @@ server/
     - `TransformInterceptor` 的 `map` 运算符尝试包装响应，但 204 No Content 发送空体后 Interceptor 无法写入 → 抛出 500
     - 正确做法：返回一个普通对象（如 `{ deleted: true }`），让 Interceptor 正常包装为 `{ code: 0, data: { deleted: true } }`
     - 示例：`DELETE` 端点应返回 `Promise<{ deleted: boolean }>` 而非 `Promise<void>`
+15. **日志不得泄漏敏感信息**：禁止 `console.warn/error` 中包含 `shareToken`、`contactValue`（手机号）、`password`、`token`
 
 ### 5.4 数据库
 
 - 所有表主键 `uuid`（`@default(uuid())`）
 - 必备字段：`created_at`, `updated_at`, `deleted_at`
 - 软删过滤：在 Prisma middleware 中默认注入 `where: { deletedAt: null }`
+- **索引匹配查询**：每个 `findMany` 的 `where` 字段组合，必须对应 `@@index` 或已有单列索引；`parentId` 自引用模型必须加 `@@index([parentId])`
+- **用户数据 isDeleted 显式过滤**：不在 `SOFT_DELETE_MODELS` 列表中的模型（如 `User`），所有查询必须手动加 `where: { isDeleted: false }`
+- **时区 `+08:00`**：禁止裸 `Z` 构造日期边界（如 `new Date(date + 'T00:00:00.000Z')`），一律 `new Date(date + 'T00:00:00+08:00')`
 
 ### 5.5 通用
 
@@ -308,40 +425,22 @@ server/
 
 ---
 
-## 6. LLM（MiniMax M3）集成 — 延迟至 v1.x+
+## 6. LLM（MiniMax M3）集成
 
-> **当前阶段 v0.x（内测工具）：不计费、无 AI、无商业化。** 本节所有 LLM 相关规则**全部延迟至 v1.x+ 实现**。AGENTS.md 保留本节仅作为远期技术储备参考，**不构成当前开发约束**。
-> 
-> 当前开发计划见 [`VERSION_PLAN.md`](./VERSION_PLAN.md)。
+> MiniMax M3 已在 v0.45 接入后端（`server/src/modules/llm/`）。当前已实现：AI 任务拆解（`/ai/decompose`）、AI 建议时间段（`/ai/suggest-slots`）、自然语言建日程（`/ai/parse`）。仅支持文本输入，语音/图像录入推迟至验证后。
 
-### 6.1 定位（核心差异化卖点）
+### 6.1 定位
 
-- LLM 是产品的**核心差异化卖点**（V1.0 PRD §4 "The Wow Engine"）
-- **AI 多模态录入**是**核心路径**（非辅助）：
-  - 用户首选交互：自然语言 / 语音 / 图像 → 自动建日程
-  - 目标体验：随口一句话或一张截图 → 1 秒内生成结构化日程
-- **AI 效率教练**是**粘性功能**（V1.0 PRD §9 "The Coach Engine"）：
-  - 基于日程数据生成复盘 / 规划建议
-  - 触发：每周一 08:30 周报，每日 21:00 复盘
-- **手动降级始终可用**（关键安全网）：
-  - LLM 不可用 / 额度不足 / 响应超时 → 引导用户走手动表单
-  - **不是**"核心 CRUD 绝不能依赖 LLM"（那是旧定位）
-  - 而是"核心 CRUD 必须有非 LLM 路径作为降级"
-- **额度计费**（V1.0 PRD §7）：
-  - 新用户注册赠送 1000 AI 点数
-  - AI 多模态解析 / 创建：1 点/次
-  - AI 教练深度周报：10 点/次
-  - AI 语音电话外呼：50 点/次（本期不实现）
-- **PG advisory lock 防超卖**（AGENTS §5.3.3 #13）：扣额度 + 写日程在同一事务
+- LLM 是产品的核心差异化卖点（AI 拆解引擎 + 自然语言建日程）
+- AI 是拆解引擎和建议引擎，**不是调度引擎**（不做自动排程）
+- **手动降级始终可用**：LLM 超时/失败 → 无缝切换手动输入，**绝不弹错误 Toast**
 
-### 6.2 MVP 阶段 LLM 应用场景
+### 6.2 当前实现的 AI 场景
 
-- **AI 多模态录入**（核心，V1.0 PRD §4）：文本 / 语音 / 图像 → 自动建日程
-- **AI 效率教练**（粘性，V1.0 PRD §9）：基于日程数据生成复盘 / 规划
-- **任务智能归集**（核心，V1.0 PRD §5）：散落日程 → 聚合项目任务单
-- **智能复盘**（教练子项）：一天 / 一周日程 → 结构化复盘
-- **智能规划**（可后置）：基于现有日程 + 优先级 → 建议空档
-- **对话微调**（可选）：在时间块详情页用对话微调
+- **AI 任务拆解**（`/ai/decompose` SSE 流式）：任务 → 依赖步骤 → 用户确认创建 Step
+- **AI 建议时间段**（`/ai/suggest-slots` 规则算法）：依赖链+空闲段 → 贪心建议
+- **自然语言建日程**（`/ai/parse`）：文本 → 结构化日程/任务 → 预览确认
+- **AI 拆解预览页**（`/pages/landing/ai-preview`）：免登录 Demo，增长破冰
 
 ### 6.3 集成规范
 
@@ -380,22 +479,7 @@ server/
 ### 6.4 受保护文件
 - `server/src/modules/llm/**` 整个目录（受 §10 保护）
 
-### 6.5 延迟集成的外部依赖（按里程碑实现）
-
-以下三项外部依赖在 M1 阶段**仅定义 TypeScript 接口与 stub 实现**（调用时抛 `Error('not implemented, deferred to Mx')`），不实际接入：
-
-| 依赖 | 接口文件 | 实际接入里程碑 | 阻塞性 |
-|------|----------|----------------|--------|
-| 微信云存储 | `src/services/cloud-storage.ts` `ICloudStorageClient` | M3 | 非 M1 阻塞 |
-| **MiniMax M3** | `src/services/llm.ts` `ILLMClient` | **M2-A 起必须实现**（核心引擎，PRD §4 锁定）| **M2 阻塞** |
-| 微信 code2Session | `server/src/modules/auth/auth.service.ts#code2Session()` | M2 | M2 阻塞 |
-
-**接口契约约束**：
-- 接口必须定义完整（不允许 `any` / `unknown` 字段），后续实现必须直接满足
-- stub 抛出的错误信息**必须**含 "deferred to Mx" 字样，方便线上排查
-- 业务调用方**不感知** stub 还是真实实现（依赖倒置）
-
-### 6.6 手动降级路径（关键安全网）
+### 6.5 手动降级路径（关键安全网）
 
 LLM 是核心路径，但**手动降级必须始终可用**：
 
@@ -409,7 +493,7 @@ LLM 是核心路径，但**手动降级必须始终可用**：
 
 **降级策略**：手动表单与 AI 表单**复用**（AI 解析失败的字段留空 + 标红提示必填）。
 
-### 6.7 AI 效率教练算法（V1.0 PRD §9 细化）
+### 6.6 AI 效率教练算法（V1.0 PRD §9 细化）
 
 详细算法 spec 在 `conversations/2026-06-07-coach-algorithm-spec.md`，**禁止**在 service / prompt 里硬编码阈值。
 
@@ -424,26 +508,9 @@ LLM 是核心路径，但**手动降级必须始终可用**：
 
 ---
 
-## 7. 黄金代码参考（强制）
+## 7. 代码风格参考
 
-项目根 `examples/` 目录存放人工审核过的"标准实现"，**AI 生成新代码前必须先读取对应模板**：
-
-| 任务 | 必须参照 |
-|------|----------|
-| 新建页面 | `examples/page-template/` |
-| 新建组件 | `examples/component-template/` |
-| 新建 API 调用 | `examples/api-call.ts` |
-
-引用指令模板：
-
-> 参照 `examples/page-template/` 的结构和风格编写
-
-附加约束：
-
-- `examples/` 下的文件**只读**（列入 §10 受保护模块），AI 不得修改、删除
-- 模板更新由人工 review 后 PR 合入；AI 发现可改进时**只能建议**，不能直接改
-- 写新代码时如发现与模板风格冲突，**以模板为准**；偏离模板必须给出理由
-- **注意**：`examples/` 引用了尚未生成的 `src/utils/request.ts` 和 `src/types/api.ts`——脚手架阶段需先建好这两个文件，否则 `tsc` 检查会失败
+写新页面时参照项目中已有的相似页面风格（如 `src/pages/schedule/` 或 `src/pages/tasks/`），保持 TypeScript 类型安全、WXML 模板表达式限制、WeUI 组件使用等约定一致。
 
 ---
 
@@ -511,6 +578,8 @@ LLM 是核心路径，但**手动降级必须始终可用**：
 [ ] UI 规范：优先使用 WeUI 组件，样式单位 rpx，组件 styleIsolation 启用
 [ ] 大模型安全：(若涉及) API Key 未暴露；流式状态机完整；含 msgSecCheck 兜底
 [ ] LLM 边界：LLM 是核心路径但有手动降级；核心 CRUD 手动表单路径始终可走通
+[ ] Ponytail 检查：已走 The Ladder（YAGNI→stdlib→原生→现有依赖→一行→最少代码），无过度设计
+[ ] PWF 规划检查：已建 task_plan.md / findings.md / progress.md（仅复杂任务），错误已记录
 ```
 
 ---
@@ -527,7 +596,6 @@ LLM 是核心路径，但**手动降级必须始终可用**：
 | `src/services/*`（业务 service） | 业务 API 封装（**新增**允许，**改既有**需 CHANGE） |
 | `server/src/modules/llm/**` | MiniMax 代理（NestJS 端） |
 | `src/types/global.d.ts` | 全局类型 |
-| `examples/**` | 黄金代码（参见 §7） |
 | `src/prompts/**` | System Prompt（变更需走 §8.2 SOP） |
 | `project.config.json` | WeChat 项目配置（miniprogramRoot 锁定为 src/） |
 
@@ -549,7 +617,6 @@ timeslots-v1/
 ├── AGENTS.md               # 本文件
 ├── project.config.json     # WeChat 项目配置（miniprogramRoot 指向 src/）
 ├── src/                    # 微信小程序客户端（详见 §5.2.1）
-├── examples/               # 人工审核的黄金代码（详见 §7，AI 只读）
 ├── server/                 # NestJS 后端（详见 §5.3.2）
 ├── docker-compose.yml      # 本地依赖（PG + 可选 Adminer）
 ├── .env.example
@@ -557,6 +624,41 @@ timeslots-v1/
 ```
 
 变更文件建议命名：`conversations/CHANGE-YYYYMMDD-<feature>.md`
+
+---
+
+## 13. 3-Strike Error Protocol (AI 错误恢复协议)
+
+> 替代原 §13（AI 编码行为规则）。项目级规则（时区、日志、索引、BOM 等）已迁移到 §5.2.2 / §5.3.3 / §5.4。
+
+执行以下协议处理错误，**禁止连续重复相同操作**。
+
+### 第 1 次 — 诊断并修复
+- 仔细阅读错误信息
+- 识别根因
+- 应用针对性修复
+- 在 `progress.md` 记录：错误内容、尝试的修复、结果
+
+### 第 2 次 — 换方法
+- 相同错误再次出现？换不同的方法
+- 换工具？换库？换方向？
+- **禁止重复完全相同的操作**
+- 在 `progress.md` 更新尝试记录
+
+### 第 3 次 — 重新思考
+- 质疑假设前提
+- 搜索解决方案
+- 考虑更新 `task_plan.md`
+- 在 `progress.md` 更新尝试记录
+
+### 3 次失败后 — 升级给用户
+- 说明你尝试了什么
+- 提供具体错误信息
+- 请求指导
+
+### 铁则
+- `if action_failed: next_action != same_action`
+- 致命错误（数据丢失、安全漏洞）**立即升级**，无需 3 次尝试
 
 ---
 
@@ -568,7 +670,7 @@ timeslots-v1/
 | 2026-06-07 | UI 选型从 Vant Weapp 切换到 WeUI | 用户提供官方权威文档清单 |
 | 2026-06-07 | §4.1 强化前端规则：strict TS / 禁用自定义 wx 类型 / Page+Component 构造器 / Promise 化 / styleIsolation | 用户追加 5 条强制规则 |
 | 2026-06-07 | §4.1 重构为「项目技术规范 - 微信小程序」：锁定技术栈版本，目录改为 `src/`，新增 5 条铁律 | 用户提供完整技术规范 |
-| 2026-06-07 | 新增 `examples/` 黄金代码 | 用户要求引入 few-shot 模板机制 |
+| 2026-06-07 | 新增 `examples/` 黄金代码（**v0.1 重建后已删除**） | 用户要求引入 few-shot 模板机制 |
 | 2026-06-07 | v1.1 大重构：合并 v1.0 手册全部条款 | 用户提供《OpenCode 全局 AI 辅助开发规则手册 v1.0》 |
 | 2026-06-07 | **v1.2 业务定位与架构大重构**：① LLM 定位为**增值功能**（不是 MVP 核心）；② 后端锁定 **NestJS Module 切分（DDD）**，废弃 Express 风格；③ 静态资源走**微信云存储**（wx.cloud），业务后端独立部署（计算与存储分离）；④ 前端强化 **Taro 零容忍**（明禁 `@tarojs/*` / NutUI / React 风格 hooks / px / `miniprogram/` 目录）；⑤ 新增 **i18n 占坑** 规则；⑥ 受保护模块新增 `services/cloud-storage.ts` 和 `server/src/modules/llm/**`；⑦ 自检清单新增「NestJS 分层」与「LLM 边界」两项；⑧ 变更文件模板与流程文档化 | 用户最终定调决策（7 大问题） |
 | 2026-06-07 | **M1 脚手架完成**：`MILESTONE-20260607-m1-scaffold.md` 落盘；AGENTS.md §5.2.2 新增 3 条铁律（Page 双泛型 / wx.onError 字段 / wx.request PATCH cast）；§5.3.3 新增 1 条铁律（Joi `.allow('').optional()`） | M1 收尾（前端 tsc + 后端 /health 验证通过） |
@@ -581,5 +683,13 @@ timeslots-v1/
 | 2026-06-07 | **Batch 5 (M2-A) 全面自检 + 端口迁移 + 3 关键 bug 修复**：① **端口 3000 → 8000**（6 文件同步：configuration.ts / validation.ts / main.ts / .env.example / .env / request.ts BASE_URL）；② **关键 bug A**：`EncryptionService` 用 `config.get('ENCRYPTION_KEY')`（env 名）实际应 `'encryptionKey'`（camelCase 字段名）—— 修复前永远走默认全 0 密钥，**生产环境有严重数据风险**；③ **关键 bug B**：`prisma.service.ts` JSDoc 声称拦截 `findUniqueOrThrow`/`findFirstOrThrow` 但代码没实现——补齐两个 `*OrThrow` 拦截器；④ **关键 bug C**：`src/pages/index/index.wxml` 内容是 CSS（被错放）—— 重写为正确 WXML 模板（view/text/button + 三元表达式 + `bindtap`）；⑤ 死代码清理：`prisma-mock.ts` 删除未使用的 `client.timeBlock` + 顶层 `quota/quotaTransaction/timeBlock` + `txOverrides` 形参 + `buildMockPrismaService` 导出；⑥ 自检：`grep -rE "TODO|FIXME|XXX" src/` 全空；⑦ 全 4 gate 重跑：tsc 双 0 错 ✅ / `prisma validate` ✅ / `jest 13/13` ✅ / 端到端 5/5 curl ✅。详细见 `conversations/MILESTONE-20260607-batch5-audit-fixes.md` | M2-A 全面自检 + P1 修复 |
 | 2026-06-07 | **Batch 6 (端口根治 + dev 工具链 + 全面审计)**：① **端口 8000 → 7777**（6 文件同步：避开 3K-8K 高频冲突区）；② 新增 `server/scripts/dev-tools.js`（check/free/scan/cleanup 四子命令，跨平台 port 管理）；③ 新增 `server/scripts/start-server.js`（Node.js `detached: true` 启动，PID 落 `.server.pid` 文件）+ `stop-server.js` 配套；④ `package.json` 加 `dev:check` / `dev:free` / `dev:scan` / `dev:cleanup` / `predev` 钩子；⑤ 新增 `server/scripts/audit.js`（33 TS 文件 3 项审计：TODO/FIXME/XXX + JSDoc 覆盖 + 未用 import）；⑥ 审计 0 命中：TODO ✅ 0 / JSDoc 缺失 ✅ 0 / 未用 import ✅ 0；⑦ 4 gate 全绿：tsc 双 0 错 ✅ / `prisma validate` ✅ / `jest 13/13` ✅ / 端到端 5/5 curl on 7777 ✅ | 端口冲突根治 + 工程化 dev 流程 |
 | 2026-06-07 | **Batch 8 (5 issue + 1 schema BUG)**：① 死代码：`EncryptionService` 删 `import { Logger }` + 删 `logger` 字段（**未使用**）；② 风格：`JwtAuthGuard` 4 个 import 一行 → 拆 7 行对齐项目风格；③ 文档错误：`llm.ts:56` "M6 接入" → "**M2-A 接入**"（AGENTS §6.5 锁定 M2-A，stub 标记落后 4 里程碑）；④ stub 错误信息：同上 `deferred to M6` → `deferred to M2-A`；⑤ **真 BUG**：`CircleMember` schema 缺 `isDeleted / createdAt / updatedAt / deletedAt` 字段，但 `prisma.service.ts:14-26` 的 `SOFT_DELETE_MODELS` 列表含它——一旦 `event-visibility.service.ts:53` 走 `this.prisma.client.circleMember.findUnique`，会抛 `Unknown field 'isDeleted' on model 'CircleMember'`。补齐 4 字段 + 1 索引。**6 端点 e2e 仍全绿**（schema 变更等 migration）；详见 `conversations/MILESTONE-20260607-batch8-consistency.md` | LLM stub 里程碑对齐 + 隐藏的 schema 软删不一致 BUG |
-| 2026-06-07 | **Batch 9 (4 Tab + 退 WSL + 端到端联调)**：① **4 Tab 重新梳理**：原"首页/日历/项目/我的" → **"日程/协作/任务/我的"**；PRD 新增 §2.5 详细子功能/关键页面/API 矩阵；② **退 WSL**：`wsl --unregister Ubuntu-26.04`；**装 Windows native PG 18**（winget `PostgreSQL.PostgreSQL.18`，EDB 静默装 + UAC）；PG 18.4 服务 `postgresql-x64-18` RUNNING + `localhost:5432` 直通；重置 `postgres` 密码为 `timeslots_dev` + 建 `timeslots_dev` DB；③ **Prisma migrate dev 成功**（Windows 端，`20260607133628_init`）；Prisma Client 重生成 + **7/7 端点 e2e 全绿**（health/events.my/events.post 等）；④ `app.json` 加 tabBar 4 项（text-only）+ 4 stub pages 创建（schedule/collab/tasks/mine）；**tsc 0 错**；⑤ `examples/page-template/index.ts` 的 `Page<{}, PageData>` 仍是反例（§10 只读，待 M2 拍板修）；⑥ **新增铁律 #22**：`Page<TData, TCustom>` 的 TData 接口名**禁止用 `PageData`**（会被 miniprogram-api-typings 全局同名合并 → 4 个 page 字段被合并 → tsc 报错）；命名规则：`<Name>PageData` + `<Name>PageMethods`（如 `SchedulePageData`）。详见 `conversations/MILESTONE-20260607-batch9-4tab-and-native-pg.md` | 4 Tab 产品骨架定调 + 全 Windows 部署拓扑 + tsc 0 错 |
+| 2026-06-07 | **Batch 9 (4 Tab + 退 WSL + 端到端联调)**：① **4 Tab 重新梳理**：原"首页/日历/项目/我的" → **"日程/协作/任务/我的"**；PRD 新增 §2.5 详细子功能/关键页面/API 矩阵；② **退 WSL**：`wsl --unregister Ubuntu-26.04`；**装 Windows native PG 18**（winget `PostgreSQL.PostgreSQL.18`，EDB 静默装 + UAC）；PG 18.4 服务 `postgresql-x64-18` RUNNING + `localhost:5432` 直通；重置 `postgres` 密码为 `timeslots_dev` + 建 `timeslots_dev` DB；③ **Prisma migrate dev 成功**（Windows 端，`20260607133628_init`）；Prisma Client 重生成 + **7/7 端点 e2e 全绿**（health/events.my/events.post 等）；④ `app.json` 加 tabBar 4 项（text-only）+ 4 stub pages 创建（schedule/collab/tasks/mine）；**tsc 0 错**；⑤ **新增铁律 #22**：`Page<TData, TCustom>` 的 TData 接口名**禁止用 `PageData`**（会被 miniprogram-api-typings 全局同名合并 → 4 个 page 字段被合并 → tsc 报错）；命名规则：`<Name>PageData` + `<Name>PageMethods`（如 `SchedulePageData`）。详见 `conversations/MILESTONE-20260607-batch9-4tab-and-native-pg.md` | 4 Tab 产品骨架定调 + 全 Windows 部署拓扑 + tsc 0 错 |
 | 2026-06-09 | **全面推翻重建**：按用户要求将全部旧代码归入 `archive-v1/`，从零开始重建 v0.1→v0.3。**变更**：WeUI 2.x→1.5.6（npm 上 2.x 不存在）；`moduleResolution: node`→`bundler`（TS 5.7+ 废弃后兼容）；Page 泛型标注双参数。**审计教训集成**：10 条教训（L1-L10）全部列入 VERSION_PLAN.md 作为新代码质量门禁 |
+| 2026-06-14 | **代码巡视整改 + AI 行为规则 §13 新增**：① 修复 6 个 P0/P1 正确性 BUG（时区/软删级联/approval 缺字段/ESLint/日志泄漏）；② 前端空 catch 5 处 + bare catch 1 处加 console.error；③ 后端 User 查询补 isDeleted 过滤 2 处；④ schema 加 7 个关键复合索引；⑤ 重复函数 todayStr/toLocalTime 合并到 `utils/date.ts` 消除 3 份拷贝；⑥ prisma.service.ts 静默 catch 加日志；⑦ AGENTS.md 新增 §13 AI 编码行为规则 11 条（自 2026-06-14 强制执行） | 2026-06-14 代码巡视报告 45 个发现问题整改 |
+| 2026-06-14 | **v0.45：MiniMax LLM 后端集成**：`/ai/decompose`（任务拆解 SSE 流式）+ `/ai/suggest-slots`（贪心建议）+ `/ai/parse`（自然语言建日程）三个端点完成；`server/src/modules/llm/` 受保护目录建立；Prompt 与代码分离到 `src/prompts/`；密钥安全走 config 环境变量 | M2-A LLM 核心集成 |
+| 2026-06-14 | **v0.46-v0.47：审批 + 委托 + 透明度路径**：ApprovalRequest/ApprovalRecipient/Delegation 全套 CRUD 端点；审批流 3 种 recipients（friend/phone/qr）；委托转交时间块；ShareRecipient CRUD + 隐身切换；Delegation 通知 banner 在 tasks 页显示 | Path 1（协作谱）闭环 |
+| 2026-06-14 | **v0.48：前端全流程联调**：delegation-detail 页（委托按钮 + 状态机 + 撤销）；tasks 页 delegation banner；透明度控制面板（recipient CRUD + 隐身切换）；mine 页入口；全部通过 tsc + jest + e2e 三 gate | Frontend delegation + transparency 完工 |
+| 2026-06-14 | **v0.49：AI 自然语言建日程**：`POST /api/v1/ai/parse` 后端（`parse.md` prompt + 8s 超时 + mock fallback）；前端 NLP 输入条（debounced 500ms）→ 预览卡片（创建/修改/取消）；微信转发建日程升级为 `aiParse()` + text-split 兜底；三个路径全部闭环 | Path 3（NLP + 模板 + 转发）完工 |
+| 2026-06-14 | **AGENTS.md §13 审计 + 7 项改进**：§1 项目描述去 AI 过时标记；§6 LLM 压缩（删除延迟标记 + stub 表）；§7 examples/→代码风格参考；§5.3.2 schema 路径修正；§10 移除 examples/ 保护；新增命令表 + 版本横幅；§12 changelog 补录 v0.45-v0.49 | AGENTS.md v1.3 一致性更新 |
+| 2026-06-14 | **AGENTS.md §13.11 新增「WXSS 文件禁止 UTF-8 BOM」**：Write/Edit 工具引入 BOM → WXSS 编译崩溃 → 白屏；强制验证命令 + PowerShell 无 BOM 覆写 | 三次重现的 WXSS BOM 白屏（visibility-bar/index.wxss） |
+| 2026-06-19 | **Ponytail + Planning-with-files 集成 AGENTS.md**：开工前必读新增 ponytail (full) 和 planning-with-files 两技能强制加载说明；§4.4 改为 PWF 文件式规划（task_plan.md/findings.md/progress.md）替代影响分析文本；§13 替换为 3-Strike Error Protocol（原 §13 项目规则迁移到 §5.2.2/§5.3.3/§5.4/§5.1）；§9 自检清单新增 Ponytail 和 PWF 两项 | 用户要求将两个 skill 设为 opencode 编程必调用规则 |

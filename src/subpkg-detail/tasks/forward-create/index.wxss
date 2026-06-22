@@ -1,0 +1,126 @@
+.container {
+  padding: var(--ts-space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ts-space-lg);
+}
+
+.page-title {
+  font-size: var(--ts-font-body);
+  font-weight: var(--ts-weight-semibold);
+  color: var(--ts-text-primary);
+}
+
+.page-desc {
+  font-size: var(--ts-font-callout);
+  color: var(--ts-text-secondary);
+}
+
+.text-input {
+  min-height: 200rpx;
+  padding: var(--ts-space-lg);
+  background: var(--ts-bg-card);
+  border: 1rpx solid var(--ts-border);
+  border-radius: var(--ts-radius-lg);
+  font-size: var(--ts-font-body);
+  color: var(--ts-text-primary);
+  line-height: 1.6;
+}
+
+.preview-card {
+  padding: var(--ts-space-lg);
+  background: var(--ts-bg-card);
+  border-radius: var(--ts-radius-lg);
+  box-shadow: var(--ts-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ts-card-gap);
+}
+
+.preview-label {
+  font-size: var(--ts-font-caption);
+  color: var(--ts-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--ts-ls-form-label);
+}
+
+.preview-title {
+  font-size: var(--ts-font-body);
+  font-weight: var(--ts-weight-medium);
+  color: var(--ts-text-primary);
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: var(--ts-space-xs);
+}
+
+.preview-type-badge {
+  font-size: var(--ts-font-small);
+  padding: 2rpx 10rpx;
+  border-radius: var(--ts-radius-sm);
+  background: var(--ts-primary-bg);
+  color: var(--ts-primary);
+}
+
+.preview-confidence {
+  font-size: var(--ts-font-small);
+  color: var(--ts-danger);
+}
+
+.preview-meta {
+  font-size: var(--ts-font-callout);
+  color: var(--ts-text-secondary);
+  display: flex;
+  gap: var(--ts-space-xs);
+  flex-wrap: wrap;
+}
+
+.preview-goal {
+  font-size: var(--ts-font-callout);
+  color: var(--ts-text-secondary);
+}
+
+.create-btn {
+  background: var(--ts-primary);
+  color: var(--ts-bg-card);
+  border-radius: var(--ts-radius-lg);
+  padding: var(--ts-space-lg);
+  font-size: var(--ts-font-body);
+  text-align: center;
+}
+
+.create-btn:active {
+  opacity: 0.8;
+}
+
+.create-btn[disabled] {
+  opacity: 0.5;
+}
+
+.success-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ts-space-md);
+  padding: var(--ts-space-xl);
+}
+
+.success-text {
+  font-size: var(--ts-font-body);
+  color: var(--ts-primary);
+}
+
+.view-btn {
+  background: var(--ts-bg-disabled);
+  color: var(--ts-text-primary);
+  border: 1rpx solid var(--ts-border);
+  border-radius: var(--ts-radius-lg);
+  padding: 16rpx 40rpx;
+  font-size: var(--ts-font-body);
+}
+
+.view-btn:active {
+  opacity: 0.7;
+}

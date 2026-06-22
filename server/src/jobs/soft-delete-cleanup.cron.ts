@@ -4,8 +4,9 @@ import { PrismaService } from '../prisma/prisma.service';
 
 
 const SOFT_DELETE_TABLES = [
-  'Task', 'TimeBlock', 'Reminder', 'Circle', 'CircleMember',
-  'ApprovalRequest', 'ApprovalRecipient',
+  'tasks', 'time_blocks', 'reminders', 'circles', 'circle_members',
+  'approval_requests', 'approval_recipients', 'steps', 'categories',
+  'templates', 'share_cards', 'share_recipients', 'delegations',
 ];
 
 

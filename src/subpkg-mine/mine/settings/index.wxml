@@ -1,0 +1,161 @@
+<view class="page">
+  <privacy-agreement />
+
+  <view class="form-group">
+    <text class="form-section-title">个人信息</text>
+    <view class="form-item">
+      <view class="form-label">年龄</view>
+      <input class="form-input" cursor-spacing="40" type="number" placeholder="不显示" value="{{age}}" bindinput="onAgeInput" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">婚姻状况</view>
+      <picker mode="selector" range="{{MARITAL_OPTIONS}}" range-key="label" value="{{maritalIndex}}" bindchange="onMaritalChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{maritalLabel}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-item" wx:if="{{maritalStatus === 'married'}}">
+      <view class="form-label">配偶称呼</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：另一半" value="{{spouseName}}" bindinput="onSpouseInput" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">居住地</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：北京" value="{{residence}}" bindinput="onResidenceInput" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">公司</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：XX 科技有限公司" value="{{company}}" bindinput="onCompanyInput" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">职业</view>
+      <input class="form-input" cursor-spacing="40" placeholder="如：产品经理" value="{{occupation}}" bindinput="onOccupationInput" />
+    </view>
+  </view>
+
+  <view class="form-group">
+    <text class="form-section-title">基础偏好</text>
+    <view class="form-item">
+      <view class="form-label">日起始时间</view>
+      <picker mode="time" value="{{dayStartsAt}}" bindchange="onDayStartsAtChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{dayStartsAt}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+      <text class="form-hint">影响日程列表每日起始显示</text>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">周起始日</view>
+      <picker mode="selector" range="{{WEEK_START_OPTIONS}}" range-key="label" value="{{weekStartsOnIndex}}" bindchange="onWeekStartsOnChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{weekStartsOnLabel}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+      <text class="form-hint">影响周视图和月视图的排列</text>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">默认时长</view>
+      <picker mode="selector" range="{{DURATION_OPTIONS}}" range-key="label" value="{{defaultDurationIndex}}" bindchange="onDurationChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{defaultDurationLabel}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+      <text class="form-hint">快速创建日程的默认时长</text>
+    </view>
+  </view>
+
+  <view class="form-group">
+    <text class="form-section-title">显示与通知</text>
+    <view class="form-item">
+      <view class="form-label">默认可见性</view>
+      <view class="form-btn-group">
+        <view class="form-btn {{defaultNature === 'PUBLIC' ? 'active-public' : ''}}" bindtap="onNatureChange" data-value="PUBLIC">公开</view>
+        <view class="form-btn {{defaultNature === 'PRIVATE' ? 'active-private' : ''}}" bindtap="onNatureChange" data-value="PRIVATE">自有</view>
+        <view class="form-btn {{defaultNature === 'CIRCLE_ONLY' ? 'active-circle' : ''}}" bindtap="onNatureChange" data-value="CIRCLE_ONLY">圈子可见</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">默认提醒</view>
+      <picker mode="selector" range="{{reminderOptions}}" range-key="label" value="{{reminderIndex}}" bindchange="onReminderChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{reminderLabel}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">周报推送</view>
+      <view class="form-row">
+        <text class="form-row-text">{{weeklyReportEnabled ? '已开启' : '已关闭'}}</text>
+        <view class="form-toggle {{weeklyReportEnabled ? 'toggle-on' : 'toggle-off'}}" bindtap="onWeeklyReportToggle">
+          <view class="form-toggle-knob"></view>
+        </view>
+      </view>
+    </view>
+    <view class="form-item" wx:if="{{weeklyReportEnabled}}">
+      <view class="form-label">周报时间</view>
+      <picker mode="time" value="{{weeklyReportTime}}" bindchange="onWeeklyReportTimeChange">
+        <view class="form-picker">
+          <text class="form-picker-text">{{weeklyReportTime}}</text>
+          <text class="form-picker-arrow">›</text>
+        </view>
+      </picker>
+      <text class="form-hint">每周该时间推送周报</text>
+    </view>
+  </view>
+
+  <view class="form-group">
+    <text class="form-section-title">隐私兜底</text>
+    <view class="form-item">
+      <view class="form-label">圈子可见无圈子时的行为</view>
+      <view class="form-btn-group">
+        <view class="form-btn {{privacyFallback === 'PUBLIC' ? 'active-public' : ''}}" bindtap="onPrivacyFallbackChange" data-value="PUBLIC">视为公开</view>
+        <view class="form-btn {{privacyFallback === 'PRIVATE' ? 'active-private' : ''}}" bindtap="onPrivacyFallbackChange" data-value="PRIVATE">视为自有</view>
+      </view>
+      <text class="form-hint">日程设为"圈子可见"但未指定圈子时，按此策略处理</text>
+    </view>
+  </view>
+
+  <view class="form-group">
+    <text class="form-section-title">通用</text>
+    <view class="form-row">
+      <text class="form-row-text">主题</text>
+      <text class="form-row-hint">浅色（即将支持）</text>
+    </view>
+    <view class="form-row" style="border-bottom:1rpx solid var(--ts-border-light);">
+      <text class="form-row-text">字体大小</text>
+      <text class="form-row-hint">标准（即将支持）</text>
+    </view>
+    <view class="form-row form-link" bindtap="onUserAgreementTap">
+      <text class="form-link-text">用户协议</text>
+      <text class="form-picker-arrow">›</text>
+    </view>
+    <view class="form-row form-link" bindtap="onPrivacyPolicyTap">
+      <text class="form-link-text">隐私政策</text>
+      <text class="form-picker-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="form-group">
+    <text class="form-section-title">开发设置</text>
+    <view class="form-row form-link" bindtap="onToggleDevSettings">
+      <text class="form-link-text">服务器地址</text>
+      <text class="form-picker-arrow">{{showDevSettings ? '收起' : '展开'}} ›</text>
+    </view>
+    <view wx:if="{{showDevSettings}}" class="form-item">
+      <input class="form-input" cursor-spacing="40" placeholder="http://192.168.1.x:7777" value="{{serverUrl}}" bindinput="onServerUrlInput" />
+      <text class="form-hint">修改后点击下方"保存地址"生效，重启后使用新地址</text>
+      <button class="save-btn" style="margin-top:12rpx;" bindtap="onSaveServerUrl">保存地址</button>
+    </view>
+  </view>
+
+  <button class="save-btn" bindtap="onSave">{{saving ? '保存中...' : '保存设置'}}</button>
+</view>

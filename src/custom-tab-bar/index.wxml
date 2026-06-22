@@ -5,8 +5,10 @@
     class="tab-item {{selected === index ? 'tab-active' : ''}}"
     data-index="{{index}}"
     bindtap="onTabTap"
+    aria-role="tab"
+    aria-label="{{item.text}}"
   >
-    <view class="tab-text">{{item.text}}</view>
-    <view wx:if="{{selected === index}}" class="tab-dot"></view>
+    <text class="tab-icon">{{item.icon}}</text>
+    <text class="tab-text">{{item.text}}</text>
   </view>
 </view>

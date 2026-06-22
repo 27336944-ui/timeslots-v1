@@ -1,261 +1,205 @@
-
 import { createStoreBindings } from 'mobx-miniprogram-bindings';
 import { blockStore } from '../../stores/blockStore';
-import { taskStore } from '../../stores/taskStore';
 import { authStore } from '../../stores/authStore';
-import { getSettings } from '../../services/api';
-import type { TimeBlock } from '../../types/api';
+import { taskStore } from '../../stores/taskStore';
+import { dayNavData, dayNavMethods } from '../../behaviors/day-nav';
+import { blockInteractionData, blockInteractionMethods, BlockDisplay } from '../../behaviors/block-interaction';
+import { getMyTasks, getMyBlocksByDate, getGaps, placeFlexible, GapItem } from '../../services/api';
+import { todayStr } from '../../utils/date';
+import { logError } from '../../utils/logError';
 
+
+interface GapDisplay {
+  idx: number;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  topRpx: number;
+  heightRpx: number;
+  label: string;
+}
 
 interface SchedulePageData {
+  loading: boolean;
+  error: string;
+  loadError: boolean;
   dateStr: string;
-  hourGroups: HourGroup[];
-  expandedHours: Record<number, boolean>;
-  hasBlocks: boolean;
+  selectedDay: string;
+  currentWeekStart: string;
+  weekDays: { dateStr: string; dayLabel: string; dateNum: number; isToday: boolean; lunarStr: string; festival: string | null }[];
+  monthDays: { dateStr: string; dayNum: number; isToday: boolean; isCurrentMonth: boolean; lunarStr: string; festival: string | null; blockFillPercent: number; fillLevel: number; fillPercent: number }[];
+  currentMonthStr: string;
+  monthWeekDays: string[];
+  viewMode: 'week' | 'month';
+  weekStartsOn: number;
   navigating: boolean;
   dayStartHour: number;
+  filterList: { key: string; label: string }[];
+  currentCategory: string;
+  hourGroups: { hour: number; label: string; blocks: BlockDisplay[] }[];
+  expandedHours: Record<number, boolean>;
+  hasBlocks: boolean;
   showAllHours: boolean;
   showSearch: boolean;
   searchKeyword: string;
-  viewMode: 'day' | 'week' | 'month';
-  selectedDay: string;
-  currentWeekStart: string;
-  weekDays: WeekDayInfo[];
   swipeOffset: Record<string, number>;
-  overviewInfo: OverviewInfo;
-  monthDays: MonthDayInfo[];
-  currentMonthStr: string;
+  blocksEntered: boolean;
+  overviewInfo: { blockCount: number; totalMinutes: number; freeMinutes: number; overdue: number; totalHoursStr: string; freeHoursStr: string };
+  resizeHeights: Record<string, number>;
+  _isResizing: boolean;
+  natureCounts: Record<string, number>;
+  activeNature: string;
+  showActionSheet: boolean;
+  showFloatingHint: boolean;
+  nowLineTop: number;
+  nowLabel: string;
+  showMonthCalendar: boolean;
+  _scrollTop: number;
+  _touchStartY: number;
+  headerDateStr: string;
+  flexibleTasks: { id: string; title: string; estimatedDuration: number }[];
+  flexibleBlockIds: string[];
+  gaps: { startTime: string; endTime: string; durationMinutes: number }[];
+  displayGaps: GapDisplay[];
+  showTaskPool: boolean;
+  draggedTask: { id: string; title: string; duration: number } | null;
+  dragY: number;
+  dragTargetHour: number;
+  dragTargetGapIdx: number;
+  dragErrorTaskId: string;
 }
-
-interface WeekDayInfo {
-  dateStr: string;
-  dayLabel: string;
-  dateNum: number;
-  isToday: boolean;
-}
-
-interface BlockDisplay extends TimeBlock {
-  localStart: string;
-  localEnd: string;
-  categoryClass: string;
-  priorityLabel: string;
-  blockHeight: number;
-  isCrossDay?: boolean;
-}
-
-interface OverviewInfo {
-  blockCount: number;
-  totalMinutes: number;
-  freeMinutes: number;
-  overdue: number;
-}
-
-interface MonthDayInfo {
-  dateStr: string;
-  dayNum: number;
-  isToday: boolean;
-  isCurrentMonth: boolean;
-  hasBlocks: boolean;
-}
-
-const CATEGORY_CLASS: Record<string, string> = { work: 'tag-work', life: 'tag-life', private: 'tag-private' };
-const PRIORITY_LABEL: Record<string, string> = { high: '�?, medium: '�?, low: '�? };
-const DAY_LABELS = ['�?, '一', '�?, '�?, '�?, '�?, '�?];
-
-const MIN_CARD_HEIGHT = 60;
-const HEIGHT_PER_MINUTE = 1.5;
-
-
-function calcCardHeight(startTime: string, endTime: string, clampedMinutes?: number): number {
-  const minutes = clampedMinutes ?? ((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000);
-  return Math.max(MIN_CARD_HEIGHT, Math.round(minutes * HEIGHT_PER_MINUTE));
-}
-
-interface ClampedRange {
-  startHour: number;
-  startMin: number;
-  endHour: number;
-  endMin: number;
-  totalMin: number;
-  isCrossDay: boolean;
-}
-
-function getClampedRange(block: TimeBlock, dateStr: string): ClampedRange | null {
-  const dateStart = new Date(dateStr + 'T00:00:00+08:00');
-  const dateEnd = new Date(dateStr + 'T23:59:59+08:00');
-  const blockStart = new Date(block.startTime);
-  const blockEnd = new Date(block.endTime);
-  if (blockEnd <= dateStart || blockStart >= dateEnd) return null;
-  const effectiveStart = blockStart < dateStart ? dateStart : blockStart;
-  const effectiveEnd = blockEnd > dateEnd ? dateEnd : blockEnd;
-  const totalMin = (effectiveEnd.getTime() - effectiveStart.getTime()) / 60000;
-  const fmt = (d: Date) => d.toLocaleTimeString('en-CA', { timeZone: 'Asia/Shanghai', hour12: false, hour: '2-digit', minute: '2-digit' });
-  const [sh, sm] = fmt(effectiveStart).split(':').map(Number);
-  const [eh, em] = fmt(effectiveEnd).split(':').map(Number);
-  return { startHour: sh, startMin: sm, endHour: eh, endMin: em, totalMin, isCrossDay: blockStart < dateStart || blockEnd > dateEnd };
-}
-
-interface HourGroup {
-  hour: number;
-  label: string;
-  blocks: BlockDisplay[];
-}
-
-
-function toHourLabel(h: number): string {
-  return `${String(h).padStart(2, '0')}:00`;
-}
-
-
-function toLocalTime(isoStr: string): string {
-  const d = new Date(isoStr);
-  return d.toLocaleTimeString('en-CA', { timeZone: 'Asia/Shanghai', hour12: false, hour: '2-digit', minute: '2-digit' });
-}
-
-
-function todayStr(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-
-function groupByHour(blocks: TimeBlock[], dateStr: string, dayStartHour: number): HourGroup[] {
-  const groups: HourGroup[] = [];
-  for (let h = dayStartHour; h < 24; h++) {
-    const hourBlocks: BlockDisplay[] = [];
-    for (const b of blocks) {
-      const range = getClampedRange(b, dateStr);
-      if (!range || range.startHour !== h) continue;
-      hourBlocks.push({
-        ...b,
-        localStart: toLocalTime(b.startTime),
-        localEnd: toLocalTime(b.endTime),
-        categoryClass: CATEGORY_CLASS[b.category] || 'tag-life',
-        priorityLabel: PRIORITY_LABEL[b.priority] || '�?,
-        blockHeight: calcCardHeight(b.startTime, b.endTime, range.totalMin),
-        isCrossDay: range.isCrossDay,
-      });
-    }
-    groups.push({
-      hour: h,
-      label: toHourLabel(h),
-      blocks: hourBlocks,
-    });
-  }
-  return groups;
-}
-
-
-function autoExpandHours(groups: HourGroup[]): Record<number, boolean> {
-  const expanded: Record<number, boolean> = {};
-  for (const g of groups) {
-    if (g.blocks.length > 0) {
-      expanded[g.hour] = true;
-    }
-  }
-  return expanded;
-}
-
-
-function getCompactGroups(groups: HourGroup[]): HourGroup[] {
-  const blockHours = groups.filter((g) => g.blocks.length > 0).map((g) => g.hour);
-  if (blockHours.length === 0) return groups.slice(0, 1);
-  const minHour = Math.min(...blockHours);
-  const maxHour = Math.max(...blockHours);
-  const start = Math.max(groups[0]?.hour ?? 0, minHour - 1);
-  const end = Math.min(groups[groups.length - 1]?.hour ?? 23, maxHour + 1);
-  return groups.filter((g) => g.hour >= start && g.hour <= end);
-}
-
-
-function getMonday(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00+08:00');
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const dayN = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${dayN}`;
-}
-
-
-function buildWeekDays(weekStart: string): WeekDayInfo[] {
-  const today = todayStr();
-  const days: WeekDayInfo[] = [];
-  const base = new Date(weekStart + 'T00:00:00+08:00');
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(base);
-    d.setDate(d.getDate() + i);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const dayN = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${dayN}`;
-    days.push({ dateStr, dayLabel: DAY_LABELS[i], dateNum: d.getDate(), isToday: dateStr === today });
-  }
-  return days;
-}
-
 
 interface SchedulePageMethods {
-  refreshGroups: () => void;
-  toggleHour: (e: WechatMiniprogram.TouchEvent) => void;
-  toggleShowAll: () => void;
-  prevDay: () => void;
-  nextDay: () => void;
-  loadToday: () => void;
-  loadSettings: () => Promise<void>;
-  onRefresh: () => Promise<void>;
-  onBlockTap: (e: WechatMiniprogram.TouchEvent) => void;
-  onBlockTouchStart: (e: WechatMiniprogram.TouchEvent) => void;
-  onBlockTouchMove: (e: WechatMiniprogram.TouchEvent) => void;
-  onBlockTouchEnd: (e: WechatMiniprogram.TouchEvent) => void;
-  onCreateTap: () => void;
-  onSearchTap: () => void;
-  onSearchInput: (e: WechatMiniprogram.Input) => void;
-  onSearchClose: () => void;
-  switchView: (e: WechatMiniprogram.TouchEvent) => void;
-  prevWeek: () => void;
-  nextWeek: () => void;
-  onWeekDayTap: (e: WechatMiniprogram.TouchEvent) => void;
-  loadWeek: (dateStr: string) => Promise<void>;
-  updateOverview: () => void;
-  prevMonth: () => void;
-  nextMonth: () => void;
-  loadMonth: (year: number, month: number) => Promise<void>;
-  onMonthDayTap: (e: WechatMiniprogram.TouchEvent) => void;
   storeBindings?: { destroyStoreBindings: () => void };
   authBindings?: { destroyStoreBindings: () => void };
-  _longPressTimer?: number;
-  _touchStartX?: number;
-  _touchStartY?: number;
-  _touchBlockId?: string;
-  _swipeCleanupTimer?: number;
-  _weekBlocks?: Record<string, TimeBlock[]>;
+  nowTimer?: ReturnType<typeof setInterval>;
+  floatingHintTimer?: ReturnType<typeof setTimeout>;
+
+  onLoad(): void;
+  onShow(): void;
+  onHide(): void;
+  onUnload(): void;
+  onReachBottom(): void;
+
+  loadToday(): void;
+  loadSettings(): Promise<void>;
+  prevDay(): void;
+  nextDay(): void;
+  loadWeek(centerDate: string): Promise<void>;
+  prevWeek(): void;
+  nextWeek(): void;
+  onWeekDayTap(e: WechatMiniprogram.TouchEvent): void;
+  prevMonth(): void;
+  nextMonth(): void;
+  loadMonth(year: number, month: number): Promise<void>;
+  onMonthDayTap(e: WechatMiniprogram.TouchEvent): void;
+  onTabTap(e: WechatMiniprogram.TouchEvent): void;
+  openMonthCalendar(): void;
+  dismissMonthCalendar(): void;
+  onScroll(e: WechatMiniprogram.ScrollViewScroll): void;
+  onTouchStart(e: WechatMiniprogram.TouchEvent): void;
+  onTouchMove(e: WechatMiniprogram.TouchEvent): void;
+  onTouchEnd(): void;
+
+  setQuickCreateDefaults(defaultDuration: string, idx: number): void;
+  refreshGroups(): void;
+  updateOverview(): void;
+  toggleHour(e: WechatMiniprogram.TouchEvent): void;
+  toggleShowAll(): void;
+  onBlockTap(e: WechatMiniprogram.TouchEvent): void;
+  onBlockTouchStart(e: WechatMiniprogram.TouchEvent): void;
+  onBlockTouchMove(e: WechatMiniprogram.TouchEvent): void;
+  onBlockTouchEnd(e: WechatMiniprogram.TouchEvent): void;
+  onPlusTap(): void;
+  onActionSheetClose(): void;
+  dismissFloatingHint(): void;
+  initFloatingHint(): void;
+  onVoiceInput(): void;
+  onImageInput(): void;
+  onManualInput(): void;
+  onAIDecompose(): void;
+  onTemplateApply(): void;
+  noop(): void;
+  onSearchTap(): void;
+  onSearchInput(e: WechatMiniprogram.Input): void;
+  onSearchClose(): void;
+  onEmptySlotTap(e: WechatMiniprogram.TouchEvent): void;
+  onCreateSelect(e: WechatMiniprogram.TouchEvent): void;
+  onResizeStart(e: WechatMiniprogram.TouchEvent): void;
+  onResizeMove(e: WechatMiniprogram.TouchEvent): void;
+  onResizeEnd(): void;
+  durationToMinutes(v: string): number;
+  updateNowLine(): void;
+  loadFlexibleTasks: () => Promise<void>;
+  loadGaps: () => Promise<void>;
+  onDragPoolStart: (e: WechatMiniprogram.TouchEvent) => void;
+  onDragPoolMove: (e: WechatMiniprogram.TouchEvent) => void;
+  onDragPoolEnd: () => void;
+  onPoolTaskTap: (e: WechatMiniprogram.TouchEvent) => void;
+  onToggleTaskPool: () => void;
 }
 
 Page<SchedulePageData, SchedulePageMethods>({
   data: {
-    dateStr: '',
-    hourGroups: [],
-    expandedHours: {},
-    hasBlocks: false,
-    navigating: false,
-    dayStartHour: 0,
-    showAllHours: false,
-    showSearch: false,
-    searchKeyword: '',
-    viewMode: 'day',
-    selectedDay: '',
-    currentWeekStart: '',
-    weekDays: [],
-    swipeOffset: {},
-    overviewInfo: { blockCount: 0, totalMinutes: 0, freeMinutes: 0, overdue: 0 },
-    monthDays: [],
-    currentMonthStr: '',
+    ...blockInteractionData,
+    ...dayNavData,
+    loading: false,
+    error: '',
+    loadError: false,
+    showActionSheet: false,
+    showFloatingHint: false,
+    nowLineTop: -1,
+    nowLabel: '',
+    filterList: [{ key: 'all', label: '全部' }, { key: 'work', label: '工作' }, { key: 'life', label: '生活' }, { key: 'private', label: '自有' }],
+    currentCategory: 'all',
+    flexibleTasks: [],
+    flexibleBlockIds: [],
+    gaps: [],
+    displayGaps: [],
+    showTaskPool: true,
+    draggedTask: null,
+    dragY: 0,
+    dragTargetHour: -1,
+    dragTargetGapIdx: -1,
+    dragErrorTaskId: '',
+    blocksEntered: false,
+  } as SchedulePageData,
+
+  ...dayNavMethods,
+  ...blockInteractionMethods,
+
+  // Override day-navigation methods to reload flexible tasks
+  loadToday(this: WechatMiniprogram.Page.TrivialInstance) {
+    dayNavMethods.loadToday.call(this);
+    this.loadFlexibleTasks();
+    this.loadGaps();
+  },
+
+  prevDay(this: WechatMiniprogram.Page.TrivialInstance) {
+    dayNavMethods.prevDay.call(this);
+    // dateStr is already updated synchronously in prevDay
+    this.loadFlexibleTasks();
+    this.loadGaps();
+  },
+
+  nextDay(this: WechatMiniprogram.Page.TrivialInstance) {
+    dayNavMethods.nextDay.call(this);
+    this.loadFlexibleTasks();
+    this.loadGaps();
+  },
+
+  async loadWeek(this: WechatMiniprogram.Page.TrivialInstance, centerDate: string) {
+    await dayNavMethods.loadWeek.call(this, centerDate);
+    this.loadFlexibleTasks();
+    this.loadGaps();
+  },
+
+  onWeekDayTap(this: WechatMiniprogram.Page.TrivialInstance, e: WechatMiniprogram.TouchEvent) {
+    // compact-header emits custom event with dateStr in e.detail
+    const dateStr = ((e as unknown as { detail?: { dateStr?: string } }).detail?.dateStr) || '';
+    if (dateStr) {
+      this.loadWeek(dateStr);
+    }
   },
 
   onLoad() {
@@ -268,374 +212,322 @@ Page<SchedulePageData, SchedulePageMethods>({
       fields: ['isLoggedIn'],
     });
     this.loadSettings();
-      this._weekBlocks = {};
+    (this as unknown as WechatMiniprogram.Page.TrivialInstance)._weekBlocks = {} as Record<string, unknown>;
+    this.initFloatingHint();
+  },
+
+  initFloatingHint() {
+    const key = 'ts_floating_hint_count';
+    let count = 0;
+    try { count = parseInt(wx.getStorageSync(key) || '0', 10); } catch (e) { logError('schedule_floating_hint', e) }
+    if (count < 1) {
+      this.floatingHintTimer = setTimeout(() => {
+        this.setData({ showFloatingHint: true });
+      }, 2000);
+    }
+  },
+
+  dismissFloatingHint() {
+    this.setData({ showFloatingHint: false });
+    const key = 'ts_floating_hint_count';
+    let count = 0;
+    try { count = parseInt(wx.getStorageSync(key) || '0', 10); } catch (e) { logError('schedule_floating_hint', e) }
+    wx.setStorageSync(key, String(count + 1));
   },
 
   onShow() {
-    (this as any).setData({ selected: 0 });
-    if (authStore.isLoggedIn) {
-      const today = todayStr();
-      if (blockStore.currentDate !== today || blockStore.blocks.length === 0) {
-        this.loadToday();
-      }
+    const tabBar = (this as unknown as WechatMiniprogram.Page.TrivialInstance).getTabBar?.();
+    if (tabBar) tabBar.setData({ selected: 0 });
+    this.updateNowLine();
+    this.nowTimer = setInterval(() => this.updateNowLine(), 60000);
+    try {
+      this.loadToday();
+      setTimeout(() => this.setData({ blocksEntered: true }), 400); // after entry animation
+    } catch (e) {
+      logError('Schedule loadToday', e);
+      this.setData({ loadError: true, error: e instanceof Error ? e.message : String(e) });
     }
+  },
+
+  onHide() {
+    if (this.nowTimer) { clearInterval(this.nowTimer); this.nowTimer = undefined; }
+  },
+
+  onReachBottom() {
+    if (!authStore.isLoggedIn) return;
+    taskStore.loadMoreTasks();
   },
 
   onUnload() {
-    this.storeBindings!.destroyStoreBindings();
-    this.authBindings!.destroyStoreBindings();
+    this.storeBindings?.destroyStoreBindings();
+    this.authBindings?.destroyStoreBindings();
+    if (this.nowTimer) { clearInterval(this.nowTimer); this.nowTimer = undefined; }
+    if (this.floatingHintTimer) { clearTimeout(this.floatingHintTimer); this.floatingHintTimer = undefined; }
   },
 
-  async loadSettings() {
-    try {
-      const settings = await getSettings();
-      const hour = parseInt(settings.dayStartsAt.split(':')[0], 10);
-      this.setData({ dayStartHour: isNaN(hour) ? 6 : hour });
-    } catch {
-      this.setData({ dayStartHour: 6 });
+  onPlusTap() {
+    if (!authStore.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
+    // 仅"手动"可用时跳过创建面板，直接进入表单
+    wx.navigateTo({ url: '/pages/schedule/detail/index?mode=create' });
+    // TODO: 当 AI/语音/图片入口可用时，恢复 create-entry-sheet
+    // this.setData({ showActionSheet: true });
+  },
+
+  onActionSheetClose() {
+    this.setData({ showActionSheet: false });
+  },
+
+  onVoiceInput() {
+    this.setData({ showActionSheet: false });
+    wx.showToast({ title: '即将上线，敬请期待', icon: 'none' });
+  },
+
+  onImageInput() {
+    this.setData({ showActionSheet: false });
+    wx.showToast({ title: '即将上线，敬请期待', icon: 'none' });
+  },
+
+  onManualInput() {
+    this.setData({ showActionSheet: false });
+    wx.navigateTo({ url: '/pages/schedule/detail/index?mode=create' });
+  },
+
+  onAIDecompose() {
+    this.setData({ showActionSheet: false });
+    wx.navigateTo({ url: '/pages/tasks/ai-decompose/index' });
+  },
+
+  onTemplateApply() {
+    this.setData({ showActionSheet: false });
+    wx.navigateTo({ url: '/pages/templates/apply/index' });
+  },
+
+  onCreateSelect(e: WechatMiniprogram.CustomEvent) {
+    const type = e.detail?.type as string;
+    this.setData({ showActionSheet: false });
+    switch (type) {
+      case 'manual':
+        wx.navigateTo({ url: '/pages/schedule/detail/index?mode=create' });
+        break;
+      case 'ai':
+        wx.navigateTo({ url: '/pages/tasks/ai-decompose/index' });
+        break;
+      case 'voice':
+        wx.showToast({ title: '功能开发中', icon: 'none' });
+        break;
+      case 'image':
+        wx.showToast({ title: '功能开发中', icon: 'none' });
+        break;
+      case 'template':
+        wx.navigateTo({ url: '/pages/templates/apply/index' });
+        break;
+      default:
+        wx.showToast({ title: '功能开发中', icon: 'none' });
     }
   },
 
-  loadToday() {
+  updateNowLine() {
     const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${day}`;
-    this.setData({ dateStr, selectedDay: dateStr });
-    taskStore.fetchStats().catch(() => {});
-    blockStore.fetchByDate(dateStr).then(() => {
-      this.refreshGroups();
-    }).catch(() => {});
-  },
-
-  refreshGroups() {
-    const kw = this.data.searchKeyword.toLowerCase();
-    const currentDate = this.data.viewMode === 'week' ? this.data.selectedDay : this.data.dateStr;
-    const source = this.data.viewMode === 'day'
-      ? blockStore.blocks
-      : ((this._weekBlocks || {})[currentDate] || []);
-    const filtered = kw
-      ? source.filter((b) =>
-          [b.title, b.description || '', b.location || ''].some((f) => f.toLowerCase().includes(kw))
-        )
-      : source;
-    const allGroups = groupByHour(filtered, currentDate, this.data.dayStartHour);
-    const groups = this.data.showAllHours ? allGroups : getCompactGroups(allGroups);
-    const expanded = autoExpandHours(groups);
-    const hasBlocks = groups.some((g) => g.blocks.length > 0);
-    this.setData({ hourGroups: groups, expandedHours: expanded, hasBlocks });
-    this.updateOverview();
-  },
-
-  updateOverview() {
-    const source = this.data.viewMode === 'week'
-      ? ((this._weekBlocks || {})[this.data.selectedDay] || [])
-      : blockStore.blocks;
-    let totalMinutes = 0;
-    for (const b of source) {
-      const start = new Date(b.startTime);
-      const end = new Date(b.endTime);
-      totalMinutes += (end.getTime() - start.getTime()) / 60000;
+    const h = d.getHours();
+    const m = d.getMinutes();
+    const visibleHours = this.data.hourGroups.map((g) => g.hour);
+    const idx = visibleHours.indexOf(h);
+    if (idx === -1) {
+      if (this.data.nowLineTop !== -1) this.setData({ nowLineTop: -1 });
+      return;
     }
-    const dayMinutes = 24 * 60;
-    const isToday = (this.data.dateStr === todayStr() || this.data.selectedDay === todayStr());
-    const overdue = isToday ? (taskStore.stats?.overdue ?? 0) : 0;
-    this.setData({
-      overviewInfo: {
-        blockCount: source.length,
-        totalMinutes: Math.round(totalMinutes),
-        freeMinutes: Math.max(0, Math.round(dayMinutes - totalMinutes)),
-        overdue,
+    const top = idx * 80 + (m / 60) * 80;
+    if (top === this.data.nowLineTop) return; // no change — skip setData
+    const label = `现在 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    this.setData({ nowLineTop: top, nowLabel: label });
+  },
+
+  onScroll(e: WechatMiniprogram.ScrollViewScroll) {
+    this.data._scrollTop = (e as WechatMiniprogram.ScrollViewScroll).detail.scrollTop;
+  },
+
+  onTouchStart(e: WechatMiniprogram.TouchEvent) {
+    (this as any)._touchStartY = e.touches[0].clientY;
+  },
+
+  onTouchMove(e: WechatMiniprogram.TouchEvent) {
+    if (this.data.showMonthCalendar) return;
+    if ((this as any)._scrollTop !== 0) return;
+    const dy = e.touches[0].clientY - (this as any)._touchStartY;
+    if (dy > 120) {
+      this.openMonthCalendar();
+    }
+  },
+
+  onTouchEnd() {
+  },
+
+  onTabTap(this: WechatMiniprogram.Page.TrivialInstance, e: WechatMiniprogram.TouchEvent) {
+    const category = e.currentTarget.dataset.category as string;
+    this.setData({ currentCategory: category });
+    (this as unknown as WechatMiniprogram.Page.TrivialInstance).refreshGroups();
+  },
+
+  async loadFlexibleTasks(this: WechatMiniprogram.Page.TrivialInstance) {
+    const dateStr = this.data.dateStr;
+    try {
+      const [tasks, blocks] = await Promise.all([
+        getMyTasks(),
+        getMyBlocksByDate(dateStr),
+      ]);
+      const flexibleBlocks = blocks.filter((b: { source: string | null }) => b.source === 'flexible');
+      const placedTaskIds = new Set(flexibleBlocks.map((b: { taskId: string | null }) => b.taskId).filter(Boolean));
+      const poolTasks = tasks
+        .filter((t: { estimatedDuration: number | null; status: string; id: string; startDate: string | null }) => {
+          if (t.estimatedDuration == null || t.status === 'done') return false;
+          if (placedTaskIds.has(t.id)) return false;
+          if (t.startDate) {
+            const taskDate = t.startDate.slice(0, 10);
+            if (taskDate !== dateStr) return false;
+          }
+          return true;
+        })
+        .map((t: { id: string; title: string; estimatedDuration: number | null }) => ({ id: t.id, title: t.title, estimatedDuration: t.estimatedDuration as number }));
+      this.setData({
+        flexibleTasks: poolTasks,
+        flexibleBlockIds: [...placedTaskIds] as string[],
+        showTaskPool: true,
+      });
+    } catch (e) {
+      logError('schedule_loadTasks', e);
+      this.setData({ flexibleTasks: [], showTaskPool: true });
+    }
+  },
+
+  async loadGaps(this: WechatMiniprogram.Page.TrivialInstance) {
+    const dateStr = this.data.dateStr;
+    const dayStartHour = this.data.dayStartHour;
+    try {
+      const gaps: GapItem[] = await getGaps(dateStr);
+      const displayGaps: GapDisplay[] = gaps.map((g: GapItem, idx: number) => {
+        const startDate = new Date(g.startTime);
+        const hoursFromStart = startDate.getHours() + startDate.getMinutes() / 60 - dayStartHour;
+        const durMin = g.durationMinutes;
+        const label = durMin >= 60
+          ? `可用 ${Math.floor(durMin / 60)}h${durMin % 60 > 0 ? durMin % 60 + 'm' : ''}`
+          : `可用 ${durMin}m`;
+        return {
+          idx,
+          startTime: g.startTime,
+          endTime: g.endTime,
+          durationMinutes: durMin,
+          topRpx: Math.max(0, hoursFromStart * 80),
+          heightRpx: (durMin / 60) * 80,
+          label,
+        };
+      });
+      this.setData({ displayGaps });
+    } catch (e) {
+      logError('schedule_deleteBlock', e);
+      this.setData({ displayGaps: [] });
+    }
+  },
+
+  onDragPoolStart(this: WechatMiniprogram.Page.TrivialInstance, e: WechatMiniprogram.TouchEvent) {
+    const { id, title, duration } = e.currentTarget.dataset as { id: string; title: string; duration: number };
+    this.setData({ draggedTask: { id, title, duration }, dragY: e.touches[0].clientY, dragTargetGapIdx: -1 });
+  },
+
+  onDragPoolMove(this: WechatMiniprogram.Page.TrivialInstance, e: WechatMiniprogram.TouchEvent) {
+    if (!this.data.draggedTask) return;
+    this.setData({ dragY: e.touches[0].clientY });
+    const timeline = wx.createSelectorQuery().select('.timeline');
+    timeline.boundingClientRect((rect: { top: number }) => {
+      const relativeY = e.touches[0].clientY - rect.top;
+      const hourIndex = Math.floor(relativeY / 80);
+      this.setData({ dragTargetHour: Math.max(0, Math.min(23, hourIndex)) });
+      const gaps = this.data.displayGaps;
+      let gapIdx = -1;
+      for (const gap of gaps) {
+        if (relativeY >= gap.topRpx && relativeY <= gap.topRpx + gap.heightRpx) {
+          gapIdx = gap.idx;
+          break;
+        }
+      }
+      this.setData({ dragTargetGapIdx: gapIdx });
+    }).exec();
+  },
+
+  onDragPoolEnd(this: WechatMiniprogram.Page.TrivialInstance) {
+    const task = this.data.draggedTask;
+    const gapIdx = this.data.dragTargetGapIdx;
+    const gaps = this.data.displayGaps;
+    if (!task) {
+      this.setData({ draggedTask: null, dragTargetHour: -1, dragTargetGapIdx: -1 });
+      return;
+    }
+    const dateStr = this.data.dateStr || todayStr();
+    if (gapIdx < 0) {
+      this.setData({ draggedTask: null, dragTargetHour: -1, dragTargetGapIdx: -1 });
+      return;
+    }
+    const gap = gaps.find((g: GapDisplay) => g.idx === gapIdx);
+    if (!gap) {
+      this.setData({ draggedTask: null, dragTargetHour: -1, dragTargetGapIdx: -1 });
+      return;
+    }
+    if (task.duration > gap.durationMinutes) {
+      this.setData({ dragErrorTaskId: task.id, draggedTask: null, dragTargetHour: -1, dragTargetGapIdx: -1 });
+      wx.showToast({ title: '该时段不够长，请选择更长时段', icon: 'none' });
+      setTimeout(() => { this.setData({ dragErrorTaskId: '' }); }, 800);
+      return;
+    }
+    const gapStart = new Date(gap.startTime);
+    const startH = String(gapStart.getHours()).padStart(2, '0');
+    const startM = String(gapStart.getMinutes()).padStart(2, '0');
+    const startMinutes = gapStart.getHours() * 60 + gapStart.getMinutes();
+    const endMinutes = startMinutes + task.duration;
+    const endH = String(Math.floor(endMinutes / 60)).padStart(2, '0');
+    const endM = String(endMinutes % 60).padStart(2, '0');
+    const startTime = `${dateStr}T${startH}:${startM}:00+08:00`;
+    const endTime = `${dateStr}T${endH}:${endM}:00+08:00`;
+    this.setData({ draggedTask: null, dragTargetHour: -1, dragTargetGapIdx: -1 });
+    placeFlexible({ taskId: task.id, startTime, endTime }).then(() => {
+      wx.vibrateShort({ type: 'light' });
+      wx.showToast({ title: '已安排', icon: 'success' });
+      this.loadToday();
+      this.loadFlexibleTasks();
+      this.loadGaps();
+    }).catch((e) => {
+      logError('Schedule placeFlexible', e);
+      wx.showToast({ title: '安排失败，请重试', icon: 'none' });
+    });
+  },
+
+  onPoolTaskTap(this: WechatMiniprogram.Page.TrivialInstance, e: WechatMiniprogram.TouchEvent) {
+    const { id, duration } = e.currentTarget.dataset as { id: string; duration: number };
+    wx.showActionSheet({
+      itemList: ['安排到今天', '暂不处理'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          const dateStr = this.data.dateStr || todayStr();
+          const nowH = String(new Date().getHours()).padStart(2, '0');
+          const endMin = duration || 60;
+          const endH = String(parseInt(nowH, 10) + Math.floor(endMin / 60)).padStart(2, '0');
+          const endM = String(endMin % 60).padStart(2, '0');
+          placeFlexible({ taskId: id, startTime: `${dateStr}T${nowH}:00:00+08:00`, endTime: `${dateStr}T${endH}:${endM}:00+08:00` }).then(() => {
+            wx.showToast({ title: '已安排', icon: 'success' });
+            this.loadToday();
+            this.loadFlexibleTasks();
+            this.loadGaps();
+          }).catch((e) => {
+            logError('Schedule placeFlexible', e);
+            wx.showToast({ title: '安排失败', icon: 'none' });
+          });
+        }
       },
     });
   },
 
-  toggleHour(e: WechatMiniprogram.TouchEvent) {
-    const hour = e.currentTarget.dataset.hour as number;
-    const key = `expandedHours[${hour}]`;
-    this.setData({ [key]: !this.data.expandedHours[hour] });
-  },
-
-  toggleShowAll() {
-    const showAll = !this.data.showAllHours;
-    this.setData({ showAllHours: showAll });
-    this.refreshGroups();
-  },
-
-  prevDay() {
-    if (this.data.navigating) return;
-    this.setData({ navigating: true });
-    const d = new Date(this.data.dateStr + 'T00:00:00+08:00');
-    d.setDate(d.getDate() - 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${day}`;
-    this.setData({ dateStr });
-    blockStore.fetchByDate(dateStr).then(() => {
-      this.refreshGroups();
-      this.setData({ navigating: false });
-    }).catch(() => {
-      this.setData({ navigating: false });
-    });
-  },
-
-  nextDay() {
-    if (this.data.navigating) return;
-    this.setData({ navigating: true });
-    const d = new Date(this.data.dateStr + 'T00:00:00+08:00');
-    d.setDate(d.getDate() + 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${day}`;
-    this.setData({ dateStr });
-    blockStore.fetchByDate(dateStr).then(() => {
-      this.refreshGroups();
-      this.setData({ navigating: false });
-    }).catch(() => {
-      this.setData({ navigating: false });
-    });
-  },
-
-  async onRefresh() {
-    if (this.data.viewMode === 'week' && this.data.currentWeekStart) {
-      const start = this.data.currentWeekStart;
-      const end = this.data.weekDays[6]?.dateStr || start;
-      this._weekBlocks = await blockStore.fetchByDateRange(start, end);
-      this.refreshGroups();
-      return;
-    }
-    const ds = this.data.dateStr || (() => {
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    })();
-    try {
-      await blockStore.fetchByDate(ds);
-      if (this.data.dateStr) {
-        this.refreshGroups();
-      }
-    } catch {}
-  },
-
-  onBlockTap(e: WechatMiniprogram.TouchEvent) {
-    const id = e.currentTarget.dataset.id as string;
-    wx.navigateTo({ url: `/pages/schedule/detail/index?id=${id}` });
-  },
-
-  onBlockTouchStart(e: WechatMiniprogram.TouchEvent) {
-    const id = e.currentTarget.dataset.id as string;
-    this._touchBlockId = id;
-    this._touchStartX = e.touches[0].clientX;
-    this._touchStartY = e.touches[0].clientY;
-    this._longPressTimer = setTimeout(() => {
-      this._longPressTimer = undefined;
-      if (!this._touchBlockId) return;
-      wx.showActionSheet({
-        itemList: ['编辑', '删除', '标记完成'],
-        success: (res) => {
-          const bid = this._touchBlockId || '';
-          if (res.tapIndex === 0) {
-            wx.navigateTo({ url: `/pages/schedule/detail/index?id=${bid}&mode=edit` });
-          } else if (res.tapIndex === 1) {
-            wx.showModal({ title: '确认删除', content: '删除后不可恢�?, confirmColor: '#e74c3c', success: (m) => {
-              if (m.confirm) {
-                blockStore.deleteBlock(bid).then(() => {
-                  this.loadToday();
-                }).catch(() => {
-                  wx.showToast({ title: '删除失败', icon: 'none' });
-                });
-              }
-            }});
-          } else if (res.tapIndex === 2) {
-            blockStore.updateBlock(bid, { status: 'done' }).then(() => {
-              this.loadToday();
-            }).catch(() => {
-              wx.showToast({ title: '操作失败', icon: 'none' });
-            });
-          }
-        },
-      });
-    }, 600);
-  },
-
-  onBlockTouchMove(e: WechatMiniprogram.TouchEvent) {
-    if (this._longPressTimer) {
-      const dx = Math.abs(e.touches[0].clientX - (this._touchStartX || 0));
-      const dy = Math.abs(e.touches[0].clientY - (this._touchStartY || 0));
-      if (dx > 10 || dy > 10) {
-        clearTimeout(this._longPressTimer);
-        this._longPressTimer = undefined;
-      }
-    }
-    const id = e.currentTarget.dataset.id as string;
-    if (!id) return;
-    const dx = e.touches[0].clientX - (this._touchStartX || 0);
-    const clamped = Math.max(-60, Math.min(0, dx));
-    this.setData({ [`swipeOffset.${id}`]: clamped });
-  },
-
-  onBlockTouchEnd(e: WechatMiniprogram.TouchEvent) {
-    if (this._longPressTimer) {
-      clearTimeout(this._longPressTimer);
-      this._longPressTimer = undefined;
-    }
-    const id = this._touchBlockId;
-    const sx = this._touchStartX;
-    const sy = this._touchStartY;
-    this._touchBlockId = undefined;
-    this._touchStartX = undefined;
-    this._touchStartY = undefined;
-    if (id) {
-      this.setData({ [`swipeOffset.${id}`]: 0 });
-    }
-    if (!id || !e.changedTouches[0]) return;
-    const dx = Math.abs(e.changedTouches[0].clientX - (sx || 0));
-    const dy = Math.abs(e.changedTouches[0].clientY - (sy || 0));
-    if (dx > 80 && dy < 30) {
-      blockStore.updateBlock(id, { status: 'done' }).then(() => {
-        wx.showToast({ title: '标记完成', icon: 'success', duration: 1000 });
-        this.loadToday();
-      }).catch(() => {
-        wx.showToast({ title: '操作失败', icon: 'none' });
-      });
-    }
-  },
-
-  onCreateTap() {
-    const date = this.data.viewMode === 'week' ? this.data.selectedDay : this.data.dateStr;
-    wx.navigateTo({ url: `/pages/schedule/detail/index?date=${date}` });
-  },
-
-  onSearchTap() {
-    this.setData({ showSearch: true, searchKeyword: '' });
-  },
-
-  onSearchInput(e: WechatMiniprogram.Input) {
-    const keyword = e.detail.value.trim().toLowerCase();
-    this.setData({ searchKeyword: keyword });
-    this.refreshGroups();
-  },
-
-  onSearchClose() {
-    this.setData({ showSearch: false, searchKeyword: '' });
-    this.refreshGroups();
-  },
-
-  async switchView(e: WechatMiniprogram.TouchEvent) {
-    const mode = e.currentTarget.dataset.mode as 'day' | 'week' | 'month';
-    if (mode === this.data.viewMode) return;
-    if (mode === 'month') {
-      const d = this.data.dateStr ? new Date(this.data.dateStr + 'T00:00:00+08:00') : new Date();
-      await this.loadMonth(d.getFullYear(), d.getMonth() + 1);
-      return;
-    }
-    this.setData({ viewMode: mode });
-    if (mode === 'week') {
-      const ws = getMonday(this.data.dateStr || todayStr());
-      await this.loadWeek(ws);
-    } else {
-      this.refreshGroups();
-    }
-  },
-
-  async loadWeek(weekStart: string) {
-    const weekDays = buildWeekDays(weekStart);
-    const end = weekDays[6].dateStr;
-    this._weekBlocks = await blockStore.fetchByDateRange(weekStart, end);
-    const selectedDay = weekDays.find((d) => d.isToday)?.dateStr || weekStart;
-    this.setData({ currentWeekStart: weekStart, weekDays, selectedDay });
-    this.refreshGroups();
-  },
-
-  prevWeek() {
-    if (this.data.navigating) return;
-    this.setData({ navigating: true });
-    const d = new Date(this.data.currentWeekStart + 'T00:00:00+08:00');
-    d.setDate(d.getDate() - 7);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    this.loadWeek(`${y}-${m}-${day}`).then(() => {
-      this.setData({ navigating: false });
-    }).catch(() => {
-      this.setData({ navigating: false });
-    });
-  },
-
-  nextWeek() {
-    if (this.data.navigating) return;
-    this.setData({ navigating: true });
-    const d = new Date(this.data.currentWeekStart + 'T00:00:00+08:00');
-    d.setDate(d.getDate() + 7);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    this.loadWeek(`${y}-${m}-${day}`).then(() => {
-      this.setData({ navigating: false });
-    }).catch(() => {
-      this.setData({ navigating: false });
-    });
-  },
-
-  onWeekDayTap(e: WechatMiniprogram.TouchEvent) {
-    const dateStr = e.currentTarget.dataset.date as string;
-    this.setData({ selectedDay: dateStr });
-    this.refreshGroups();
-  },
-
-  prevMonth() {
-    const d = new Date(this.data.currentMonthStr.replace('�?, '/').replace('�?, '/01'));
-    d.setMonth(d.getMonth() - 1);
-    this.loadMonth(d.getFullYear(), d.getMonth() + 1);
-  },
-
-  nextMonth() {
-    const d = new Date(this.data.currentMonthStr.replace('�?, '/').replace('�?, '/01'));
-    d.setMonth(d.getMonth() + 1);
-    this.loadMonth(d.getFullYear(), d.getMonth() + 1);
-  },
-
-  async loadMonth(year: number, month: number) {
-    const firstDay = new Date(year, month - 1, 1);
-    const lastDay = new Date(year, month, 0);
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
-    // 周一为起始日：getDay() 周日=0...周六=6 → 转换为 周一=0...周日=6
-    const startDow = (firstDay.getDay() + 6) % 7;
-    const gridStart = new Date(firstDay);
-    gridStart.setDate(gridStart.getDate() - startDow);
-    const days: MonthDayInfo[] = [];
-    const today = todayStr();
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(gridStart);
-      d.setDate(d.getDate() + i);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const dayN = String(d.getDate()).padStart(2, '0');
-      days.push({
-        dateStr: `${y}-${m}-${dayN}`,
-        dayNum: d.getDate(),
-        isToday: `${y}-${m}-${dayN}` === today,
-        isCurrentMonth: d.getMonth() + 1 === month,
-        hasBlocks: false,
-      });
-    }
-    const blocksByDate = await blockStore.fetchByDateRange(startDate, endDate);
-    for (const day of days) {
-      if (day.isCurrentMonth && (blocksByDate[day.dateStr]?.length ?? 0) > 0) {
-        day.hasBlocks = true;
-      }
-    }
-    this.setData({ monthDays: days, currentMonthStr: `${year}�?{month}月`, viewMode: 'month' });
-  },
-
-  onMonthDayTap(e: WechatMiniprogram.TouchEvent) {
-    const dateStr = e.currentTarget.dataset.date as string;
-    this.setData({ dateStr, selectedDay: dateStr, viewMode: 'day' });
-    blockStore.fetchByDate(dateStr).then(() => {
-      this.refreshGroups();
-    }).catch(() => {});
+  onToggleTaskPool(this: WechatMiniprogram.Page.TrivialInstance) {
+    this.setData({ showTaskPool: !this.data.showTaskPool });
   },
 });

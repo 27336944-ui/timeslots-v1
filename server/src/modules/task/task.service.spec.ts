@@ -18,7 +18,8 @@ describe('TaskService', () => {
 
   beforeEach(() => {
     prisma = createPrismaMock();
-    service = new TaskService(prisma as unknown as any);
+    const mockEventLog = { log: jest.fn() };
+    service = new TaskService(prisma as unknown as any, mockEventLog as any);
   });
 
   describe('create', () => {
@@ -87,6 +88,56 @@ describe('TaskService', () => {
       prisma.task.findMany.mockResolvedValue([mockTask]);
       const result = await service.findByCategory(DEFAULT_UUID, 'work');
       expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('completeWithReview', () => {
+    it('marks task done when all steps completed', async () => {
+      prisma.task.findFirst.mockResolvedValue(mockTask);
+      prisma.step.findMany.mockResolvedValue([]);
+      prisma.task.update.mockResolvedValue({ ...mockTask, status: 'done', completedNote: '完成', retrospective: '很好' });
+
+      const result = await service.completeWithReview(DEFAULT_UUID, 'task-1', '完成', '很好');
+
+      expect(result.status).toBe('done');
+      expect(result.completedNote).toBe('完成');
+      expect(result.retrospective).toBe('很好');
+    });
+
+    it('completes task when there are no steps at all', async () => {
+      const noStepsTask = { ...mockTask, steps: [] };
+      prisma.task.findFirst.mockResolvedValue(noStepsTask);
+      prisma.step.findMany.mockResolvedValue([]);
+      prisma.task.update.mockResolvedValue({ ...noStepsTask, status: 'done', completedNote: '无步骤', retrospective: 'OK' });
+
+      const result = await service.completeWithReview(DEFAULT_UUID, 'task-1', '无步骤', 'OK');
+
+      expect(result.status).toBe('done');
+    });
+
+    it('throws when some steps are not done', async () => {
+      prisma.task.findFirst.mockResolvedValue(mockTask);
+      prisma.step.findMany.mockResolvedValue([{ id: 'step-1', status: 'scheduled' }]);
+
+      await expect(
+        service.completeWithReview(DEFAULT_UUID, 'task-1', '想先完成', '还差一步'),
+      ).rejects.toThrow(BusinessException);
+    });
+
+    it('throws TASK_NOT_FOUND for missing task', async () => {
+      prisma.task.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.completeWithReview(DEFAULT_UUID, 'bad-id', 'nope', 'nope'),
+      ).rejects.toThrow(BusinessException);
+    });
+
+    it('throws FORBIDDEN for other users task', async () => {
+      prisma.task.findFirst.mockResolvedValue({ ...mockTask, userId: 'other-user' });
+
+      await expect(
+        service.completeWithReview(DEFAULT_UUID, 'task-1', '不归我', '别人的任务'),
+      ).rejects.toThrow(BusinessException);
     });
   });
 });

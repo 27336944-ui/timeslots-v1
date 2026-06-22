@@ -1,64 +1,59 @@
 
-<scroll-view class="page" scroll-y refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onRefresh">
+<scroll-view class="page" scroll-y bindscroll="onScroll" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd">
   <privacy-agreement />
-  <view class="top-bar">
-    <view class="top-bar-title">日程</view>
-    <view class="top-bar-actions">
-      <view class="top-btn top-btn-search" bindtap="onSearchTap">🔍</view>
-      <view class="top-btn top-btn-plus" bindtap="onCreateTap">+</view>
+  <!-- Compact header（共享组件） -->
+  <compact-header date="{{headerDateStr}}" week-days="{{weekDays}}" selected-day="{{selectedDay}}" bind:search="onSearchTap" bind:plus="onPlusTap" bind:weekdaytap="onWeekDayTap">
+    <view slot="overview">
+      <text class="ov-line">
+        <text>今日{{overviewInfo.blockCount}}个日程</text>
+        <text wx:if="{{overviewInfo.totalHoursStr}}">，总时长{{overviewInfo.totalHoursStr}}</text>
+        <text wx:if="{{overviewInfo.freeHoursStr}}">，空闲{{overviewInfo.freeHoursStr}}</text>
+        <text wx:if="{{overviewInfo.overdue > 0}}" class="ov-warn">，{{overviewInfo.overdue}}个过期</text>
+      </text>
+    </view>
+  </compact-header>
+
+  <!-- Category tabs -->
+  <view class="tabs-row">
+    <view wx:for="{{filterList}}" wx:key="key" class="tab {{currentCategory === item.key ? 'tab-active' : ''}}" bindtap="onTabTap" data-category="{{item.key}}">
+      {{item.label}}
     </view>
   </view>
+
   <view wx:if="{{showSearch}}" class="search-bar">
-    <input class="search-input" placeholder="搜索日程标题、地点…" value="{{searchKeyword}}" bindinput="onSearchInput" focus="{{true}}" />
+    <input class="search-input" adjust-position="{{true}}" cursor-spacing="{{100}}" placeholder="搜索日程标题、地点…" value="{{searchKeyword}}" bindinput="onSearchInput" focus="{{true}}" />
     <view class="search-cancel" bindtap="onSearchClose">取消</view>
   </view>
 
-  <!-- Day mode header -->
-  <view wx:if="{{viewMode === 'day'}}" class="date-header">
-    <view class="date-nav">
-      <view class="nav-btn" bindtap="prevDay">‹</view>
-      <text class="date-text">{{dateStr}}</text>
-      <view class="nav-btn" bindtap="nextDay">›</view>
+  <!-- Flexible task pool (inline in scroll, above timeline) -->
+  <view wx:if="{{flexibleTasks.length > 0}}" class="task-pool-inline">
+    <view class="task-pool-header" bindtap="onToggleTaskPool">
+      <text class="task-pool-title">任务池 ({{flexibleTasks.length}})</text>
+      <text class="task-pool-arrow {{showTaskPool ? 'pool-open' : ''}}">›</text>
     </view>
-    <view class="view-tabs">
-      <text class="view-tab {{viewMode === 'day' ? 'active' : ''}}" data-mode="day" bindtap="switchView">日</text>
-      <text class="view-tab {{viewMode === 'week' ? 'active' : ''}}" data-mode="week" bindtap="switchView">周</text>
-      <text class="view-tab {{viewMode === 'month' ? 'active' : ''}}" data-mode="month" bindtap="switchView">月</text>
-    </view>
-  </view>
-
-  <!-- Week mode header -->
-  <view wx:if="{{viewMode === 'week'}}" class="date-header">
-    <view class="date-nav">
-      <view class="nav-btn" bindtap="prevWeek">‹</view>
-      <text class="date-text">{{weekDays[0].dateStr}} ~ {{weekDays[6].dateStr}}</text>
-      <view class="nav-btn" bindtap="nextWeek">›</view>
-    </view>
-    <view class="view-tabs">
-      <text class="view-tab" data-mode="day" bindtap="switchView">日</text>
-      <text class="view-tab active" data-mode="week" bindtap="switchView">周</text>
-      <text class="view-tab">月</text>
-    </view>
-    <view class="week-bar">
-      <view wx:for="{{weekDays}}" wx:key="dateStr" class="week-day {{item.dateStr === selectedDay ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" data-date="{{item.dateStr}}" bindtap="onWeekDayTap">
-        <text class="week-day-label">{{item.dayLabel}}</text>
-        <text class="week-day-num">{{item.dateNum}}</text>
+    <scroll-view wx:if="{{showTaskPool}}" class="task-pool-body" scroll-x>
+      <view wx:for="{{flexibleTasks}}" wx:key="id"
+        class="task-pool-item {{dragErrorTaskId === item.id ? 'drag-error' : ''}}"
+        data-id="{{item.id}}"
+        data-title="{{item.title}}"
+        data-duration="{{item.estimatedDuration}}"
+        catchtouchstart="onDragPoolStart"
+        catchtouchmove="onDragPoolMove"
+        catchtouchend="onDragPoolEnd"
+        bindtap="onPoolTaskTap">
+        <text class="task-pool-item-title">{{item.title}}</text>
+        <text class="task-pool-item-dur">{{item.estimatedDuration}}min</text>
       </view>
+      <view wx:if="{{flexibleTasks.length === 0}}" class="task-pool-empty">
+        <text class="task-pool-empty-text">本日无弹性任务</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="timeline" catchtap="dismissFloatingHint">
+    <view wx:if="{{nowLineTop >= 0}}" class="now-line" style="top: {{nowLineTop}}rpx;">
+      <view class="now-label">{{nowLabel}}</view>
     </view>
-  </view>
-
-  <!-- Overview card -->
-  <view wx:if="{{viewMode !== 'month' && hasBlocks}}" class="overview-card">
-    <text class="overview-stat">{{overviewInfo.blockCount}}个日程</text>
-    <text class="overview-sep">｜</text>
-    <text class="overview-stat">{{Math.floor(overviewInfo.totalMinutes / 60)}}h{{overviewInfo.totalMinutes % 60 > 0 ? overviewInfo.totalMinutes % 60 + 'min' : ''}}</text>
-    <text class="overview-sep">｜</text>
-    <text class="overview-stat">空闲{{Math.floor(overviewInfo.freeMinutes / 60)}}h{{overviewInfo.freeMinutes % 60 > 0 ? overviewInfo.freeMinutes % 60 + 'min' : ''}}</text>
-    <text wx:if="{{overviewInfo.overdue > 0}}" class="overview-sep">｜</text>
-    <text wx:if="{{overviewInfo.overdue > 0}}" class="overview-stat overview-overdue">{{overviewInfo.overdue}}个逾期任务</text>
-  </view>
-
-  <view class="timeline">
     <view wx:for="{{hourGroups}}" wx:key="hour" class="hour-row" data-hour="{{item.hour}}" bindtap="toggleHour">
       <view class="hour-marker">
         <text class="hour-label {{item.blocks.length > 0 ? 'has-blocks' : ''}}">{{item.label}}</text>
@@ -66,48 +61,47 @@
       </view>
       <view class="hour-body {{expandedHours[item.hour] ? 'expanded' : ''}}">
         <block wx:if="{{expandedHours[item.hour] && item.blocks.length > 0}}">
-          <view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="id" class="block-card {{block.categoryClass}}" data-id="{{block.id}}" bindtap="onBlockTap" bindtouchstart="onBlockTouchStart" bindtouchmove="onBlockTouchMove" bindtouchend="onBlockTouchEnd" style="height: {{block.blockHeight}}rpx; transform: translateX({{swipeOffset[block.id] || 0}}rpx); transition: transform 0.2s ease">
+          <view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="id" class="block-card {{blocksEntered ? 'entered' : ''}} {{block.categoryClass}} {{item.blocks.length > 0 ? 'has-handle' : ''}}" data-id="{{block.id}}" bindtap="onBlockTap" bindtouchstart="onBlockTouchStart" bindtouchmove="onBlockTouchMove" bindtouchend="onBlockTouchEnd" style="height: {{resizeHeights[block.id] || block.blockHeight}}rpx; transform: translateX({{swipeOffset[block.id] || 0}}rpx); transition: transform 0.2s ease{{_isResizing ? '' : ', height 0.15s ease'}}">
             <view class="block-left">
               <view class="block-time">
                 {{block.localStart}}-{{block.localEnd}}
                 <text wx:if="{{block.isCrossDay}}" class="cross-day-badge">跨日</text>
               </view>
               <text class="block-title">{{block.title}}</text>
-              <view wx:if="{{block.location || block.taskId}}" class="block-meta">
-                <text wx:if="{{block.taskId}}">📋</text>
+              <view wx:if="{{block.location || block.taskId || block.sourceLabel}}" class="block-meta">
+                <text wx:if="{{block.taskId}}" class="block-task-badge">任务</text>
                 <text wx:if="{{block.location}}">{{block.location}}</text>
+                <text wx:if="{{block.sourceLabel}}" class="source-badge">{{block.sourceLabel}}</text>
               </view>
             </view>
             <view class="block-right">
-              <view wx:if="{{block.priorityLabel !== '中'}}" class="priority-dot {{'priority-' + block.priority}}"></view>
+              <text class="swipe-hint">›</text>
             </view>
+            <view class="resize-handle" catchtouchstart="onResizeStart" catchtouchmove="onResizeMove" catchtouchend="onResizeEnd" data-id="{{block.id}}"></view>
           </view>
         </block>
         <block wx:if="{{expandedHours[item.hour] && item.blocks.length === 0}}">
-          <text class="empty-hint">空闲</text>
+          <view class="empty-slot" data-hour="{{item.hour}}" catchtap="onEmptySlotTap">
+            <text class="empty-hint">点此添加日程</text>
+          </view>
         </block>
         <block wx:if="{{!expandedHours[item.hour]}}">
-          <text class="empty-hint"></text>
+          <view class="empty-slot" data-hour="{{item.hour}}" catchtap="onEmptySlotTap">
+            <text class="empty-hint">{{item.label}}</text>
+          </view>
         </block>
       </view>
     </view>
     <view wx:if="{{!showAllHours && hasBlocks}}" class="expand-all-btn" bindtap="toggleShowAll">展开全部 24 小时</view>
-  </view>
-
-  <!-- Month view -->
-  <view wx:if="{{viewMode === 'month'}}" class="month-view">
-    <view class="month-nav">
-      <view class="nav-btn" bindtap="prevMonth">‹</view>
-      <text class="month-title">{{currentMonthStr}}</text>
-      <view class="nav-btn" bindtap="nextMonth">›</view>
+    <view wx:if="{{showFloatingHint}}" class="floating-hint" catchtap="dismissFloatingHint">
+      <text class="floating-hint-icon">☝️</text>
+      <text class="floating-hint-text">点击空白处添加日程</text>
     </view>
-    <view class="month-weekdays">
-      <text wx:for="{{['日','一','二','三','四','五','六']}}" wx:for-item="wd" wx:key="*this" class="month-weekday">{{wd}}</text>
-    </view>
-    <view class="month-grid">
-      <view wx:for="{{monthDays}}" wx:key="dateStr" class="month-day {{item.isCurrentMonth ? 'current' : 'other'}} {{item.isToday ? 'today' : ''}}" data-date="{{item.dateStr}}" bindtap="onMonthDayTap">
-        <text class="month-day-num">{{item.dayNum}}</text>
-        <view wx:if="{{item.hasBlocks}}" class="month-day-dot"></view>
+    <view wx:if="{{displayGaps.length > 0 && showAllHours}}" class="gap-overlay">
+      <view wx:for="{{displayGaps}}" wx:key="idx"
+        class="gap-strip {{dragTargetGapIdx === item.idx ? 'gap-highlight' : ''}}"
+        style="top: {{item.topRpx}}rpx; height: {{item.heightRpx}}rpx;">
+        <text class="gap-label">{{item.label}}</text>
       </view>
     </view>
   </view>
@@ -116,12 +110,40 @@
     <skeleton rowCount="6" />
   </view>
 
-  <view wx:if="{{!loading && !hasBlocks && !error}}" class="empty-state">
-    <view class="empty-icon"></view>
-    <text class="empty-text">暂无日程</text>
-    <text class="empty-hint">点击上方按钮创建日程</text>
-  </view>
+  <state-view wx:if="{{!loading && !hasBlocks && !error}}" empty="{{true}}" emptyText="今天还没有安排" actionText="创建第一个日程" bind:action="onPlusTap" />
 
   <view wx:if="{{error && !hasBlocks}}" class="error-hint">{{error}}</view>
 
 </scroll-view>
+
+<!-- Drag ghost overlay (fixed to viewport) -->
+<view wx:if="{{draggedTask}}" class="drag-ghost" style="top: {{dragY}}px;">
+  <text class="drag-ghost-text">{{draggedTask.title}}</text>
+</view>
+
+<!-- Month calendar overlay -->
+<view wx:if="{{showMonthCalendar}}" class="month-overlay" bindtouchmove="noop">
+  <view class="month-panel">
+    <view class="month-panel-header">
+      <view class="nav-btn" bindtap="prevMonth">‹</view>
+      <text class="month-title">{{currentMonthStr}}</text>
+      <view class="nav-btn" bindtap="nextMonth">›</view>
+    </view>
+    <view class="month-weekdays">
+      <text wx:for="{{monthWeekDays}}" wx:for-item="wd" wx:key="*this" class="month-weekday">{{wd}}</text>
+    </view>
+    <view class="month-grid">
+      <view wx:for="{{monthDays}}" wx:key="dateStr" class="month-day {{item.isCurrentMonth ? 'current' : 'other'}} {{item.isToday ? 'today' : ''}} {{item.isCurrentMonth && item.fillLevel > 0 ? 'has-fill level-' + item.fillLevel : ''}}" data-date="{{item.dateStr}}" bindtap="onMonthDayTap" data-fill="{{item.fillPercent}}">
+        <view class="month-day-fill" style="{{item.isCurrentMonth && item.fillLevel > 0 ? 'height: ' + item.fillPercent + '%;' : 'display:none;'}}"></view>
+        <text class="month-day-num">{{item.dayNum}}</text>
+        <text wx:if="{{item.isCurrentMonth && item.festival}}" class="month-day-sub festival">{{item.festival}}</text>
+        <text wx:elif="{{item.isCurrentMonth && item.lunarStr && !item.festival}}" class="month-day-sub">{{item.lunarStr}}</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- Create entry sheet -->
+<create-entry-sheet visible="{{showActionSheet}}" context="schedule" bind:select="onCreateSelect" bind:close="onActionSheetClose" />
+
+<view wx:if="{{_isResizing && resizeTimeHint}}" class="resize-time-hint">{{resizeTimeHint}}</view>

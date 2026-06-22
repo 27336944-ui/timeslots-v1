@@ -1,0 +1,21 @@
+
+<view wx:if="{{loading}}" class="sv-loading">
+  <view class="sv-skeleton sv-skeleton-title" />
+  <view class="sv-skeleton sv-skeleton-line" />
+  <view class="sv-skeleton sv-skeleton-line" />
+  <view class="sv-skeleton sv-skeleton-line" />
+  <view class="sv-skeleton sv-skeleton-line" />
+</view>
+
+<view wx:elif="{{error}}" class="sv-state">
+  <view class="sv-icon sv-error-icon">!</view>
+  <text class="sv-text">{{errorText}}</text>
+</view>
+
+<view wx:elif="{{empty}}" class="sv-state">
+  <view class="sv-icon sv-empty-icon">--</view>
+  <text class="sv-text">{{emptyText}}</text>
+  <view wx:if="{{actionText}}" class="sv-action" bindtap="onAction">{{actionText}}</view>
+</view>
+
+<slot wx:else />

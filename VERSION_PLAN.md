@@ -1,7 +1,20 @@
 # timeslots-v1 版本开发计划
 
 > 本文档为开发唯一依据。**有变更先改此文件，再按计划开发。**
-> 定位：朋友内测工具，不计费、无 AI、无商业化。优先纯手动 CRUD + 协作体验。
+> 定位：朋友内测工具，**永久免费、无 AI 计费、无商业化、无导出（导入可做）/备份**。优先纯手动 CRUD + 协作体验。
+> **核心约束**：
+> - 分类体系：固定 3 大类（工作/生活/私有）+ 用户自建 4 级子类，每级 ≤ 20 个
+> - 圈子体系：固定 3 大类（同事/朋友/亲人）+ 用户自建 3 级子圈，每级 ≤ 20 个，人员可多圈
+> - 归集兜底：未选分类 → 工作/默认；未选圈子 → 同事/默认
+> - 管理入口：仅在"我的"界面
+>
+> **v1.3 产品哲学（2026-06-14 新增）**：产品核心是**解决"日程如何生成"**。三条路径 + 一条脊柱：
+> - **路径一（外部驱动）**：预约 / 审批 / 委托 — 别人影响我的日程
+> - **路径二（内部驱动）**：任务 → 拆步骤 → 排时间 — 我的目标拆解成行动 **【产品心脏】**
+> - **路径三（自发驱动）**：手动 / 自然语言 / 模板 — 我现在要记一件事
+> - **脊柱（分类体系）**：工作/生活/私有 + 子类，贯穿三条路径
+>
+> **v0.44+ 版本重排原则**：v0.1–v0.43 已完成保持不变；v0.44 起按"三路径闭环"重排，优先打通路径二（心脏），再补路径一（委托+推送），再补路径三（自然语言），最后强制验证门禁。
 
 ---
 
@@ -11,6 +24,7 @@
 2. 难度**阶梯递增**，早期不高复杂度
 3. 每项**原子化、可验收**
 4. 后续版本基于前序版本成果叠加，**不重复造轮子**
+5. **UX 三层同步落地**：话语体系（文案）→ 交互手势（操作）→ 信息密度（内容），同版本同步交付
 
 ---
 
@@ -19,7 +33,7 @@
 | 版本 | 事项名称 | 事项描述（含验收标准） | 前置 | 难度 |
 |------|----------|------------------------|------|:----:|
 | v0.1 | **后端能跑** | NestJS 起在 7777、Prisma 连 PG18、`GET /api/v1/health` 返回 `{code:0, data:{status:"ok", db:"connected"}}`。验收：curl 拿到 200 | 无 | ⭐ |
-| | **v0.1 ✅** | `GET /` 返回服务信息；`GET /api/v1/health` 返回 200 + `db:"connected"`；Prisma Client 生成成功；tsc --noEmit 0 错。**PG 环境**：`timeslots` 用户 + `timeslots` 库（pswd: `timeslots_dev_only`）；`server/.env` 从根 `.env` 同步。**已知**：server 启动端口硬编码 7777（后续移入 config module） | | |
+| | **v0.1 ✅** | `GET /` 返回服务信息；`GET /api/v1/health` 返回 200 + `db:"connected"`；Prisma Client 生成成功；tsc --noEmit 0 错。**PG 环境**：`postgres` 用户 + `timeslots_dev` 库（pswd: `timeslots_dev`，`localhost:5432`）；`server/.env` 从根 `.env` 同步。**已知**：server 启动端口硬编码 7777（后续移入 config module） | | |
 | v0.2 | **前端骨架** | 小程序 `src/` 骨架、tsconfig strict、WeUI npm、mobx-miniprogram、ESLint+Prettier+Husky、`scripts/build-npm.js` postinstall。验收：`npm install`→开发者工具编译 0 错 | 无 | ⭐ |
 | | **v0.2 ✅** | `src/` 目录结构完整（pages/index + 7 个占位目录）；`project.config.json` 配置 `miniprogramRoot: src/` + `useCompilerPlugins: [typescript]`；`tsconfig.json` strict + `moduleResolution: bundler`；WeUI 1.5.6 + mobx-miniprogram 4.13.0 + bindings 2.1.5 安装并 postinstall 拷贝到 miniprogram_npm/；`tsc --noEmit` 0 错；`tsc --noEmit` (server) 0 错。**注意**：ESLint 和 Husky 暂未配置（v0.3 前补），WeUI 版本 AGENTS.md 从 2.x 修正为 1.5.6 | | |
 | v0.3 | **前后端连通** | `utils/request.ts` + `types/api.ts` + `services/api.ts`、`pages/index/index` 调 `/health` 显示绿色卡片。验收：页面显示"后端已连接" | v0.1, v0.2 | ⭐⭐ |
@@ -60,8 +74,8 @@
 | | **v0.20 ✅** | invite/join/kick 3 端点 + 唯一性校验 + 角色权限（OWNER/ADMIN 可踢人）。后端 tsc 0 错 | | |
 | v0.21 | **协作 Tab - 我的圈子** | `circleStore`、`pages/collab/index` 圈子列表（名称+角色色块+成员数）+ 创建/加入浮层 + `pages/collab/detail`（邀请码展示+成员列表+踢出/删除）。**TabBar：解锁底部【协作】Tab**。验收：建圈子→列表→详情看成员→复制邀请码→踢成员→删圈子 | v0.20 | ⭐⭐ |
 | | **v0.21 ✅** | circleStore（MobX 8 actions）、collab/index（列表+创建/加入 dialog）、collab/detail（信息卡片+邀请码复制+成员列表+踢出+删除）。前端 tsc 0 错 | | |
-| v0.22 | **审批流后端核心** | ApprovalRequest + ApprovalRecipient 2 实体 + 8 端点（create/my-initiated/my-pending/detail/respond/resend/cancel/shared）。shareToken 生成+公开共享端点。验收：curl 创建审批→列出我的发起的→列出待我审批的→同意→接收方生成 TimeBlock | v0.21 | ⭐⭐⭐ |
-| | **v0.22 ✅** | 2 实体 + 8 端点（含 bindRecipient）+ Prisma $extends 软删覆盖 + 事务创建/回应/取消。后端 tsc 0 错。后端测试 77/77 ✅ | | |
+| v0.22 | **审批流后端核心** | ApprovalRequest + ApprovalRecipient 2 实体 + 9 端点（create/my-initiated/my-pending/detail/respond/resend/cancel/shared/bind）。shareToken 生成+公开共享端点。验收：curl 创建审批→列出我的发起的→列出待我审批的→同意→接收方生成 TimeBlock | v0.21 | ⭐⭐⭐ |
+| | **v0.22 ✅** | 2 实体 + 9 端点（含 bindRecipient）+ Prisma $extends 软删覆盖 + 事务创建/回应/取消。后端 tsc 0 错。后端测试 77/77 ✅ | | |
 | v0.23 | **协作 Tab 重写为审批中心** | `approvalStore` + `pages/collab/index` 重写为"待我审批/我发起的"双 Tab + `pages/collab/approval-detail`（双视角：发起人列表/接收人回应按钮） + circle 管理缩为底部入口。验收：登录后看到待审批列表→点同意/拒绝→状态更新 | v0.22 | ⭐⭐⭐ |
 | | **v0.23 ✅** | approvalStore（8 actions）+ collab/index 双 Tab + approval-detail 双视角 + circle 底部入口。前端 tsc 0 错 | | |
 | v0.24 | **发起审批流程 UI** | `pages/collab/approval-create`（日程摘要 + 三种邀请方式 Tab：手机号/微信好友/二维码） + `pages/schedule/detail` 底部"发起审批"按钮。验收：从日程详情→发起审批→输入手机号→发起→观察审批出现 | v0.23 | ⭐⭐ |
@@ -94,23 +108,51 @@
 | v0.36 | **今日概览 + 月视图 + 跨日日程** | N4 今日概览卡片（时间轴顶部"3个日程(5.5h)｜空闲2.5h"）+ A1 月视图 + A2 跨日日程。验收：概览卡片数据正确、月网格展示当日日程、跨日跨天显示 | v0.35 | ⭐⭐⭐ |
 | | **v0.36 ✅**：① 今日概览卡片（纯前端计算：blockStore 总日程数+总时长+空闲时间；当天额外显示逾期任务数）；② 月视图（7×6 网格 + 月度导航 + 日程点标记 + 点击某日切换到日视图）；③ 跨日日程渲染（`getClampedRange` 跨天时在每天 timeline 正确显示 + 跨日 badge + 高度按当天有效时长计算）；④ 品牌色硬编码 `#4A6CF7` → `var(--ts-primary, #10B981)`（tab active + FAB 阴影）。`tsc` 双 0 错 ✅ | | |
 | v0.37 | **快速创建 + 拖拽调时长 + 高频设置(S1-S3)** | A3 时间轴手势交互增强 + 3 项高频设置项。验收：空白时间段点击弹出快速创建→保存后时间轴刷新；日程卡片拖拽调整时长；我的页设置区出现默认时长/默认分类/周起始日三选项 | v0.36 | ⭐⭐ |
-| | **计划中**：① 时间轴空白区域点击→弹出 mini 创建面板（仅 title + time + 保存）；② 日程卡片拖拽调整时长（touchmove 实时更新高度，touchend 保存）；③ S1 默认日程时长（选择器：30min/1h/2h）；④ S2 默认分类（选择器：工作/生活/私有/记住上次）；⑤ S3 周起始日（选择器：周一/周日）。后端 settings schema 加 `defaultDuration`/`defaultCategory`/`weekStartsOn` 三字段 + 默认值。`tsc` 双 0 错 ✅ | | |
+| | **v0.37 ✅**：① 快速创建：时间轴空白区域 `catchtap` → 独立弹出层（title + time + 时长选择器 + 保存）；② 拖拽调时长：每张卡片底部 `.resize-handle` + `catchtouch*` 独立三件套 + `resizeHeights` 实时渲染 + touchend 计算新 endTime 并 `updateBlock`；③ S1 默认时长（30min/1h/2h 选择器）；④ S2 默认分类（工作/生活/私有/记住上次 选择器）；⑤ S3 周起始日（周一/周日 选择器）。后端：`UpdateSettingsDto` + `DEFAULT_SETTINGS` + merge 逻辑全覆盖。S3 联动：`getMonday` → `getWeekStart(dateStr, weekStartsOn)`，`buildWeekDays` + `loadMonth` grid start 均参数化。`tsc` 双 0 错 ✅ `jest` 77/77 ✅ | | |
 | v0.38 | **冲突检测 + 重复日程引擎** | B1 创建/编辑时检测重叠时间块并提示 + B2 重复日程后端 cron 自动生成未来实例 + B3 编辑重复日程弹窗。验收：重叠时间保存被阻止；recurrence 日程每天自动生成未来副本；修改重复日程弹出选择"仅本次/全部" | v0.37 | ⭐⭐⭐ |
-| | **计划中**：① `TimeBlockService` 新增 `checkConflicts(startTime, endTime, excludeId)` 方法 + Controller 端点 `POST /time-blocks/check-conflicts`；② 前端创建/编辑时自动调冲突检测 → 展示重叠列表 → 阻止保存 / 强制保存；③ 后端 cron `RecurrenceGenerator`（每天凌晨扫描 recurrence!='none' 的日程 → 根据 daily/weekly/weekdays/monthly 规则生成未来实例 → 写入 TimeBlock 表）；④ 前端修改 `recurrence !== 'none'` 的日程时 Modal 弹窗"仅本次"/"全部日程" → 服务端 `update` 分支处理（带 `updateMode: 'single'|'all'` 参数）。`tsc` 双 0 错 ✅ `jest` ✅ | | |
-| v0.39 | **统计洞察 + 全局搜索 + 四象限矩阵** | B3 独立数据看板 + C1 跨日程/任务的全文搜索页 + 任务列表新增"矩阵"视图（紧急×重要 2×2）。验收：统计页展示分类饼图/时段热力图/完成趋势；搜索页输入关键词返回匹配日程+任务；矩阵视图按 4 象限排列任务 | v0.38 | ⭐⭐⭐ |
-| | **计划中**：① `pages/insights/index`（分类占比环形图 + 24h 时段分布 + 周/月完成趋势线 + 逾期率）；② `pages/search/index`（全文搜索入口 + 结果聚合显示日程+任务+高亮匹配词 + 点进详情）；③ 任务列表"矩阵"视图切换（`priority`=重要度，`dueAt`与 now 差值=紧急度 → 2×2 flex 网格，CSS Grid 降级为 flex 四格布局） | | |
-| v0.40 | **共享日历订阅 + 日程评论 + 直接分享** | D1 好友公开日程在时间轴上叠加显示（灰色半透明"陈小明 09:00-10:30 会议"）+ D2 时间块留言板 + D3 简化分享链接（无需审批）。验收：圈内成员日程在 timeline 上叠加渲染；时间块可发表评论；分享链接无需审批直接打开 | v0.39 | ⭐⭐⭐ |
-| | **计划中**：① 共享日历（`GET /time-blocks/by-circle/:circleId` 端点 + 前端 timeline 叠加渲染 + 非本人日程灰+半透明+姓名标记+不可编辑）；② 评论模块（Comment 表 + CRUD 端点 + 时间块详情页底部评论区）；③ 直接分享（`POST /time-blocks/:id/share` 生成 shareLink + 前端转发卡片 + 公开打开查看） | | |
-| v0.41 | **自定义分类树** | C3 当前三分类（work/life/private）硬编码 → 用户可自定义的树形分类体系。验收：创建新分类→在日程/任务分类选择器中可见→旧数据迁移 | v0.40 | ⭐⭐⭐ |
-| | **计划中**：① Prisma `Category` 表（id, userId, name, parentId, sortOrder, isDefault, isDeleted）；② migration 脚本（为每个用户创建 3 个默认分类根节点 + 子分类自引用）；③ `GET /categories/my` + `POST /categories` + `PATCH /categories/:id` + `DELETE /categories/:id` 端点；④ 前端分类选择器改为树形（可展开/折叠 + 缩进）；⑤ TimeBlock/Task category 字段改为外链 `categoryId` | | |
-| v0.42 | **微信转发创建任务** | 微信生态独有：在微信聊天中长按消息→转发到小程序→自动提取文本作为任务标题。验收：转发消息到小程序后自动创建任务并在任务列表中出现 | v0.41 | ⭐⭐⭐ |
-| | **计划中**：① 前端 `wx.showShareMenu` + `onShareAppMessage` 处理接收数据；② 解析逻辑（文本提取 + 日期/时间识别）；③ 创建任务后跳转到任务详情页确认；④ 错误处理（非文本内容→提示"仅支持文本消息"）。`tsc` 双 0 错 ✅ | | |
-| v0.43 | **图片/附件上传** | E2 微信云存储接入，日程可附带图片/文件附件。验收：日程创建/编辑可上传图片→保存后在详情展示 | v0.42 | ⭐⭐ |
-| | **计划中**：① 微信云存储接入（`cloud-storage.ts` 从 stub 改为真实 `wx.cloud.uploadFile`）；② TimeBlock 加 `attachments JSON?` 字段（fileID 数组）；③ 前端图片选择器（相册/拍照）+ 上传进度 + 缩略图预览 + 删除 | | |
-| v0.44 | **E2E 测试 + Husky 完善 + 体验设置(S4-S7)** | F1 端到端测试 + F2 pre-push 质量门禁 + 4 项体验设置项。验收：`jest` 全绿 + `git push` 触发 lint+test；设置区出现时间格式/默认优先级/周末显示/逾期提醒 | v0.43 | ⭐⭐⭐ |
-| | **计划中**：① Cypress/Playwright 前端 E2E 测试（至少覆盖 5 条完整用户路径：登录→创建日程→创建任务→协作审批→设置）；② 后端集成测试扩展（覆盖 approval/circle/reminder/visibility 模块 → 从 77 提升至 ≥120）；③ Husky `pre-push` 钩子（tsc + eslint + jest → 拒绝不通过）；④ 测试覆盖率报告（`jest --coverage` 集成，目标 line coverage ≥ 70%）；⑤ S4 时间格式（12h/24h 开关）；⑥ S5 默认优先级（高/中/低）；⑦ S6 周末显示（周视图是否显示周六日）；⑧ S7 逾期提醒（开关+时间，到期未完成每天提醒） | | |
-| v0.45+ | **步数联动 + 剩余设置(S9-S12)** | 微信步数专注模式 + 清理/工作时段/关于/反馈。验收：开启专注模式记录起止时间；关于页显示版本号和隐私政策；意见反馈跳转客服 | v0.44 | ⭐⭐ |
-| | **计划中**：① `wx.getWeRunData` 专注模式（记录起止时间 + 关联微信运动步数对比）；② S9 清理已完成（一键删除 N 天前已完成日程/任务）；③ S10 工作时段（双时间选择器 09:00-18:00 + 时间轴用浅底色标注）；④ S11 关于页面（版本号/许可/联系方式/用户协议/隐私政策）；⑤ S12 意见反馈（跳微信客服或表单） | | |
+| | **v0.38 ✅**：`POST /time-blocks/check-conflicts` 端点（`TimeBlockService.checkConflicts`）+ 前端创建/编辑时自动冲突检测弹窗（允许强制保存）；`RecurrenceGeneratorCron` 每日 02:00 扫描 `recurrence!='none'` 日程生成未来 30 天实例（daily/weekdays/weekly/monthly）；重复日程编辑弹窗（仅此实例/全部实例）；`updateMode` 参数支持 TimeBlock update/delete 全量/单例模式；Prisma schema 加 `recurrenceGroupId`；`weekdays` 补丁（DTO/`isRecurringOnDate`函数/前端标签+按钮+样式）。`tsc` 双 0 错 ✅ `jest` 77/77 ✅ | | |
+| v0.39 | **Step 表 + Category 表 + 来源追踪 + AI 端点先行 + Template 模版 + 个人信息** | 五合一数据层重构：① Step 独立表（替代 Task.steps JSON，5 态状态机）；② Category 独立表（固定 3 大类：工作/生活/私有 + 用户自建 4 级子类，每级 ≤ 20）；③ TimeBlock.source/sourceId 来源追踪；④ Template 模版表（任务/日程模版）；⑤ 个人信息字段（年龄/婚姻/配偶/常住地/单位/职业，用于 AI 推荐）；⑥ `POST /ai/decompose` AI 拆解端点（stub）。验收：Task 步骤从 JSON 迁移到 Step 行；每个用户 3 固定大类+默认子类；TimeBlock 创建自动标记 source；Template CRUD；个人信息可选填；POST /ai/decompose 返回 mock 拆解结果 | v0.38 | ⭐⭐⭐⭐ |
+| | **v0.39 ✅**：① **Step 表**：Prisma Step 模型（5 态状态机：unscheduled/scheduled/in_progress/done/overdue）+ `step` module（6 端点：create/getByTask/update/delete/schedule/batchUpdate）+ 数据迁移脚本（Task.steps JSON → Step 行，旧字段 `@deprecated` 保留）；② **Category 表**：Prisma Category 模型（自关联 FK，`level`/`isFixed`/`isDefault`，`@@unique([userId, name, parentId])`）+ `category` module（CRUD + initDefaults 创建 3 固定大类+各 1 默认子类）+ TimeBlock/Task 加 `categoryId` FK；③ **来源追踪**：TimeBlock 新增 `source`/`sourceId` + 创建时自动打标（manual/step/approval）；④ **Template 表**：Prisma Template 模型（type: task/timeblock，isSystem/sortOrder）+ `template` module CRUD；⑤ **个人信息**：User.settings JSON 扩展 age/maritalStatus/spouseName/residence/company/occupation + DTO 校验；⑥ **AI 端点**：`POST /ai/decompose` stub；⑦ **全量代码审查**：审计 21 项（7 HIGH / 8 MEDIUM / 5 LOW），HIGH 修复包括 `categoryId` 写入、`{ deleted: true }` 返回、前端缺失类型补全、API 函数补全等。`tsc` 双 0 错 ✅ `jest` 85+ ✅ `prisma validate` ✅ | | |
+| v0.40 | **冷启动引擎：时间连接器 + 时间名片 + 场景模板** | 微信生态增长引擎（永久免费、无 AI 额度）。基于 PRD §4.1：① "时间连接器"小程序卡片（邀请方生成链接/二维码→被邀请者查看忙闲状态→建立共享）；② "时间名片"社交货币生成器（个人时间风格 + 未来 7 天空闲热力图海报）；③ 场景化预设模板库（育儿协同包/深度工作包/伴侣陪伴包——复用 Template 表 isSystem=true 预置）。验收：小程序加载 < 1.5s；完成时间回应 < 45s；生成时间名片 < 2s；模板应用后手动调整减少 ≥ 50% | v0.39 | ⭐⭐⭐ |
+| | **v0.40 ✅ 冷启动引擎完成**：① **时间连接器**：后端 `POST /time-blocks/share-card`（auth 生成 link 含 token）+ `GET /time-blocks/share-card/:token`（`@Public()` 公开只读）+ 前端 `pages/schedule/share-card/index`（双模式：generate→date picker+生成按钮+分享链接 + view→忙闲展示 24h timeline 不含具体事项）+ 分享链接通过 `open-type="share"` 转发；② **时间名片**：后端 `GET /time-blocks/namecard?date=`（7 日空闲聚合 + 统计数据）+ 前端 `pages/mine/namecard/index`（4 格统计卡 + 7 日空闲热力图条形 + Canvas 海报生成）；③ **场景模板**：后端新增 `POST /templates/:id/apply` 端点（`TemplateService.apply` 基于模板创建 TimeBlock）+ `server/scripts/seed-templates.ts`（3 个 `isSystem=true` 模板：快速启动日程/日常碎片归集/找回专注 2h）+ npm script `seed:templates`；④ **前端注册**：`app.json` 注册 3 新页面（share-card/namecard/template-apply）+ `types/api.ts` 新增 6 类型（`Template`/`ShareCardResponse`/`NamecardResponse`/`TimeSlot`/`DayFreeSlot`）+ `services/api.ts` 补 4 API 函数（`createShareCard`/`getShareCard`/`getNamecard`/`applyTemplate`）+ 已有 Template 函数全量重构为 `Template` 类型。`tsc` 双 0 错 ✅ `jest` 77/77 ✅ `prisma validate` ✅ | | |
+| v0.41 | **微信转发创建任务 + 话语体系全量替换 + 管理入口迁移** | 跳过验证门禁（用户选择直接功能开发）。① 微信转发创建任务（从微信消息文本解析创建 Task）；② UX 话语体系 36 项文案替换（3 批，底部 Tab 名除外）；③ "我的"页入口完善（时间名片入口 + 圈子管理从协作页搬入）。验收：转发创建任务全流程走通、全站文案口语化替换完成、管理入口仅在"我的"页 | v0.40 | ⭐⭐ |
+| | **v0.41 ✅ 跳过验证门禁完成**：① **微信转发创建任务**：后端 `POST /tasks/from-text` 端点（`TaskService.forwardCreateTask`）+ 前端 `pages/tasks/forward-create/index`（文本框→首行标题/其余正文→预览→创建）。② **话语体系 36 项替换**：Batch 1（#2-12 导航/按钮/协作模块：记一件事/新任务/告诉TA/收到的/我发出的/等TA确认/好的/不了）、Batch 2（#13-22 状态/空状态/Toast：还没做/待安排/搞定了/待完成/过期了/今天还没有安排/没有进行中的事/还没有人分享给你/空白空闲槽）、Batch 3（#23-36 Toast/确认文案/设置：已保存/已记下/欢迎回来/出了点问题再试一次/不用提醒/移除了就不会出现在时间轴上/管理分组）。**跳过**：底部 Tab 名（按用户要求保留）、委托流（页面未实现）、#34 邀请好友（无匹配文本）。③ **管理入口迁移**：mine 页新增时间名片（→ `namecard/index`）+ 管理分组（创建/加入 dialog 从 collab 搬入）+ 我的分组列表；collab 页移除 circle 相关 WXML/WXSS/TS/import。`tsc` 双 0 错 ✅ | | |
+| v0.42 | **统计洞察 + 搜索 + 分类/圈子管理页 + Mine 布局重构** | 数据驱动的基础体验完善。① **统计看板**：`pages/mine/stats/index`（时段聚合+任务统计，日期范围选择）；② **全局搜索**：后端 `GET /search?q=`（日程/任务/圈子三模块）+ 前端 `pages/search/index`（搜索结果分组+导航）；③ **分类管理页**：`pages/mine/categories/index`（树形展示+增/删/改，4 级≤20 约束）；④ **圈子管理独立页**：从 mine 内联 dialog 升级为独立页面 `pages/mine/circles/index`（列表+创建/加入+详情跳转+退出/删除）；⑤ **Mine 首页布局重构**：四分区（用户画像/数据/管理/设置）+ 移除内联 circle dialog + 统计卡片可点击跳转 + 🔍搜索入口。验收：统计看板数据准确、搜索跨模块命中、分类/圈子 CRUD 受约束生效 | v0.41 | ⭐⭐⭐ |
+| | **v0.42 ✅ 统计洞察 + 搜索 + 管理页 + Mine 布局重构完成**：① 后端: GET /time-blocks/stats + GET /search?q= + SearchModule 注册; ② 统计看板 pages/mine/stats/index; ③ 全局搜索 pages/search/index; ④ 分类管理 pages/mine/categories/index (树形 4 级 CRUD + 固定大类保护); ⑤ **圈子管理升级为树形视图**: 3 固定大类展开-收起, 子圈 CRUD, 退出/删除, 角色徽章, 创建时支持 parentId; ⑥ **设置页重构为 4 分组**: 个人信息/基础偏好/显示与通知(周报开关+时间)/隐私兜底(PUBLIC/PRIVATE 兜底策略)/通用(主题/字体占位+协议链接); ⑦ **新建 About 页**: version + 协议链接; ⑧ **Mine 首页补充**: 关于入口 + 版本号; ⑨ 后端 CircleResponseDto + toResponse 透传 parentId/level/isFixed/isDefault/sortOrder; ⑩ 类型层 CircleItem/Circle 补树字段, UserSettings 补 weeklyReportEnabled/weeklyReportTime/privacyFallback; ⑪ **圈子多选人员**: 后端新增 POST /circles/:circleId/members + addMembers service + AddCircleMembersDto; 前端新增 addCircleMembers API; circles 页面新增成员管理 dialog (UUID 多行输入→添加 / 成员列表+移除). tsc frontend+server 0 错 ✅ nest build ✅ | | |
+| v0.43 | **UX Phase 2：交互手势 + 关系状态条** | UX 一体化三层之第二层。① **关系状态条**：`pages/schedule/index` 时间轴顶部关系条（`visibility-bar` + 颜色映射：PUBLIC→绿/CIRCLE_ONLY→蓝/PRIVATE→灰）；② **右边缘滑出关系面板**：从时间轴右滑呼出面板（圈子列表+成员忙闲）；③ **统一交互手势**：跨页面长按/左滑/下拉刷新标准化（复用 v0.35.1 手势规范）。验收：关系条颜色随 TimeBlock.nature 变化、右滑面板显示圈子和忙闲、手势跨页一致 | v0.42 | ⭐⭐ |
+| | **v0.43 ✅**：关系状态条 + 关系面板 + 标准化手势。① **后端**：`GET /api/v1/circles/:circleId/availability?date=` 端点（`CircleService.getMemberAvailability` 查成员忙闲，排除 PRIVATE 块）；`MemberSlotsDto` DTO。② **前端 visibility-bar 组件**：`components/visibility-bar/index`（PUBLIC 绿 / CIRCLE_ONLY 蓝 / PRIVATE 灰 计数色点 + 点击筛选 + 清除按钮）。③ **前端 relation-panel 组件**：`components/relation-panel/index`（右边缘滑出面板 + 圈子列表 + 点击圈子查成员忙闲 + 绿/红忙闲指示）。④ **手势标准化**：`utils/gesture.ts`（`initGesture`/`analyzeSwipe`/`isLongPress`/`shouldCancelLongPress` + 4 常量）；schedule 页和 tasks 页重构为统一手势工具。⑤ **质量门禁**：frontend tsc 0 错 ✅ / server tsc 0 错 ✅ / nest build ✅ / jest 77/77 ✅。**翻页已知限制**：`getMemberAvailability` 未分页（大圈子需后续补）。**关系面板已知**：日期固定为当天（无日期选择器）。**可见性已知**：`visibility-bar` 在周视图暂不显示（仅日视图渲染） | | |
+| v0.44 | **代码质量 + 路径二地基（Step 线性依赖 + 5 态状态机）** | v1.3 路径二心脏的第一刀。**实际拆分**：P0 BUG + ESLint + 审批补字段 + onDelete + AGENTS 规则 → v0.44.5 已完成；Step 线性依赖 / shareCard 持久化 / 单测补全 → 移至 v0.45。验收：`tsc` 双 0 错 ✅ `eslint` 0 错 0 警 ✅ `grep -rE "TODO\|FIXME" src/ server/src/ --include='*.ts'` 为空 ✅ | v0.43 | ⭐⭐⭐⭐ |
+| | **v0.44 ⏳（已拆分）**：① P0 BUG 修复 ✅ / ② ESLint 清零 ✅ / ③ 审批副本字段补全 ✅ / ④ schema onDelete ✅ / ⑤ 补单测(approval+visibility) ✅ → v0.44.5 落地；Step 线性依赖 + shareCard 持久化 → 延迟至 v0.45 | | |
+| v0.44.5 | **代码审计修复 + AGENTS 规则固化** | 基于 2026-06-14 AI 代码巡视报告的 45 个发现项整改。**① P0 正确性 BUG 修复**：审批副本补 `source/sourceId/nature/categoryId`（P0-1）+ `circle.service.getMemberAvailability` 时区 `Z`→`+08:00`（P0-2）+ `template.service.apply` 时区（P0-3）+ `timeblock.softDelete` 级联软删 Reminder 的"先删后查"反模式（P0-4）；**② 4 个 ESLint 错误修复**：`category.service.ts:85` + `circle.service.ts:44-45` 的 `let`→`const` + 4 页 `(this as any).getTabBar`→`WithTabBar` 类型断言；**③ `reminder.service.ts:205` TODO 清理**改写为非标记注释；**④ AGENTS.md §13 新增 11 条强制编码规则**（空 catch 零容忍 / 浮点 Promise / 死 try/catch / 索引 / 时区 / 日志 / 重复代码 / `as any` 零容忍 / `prefer-const` / 最小改动）；**⑤ 7 个关键索引新增**；**⑥ 重复工具函数合并**到 `utils/date.ts`；**⑦ 后端 User 查询补 `isDeleted` 过滤**。验收：`tsc` 双 0 错 ✅ `eslint` 0 错 ✅ `grep -rE "TODO|FIXME" src/ server/src/ --include='*.ts'` 为空 ✅ | v0.44 | ⭐⭐⭐ |
+| | **v0.44.5 ✅**：详细清单见 AGENTS.md §12 变更记录（2026-06-14 代码巡视整改） | | |
+| v0.45 | **路径二地基 + AI 拆解 + Notification 框架（架构债清偿 + 核心功能落地）** | ① **Step 线性依赖**：`dependsOnId` 自关联 FK + blocked 判断 + `unlockDependents` 自动解锁 + 状态默认 `unscheduled`（对齐 PRD 5 态）；② **shareCard 内存→DB**：`ShareCard` 表（token unique, busySlots/freeSlots Json, responses Json）+ Prisma 持久化；③ **MiniMax M3 集成**：`LlmService.decompose` 真实调用 + `@Sse()` + `Observable<MessageEvent>` 流式响应；④ **`POST /ai/decompose`**：SSE 流，`event: step` 逐条 + `event: done` 收尾；⑤ **前端 `pages/tasks/ai-decompose/index`**：自然语言输入→流式打字机显示→用户可编辑（删/排序/改文字/改估时/调依赖连线）→一键创建 Step（带 `dependsOnId`）；⑥ **手动降级**：MiniMax 超时 8s / 内容安全拦截 / 格式错 → 无缝切换"手动添加步骤"输入框；⑦ **`stepStore`**（MobX，CRUD + schedule + 依赖解锁）；⑧ **步骤依赖 UI**：步骤卡片间连线 + 🔒 + "等待前置步骤完成" + 禁用排期按钮；⑨ **Prompt 管理**：`server/src/prompts/decompose.md`（通用模板）；⑩ **Notification 框架**：`NotificationService`（7 场景）+ `SmsService`（log-only）+ `ReminderCron` 推送链路 + `ApprovalService` / `StepService` push hooks + `NotificationModule`（@Global）；⑪ **EventLog 埋点**：`event_logs` 表 + `EventLogModule` + `task_create`(source) + `step_schedule`(from→to)；⑫ **订阅授权 UX**：`src/utils/subscription.ts` 多模板 per-scenario 持久化。**Step 状态机状态修正**：`schedule()` 设 `scheduled`（非 `in_progress`）。验收：`tsc` 双 0 错 ✅ `jest` 77/77 ✅ | v0.44.5 | ⭐⭐⭐⭐ |
+| | **v0.45 ✅** | Step 线性依赖 + shareCard DB 持久化 + AI 拆解 SSE + MiniMax 真实调用 + manually degrade + stepStore + 步骤依赖 UI + Prompt 通用模板 + Notification 7 场景框架 + EventLog 2 事件 + 订阅授权 UX | | |
+| v0.46 | **推送真实接入 + Prompt 4 变体 + overdue cron + 单测 + 门禁清零** | v0.45 的"代码已超前、文档滞后"问题的收尾版本。① **推送真实接入**：微信 access_token 管理（获取/缓存/刷新）+ `NotificationService.sendSubscribeMessage` 从 `logger.log` 改为真实 `subscribeMessage.send`；② **Prompt 工程分治**：`classify.md`（轻量分类）+ 4 变体专用 Prompt（`decompose-report.md` / `decompose-meeting.md` / `decompose-dev.md` / `decompose-household.md`）+ 通用兜底 `decompose-general.md`；③ **overdue cron**：每小时扫描 status=scheduled + TimeBlock.startTime 已过 → 置 `overdue`；④ **单测补全**：`ApprovalService` + `StepService` + `EventVisibilityService` 单元测试（目标 +20 tests，达 97+）；⑤ **ESLint + TODO 清零**：修复所有 `require()` 违规 + 未用变量 + 遗留 TODO 标记；⑥ **Step 状态机持续对齐**：`overdue→done` 回退路径 + 前端 `scheduled` 状态展示。验收：推送真机可收到 ✅ / Prompt 4 变体输出差异化（报告≠开发≠家务） ✅ / overdue cron 自动标过期 ✅ / jest 97+ ✅ / eslint 0 错 0 警 ✅ / TODO/FIXME 0 ✅ / tsc 双 0 错 ✅ | v0.45 | ⭐⭐⭐ |
+| | **v0.46 ✅** | 推送真实接入（access_token + subscribeMessage.send）✅ / Prompt 4 变体（report/meeting/dev/household + classify + general）✅ / overdue cron ✅ / 单测补 +20 达 97 ✅ / ESLint+TODO 清零 ✅ / Step 状态机持续对齐 ✅。**验收**：tsc 双 0 错 ✅ eslint 0 错 ✅ jest 97/97 ✅ TODO/FIXME 0 ✅ | | |
+| v0.46.5 | **EventLog 埋点全量补全（PRD §19 对齐）** | 基于 v0.45 已建的 `event_logs` 表 + `EventLogModule` + `EventLogService.log()`，补齐剩余 8 个业务事件埋点。**已实现（v0.45）**：① `task_create`（含 source 区分 manual/wechat）② `step_schedule`（含 from→to 状态转换）。**新增 8 个**：③ `approval_create`（`ApprovalService.create`，记录 requestId + blockId + recipientCount）④ `approval_respond`（`ApprovalService.respond`，记录 requestId + action: approve/reject）⑤ `block_create`（`TimeBlockService.create`，记录 source + category）⑥ `block_update`（`TimeBlockService.update`，记录字段 diff）⑦ `block_delete`（`TimeBlockService.softDelete`，记录 id + source）⑧ `reminder_sent`（`ReminderCron.scanAndSend`，记录 blockId + remindAt）⑨ `circle_join`（`CircleService.joinByCode` / `addMembers`，记录 circleId + role）⑩ `circle_leave`（`CircleService.leave`，记录 circleId）。验收：10/10 事件均在实际业务操作中被调用 + EventLogService 记录可查 + tsc 前端+服务端 0 错 ✅ eslint 0 错 ✅ jest ≥ 113 ✅ | v0.46 | ⭐⭐ |
+| | **v0.46.5 ✅** | 10/10 事件插桩完成：ApprovalService(approval_create/approval_respond) + TimeBlockService(block_create/block_update/block_delete) + CircleService(circle_join/circle_leave) + ReminderService(reminder_sent) + buildMembers 补 eventLog + softDelete 交易结构修复。tsc 双 0 错 ✅ eslint 0 错 ✅ jest 113/113 ✅ | | |
+| **━━ 路径二闭环 + 增长（v0.47） ━━** | | | |
+| v0.47 | **路径二闭环 + 增长：AI 建议时间段 + 步骤联动 + AI 拆解预览页 + schedule behavior 拆分** | 路径二心脏收口 + Aha 前置。① **`SlotSuggester` 服务**（纯规则算法，非 LLM）：读用户空闲段 + 设置（dayStartsAt/默认时长/避免时段）+ 步骤依赖链 + 估时 → 贪心算法生成建议（`earliestStart` 后第一个能容纳估时的空闲段）→ 返回 `[{stepId, suggestedStart, suggestedEnd, reason}]`；② **`POST /ai/suggest-slots`**：一次性返回（非流式），毫秒级；③ **前端建议卡片**：逐个展示，用户操作 ✅接受（生成 TimeBlock `source='step', sourceId=stepId`）/ ✏️改时间（弹选择器）/ ⏭️跳过（留 unscheduled）/ ❌拒绝（标记暂不排期）；④ **步骤完成→任务完成联动**：全部 Step `status==='done'` → 任务卡显示绿色徽章 → 弹窗"标记任务完成？" → 确认后 `task.status='done'` + **强制填 completedNote + retrospective**（不自动标记）；⑤ **依赖解锁推送**（复用 v0.45 已完成的推送服务）；⑥ **AI 拆解预览页**（建议 3）：纯前端 Demo 页，不登录可见→输入自然语言→展示预设拆解结果→"被惊艳了再注册"引导；⑦ **schedule/index.ts behavior 拆分**：CHANGE-20260614-schedule-monolith-refactor 实施，拆 `block-interaction` + `day-nav` 两个 behavior（优先拆手势和日导航，quick-create 和月/周视图暂留 v0.48+）；⑧ **补单测**：SlotSuggester 算法 + 步骤联动逻辑。验收：拆解完成→点"建议时间"→AI 返回带 reason 的建议→逐个确认生成 TimeBlock → 全部完成弹任务完成 + 强制复盘 → AI 预览页不登录可见 → schedule 行为拆分无功能回归 → `tsc` 双 0 错 ✅ `eslint` 0 错 ✅ `jest` 95+ ✅ | v0.46 | ⭐⭐⭐ |
+| | **v0.47 ✅** | 全部 8 子项完成：① SlotSuggester 规则算法（12 单测）② POST /ai/suggest-slots 端点 ③ 前端建议卡片（ai-decompose 页面接受/编辑/跳过/拒绝）④ completeWithReview 后端+前端 onMarkDone 强制复盘 ⑤ unlockDependents 推送+前端 🔒→🔓 依赖解放 UI + Toast 提示 ⑥ AI 拆解预览页（landing/ai-preview 免登录 4 预设）⑦ schedule behavior 拆分（day-nav + block-interaction 纯模块展开）⑧ 补单测 +15（SlotSuggester 10 + task linkage 5）。tsc 双 0 错 ✅ eslint 0 错 ✅ jest 113/113 ✅ | | |
+| | | | | |
+| **━━ 路径一：委托流 + 透明度面板（v0.48） ━━** | | | |
+| v0.48 | **路径一：委托流 + 透明度面板 A+B+C 完成** | 路径一全量交付。③ 场景 A 委托步骤执行：任务详情页某步骤→点"委托"→选对象→填说明+截止→对方收到→接受→交付→原步骤 done ✅。⑨⑩ 透明度面板：ShareRecipient 表 + CRUD + 一键隐身（stealth 模式） + 三级共享（full/freebusy/invite_only）✅。验收：委托步骤全流程走通 + 推送通知真机收到 + 透明度面板可管理共享对象 + 一键隐身生效 | v0.47 | ⭐⭐⭐⭐ |
+| | **v0.48 A+B ✅ 后端 + 前端委托详情页 + 委托入口** | Delegation 表 ✅ / 后端 5 端点（create/findMy/findById/respond/deliver） ✅ / 原子排期事务（step_execution 接受→step in_progress，交付→step done） ✅ / 前端 types/api/store/detail page ✅ / task-detail 步骤旁"委托"按钮 ✅ / tasks 页委托待处理横幅 ✅ / 推送集成验证（复用 v0.45 推送通道） ✅。 | | |
+| | **v0.48 C ✅ 透明度控制面板** | ShareRecipient 表 + enums（ShareLevel/ShareStatus）✅ / share 模块 6 端点（CRUD recipients + stealth toggle）✅ / User.settings 扩展 stealthMode/stealthExpiresAt ✅ / EventVisibilityService 集成 share recipients + stealth 模式 ✅ / 前端 types/api/store/transparency page ✅ / mine 页透明度控制入口 ✅ / 113 tests passing ✅ | | |
+| | | | | |
+| **━━ 路径三 + 锚点模型增强 + 验证门禁（v0.49–v0.50） ━━** | | | |
+| v0.49 | **路径三：AI 自然语言建日程** | 高频低成本补强。① **`POST /ai/parse`**：输入自然语言→AI 解析返回 `{type:'schedule'\|'task', title, startTime, endTime, recurrence, category, confidence, ambiguous, ambiguities}`；② **前端首页输入框**：实时调 `/ai/parse`（debounce 500ms）→预览卡片（📅[明早 9:00-10:00] 和李总开会讨论 Q4 [工作]）→[创建]直接建块 / [编辑]进 detail 微调；③ **AI 判断 type**：日程 vs 任务（"下周完成报告"→任务，"明早 9 点开会"→日程）；④ **置信度处理**：`confidence < 0.7` 时弹分类选择器；⑤ **歧义处理**：`ambiguous=true` 时标注（如"下周"未指哪天）；⑥ **recurrence 解析**：支持"每天/工作日/每周/每月"；⑦ **微信转发升级**：v0.41 转发创建任务 → 升级为转发消息→AI 解析→一键建日程（复用 `/ai/parse`）。验收：输入"明早 9 点和李总开会讨论 Q4"→预览→创建成功；输入"每天晚上 8 点跑步 30 分钟"→识别 daily recurrence | v0.48 | ⭐⭐⭐ |
+| | **v0.49 ✅（核心端点 + 转发接入，缺 NLP 输入框 + 预览卡片 UI）**：`POST /ai/parse` 端点 + `LlmService.parse()`（含 parse.md prompt + 置信度/recurrence/type/歧义解析）+ `ParseDto`/`ParseResponseDto` + 事件埋点 `ai_parse` + 前端 `aiParse()` API + 转发页 `forward-create/index.ts` 调 `aiParse()` 做 NLP 兜底。**未实现**：首页 NLP 输入框 + 预览卡片 + 置信度 < 0.7 分类选择器 + 歧义标注 UI（属于 v0.49 计划但未开发的前端 UI，端点能力已就绪） | | |
+| v0.49.5 | **锚点模型增强 + 弹性任务拖拽引擎** | 在验证门禁前实施，分为 A 部（刚性锚点）和 B 部（弹性任务拖拽）。**A 部 — 刚性锚点**：① TimeBlock 加 4 字段 — `rigidity`（"absolute"/"relative"）、`bufferBefore`（Int? 分钟）、`bufferAfter`（Int? 分钟）、`anchorType`（"meeting"/"commute"/"social"/"medical"/"other"），可空默认 null 向后兼容；② Prisma 新增 `TimeBlockRigidity` + `AnchorType` 枚举 + migration；③ DTO/response/Service 同步写入 + 缓冲默认值规则（meeting→前10后15, commute→前通勤后5, social→前5后5, other→前5后5）；④ 前端 detail 页创建/编辑增加刚性等级选择器（绝对刚性/相对刚性）+ 锚点类型选择器 + 缓冲时间微调；⑤ view mode 显示 🔒/📌 badge + 缓冲标记。**B 部 — 弹性任务拖拽引擎**：⑥ Task 表加 `estimatedDuration`（Int? 分钟）字段 + Prisma migration；⑦ `GET /time-blocks/gaps?date=` 计算当天锚点间空闲段；⑧ `POST /time-blocks/place-flexible` 拖入放置创建 TimeBlock（rigidity=relative, source='flexible'）；⑨ `DELETE /time-blocks/:id/unplace` 拖回池删除临时 TimeBlock；⑩ 时间轴下方「弹性任务池」区（可折叠），显示无固定时间的 Task 列表（带 `预估耗时 45min` badge）；⑪ 纯拖拽引擎：touch 三件套 — 浮层跟随手指 → 空闲段碰撞检测高亮 → 松手吸附放置（时长 >= 估时则插入，否则回弹标红）；⑫ 长按已放置任务可拖回池；⑬ 空闲段用浅色虚线框标示 + 标注 `可用 1h15m`。验收：刚性锚点创建→显示 🔒 badge+缓冲→编辑同步；弹性任务拖入空闲段→生成 TimeBlock→从池消失→长按拖回→TimeBlock 删除；空闲段时长不足放不下→卡片回弹标红 | v0.49 | ⭐⭐⭐ |
+| | **v0.49.5 ✅**：A 部：TimeBlock 4 字段 + `TimeBlockRigidity`/`AnchorType` 枚举 + 4 DTOs + Service 写入+`getBufferDefaults()` + 详情页刚性/锚点/缓冲UI + view mode 标签。B 部：Task.estimatedDuration + `GET gaps`/`POST place-flexible`/`DELETE :id/unplace` 端点 + 弹性任务池（底部固定面板+水平滚动）+ 纯拖拽引擎（touchstart/Move/End + 浮层 + 目标小时计算 + 创建 TimeBlock）+ 长按菜单"放回任务池"（unplaceBlock 调用）+ blockInteraction 弹性 sourceLabel。前后端 tsc 0 错 ✅ prisma validate ✅ jest 113/113 ✅。**暂缺**：空闲段可视化虚线框、时长不足回弹标红 | | |
+| v0.50 | **强制验证门禁（两日实人验证 + 5 人观察测试 + 数据驱动决策）** | **强制停止点，不可跳过**。⑤ **成功指标判定（PRD §22）**：单人模式次日留存 < 30% → 回到路径二继续打磨；AI 使用率 < 20% → 砍 AI 走纯工具；委托用户 vs 非委托 30 日留存 ≥ 1.5x 检验路径一网络效应；都达标 → 进入 v0.51+。**验收标准同 §2.4 金标准：委托用户 30 日留存 ≥ 非委托 × 1.5**。⑥ **0 TODO/FIXME 门禁**：`grep -rE "TODO\|FIXME" src/ server/src/ --include='*.ts' --include='*.wxml'` 为空；⑦ **全门禁**：`tsc` 双 0 错 ✅ `eslint` 0 错 ✅ `jest` 全绿 ✅；⑧ **隐私协议 + 合规最终审查**；⑨ **定位自检（建议 5）**：接受"小而美"也是成功。不追求 10 万 DAU，500 活跃用户已经是独立开发者的巨大成就。基于真实数据决定后续方向。验收：5 个真实用户两日使用 + 观察记录文档 + 埋点数据回收 + 指标判定 + 定位方向决议 | v0.49 | ⭐⭐ |
+| | **v0.50（计划中）**：5 真人两日测试 + 观察记录 + 埋点回收 + 指标判定 + 定位决议 | | |
+| | | | | |
+| **━━ 验证通过后（条件触发，M8） ━━** | | | |
+| v0.51 | **AI 周报 + 教练卡（CoachCard）** | 仅在 v0.50 验证通过后启动。① **`CoachCard` 表**：userId / type（weekly_report/insight）/ content(Json) / readAt；② **`coach` 模块 + cron**：每周日 20:00 触发，读 `time-blocks/stats` + `tasks/my/stats` + 来源维度统计（手动/AI 拆解/外部邀请占比），喂 MiniMax 生成 1-2 句"AI 观察"（如"工作占比上升明显，建议周末留生活时间"）；③ **`GET /coach/cards`**：历史卡片列表；④ **前端 `pages/mine/coach/index`**：周报展示（完成数/总时长/分类分布/最专注日/逾期/AI 观察）；⑤ **推送**：周报生成时发订阅消息；⑥ **RLHF 反馈**（轻量）：卡片下👍👎按钮，反馈存 `CoachFeedback`（PRD §4.1）。验收：周日 20:00 自动生成周报 + 推送 + 用户可看历史 + AI 观察合理 | v0.50 | ⭐⭐⭐ |
+| | **v0.51（计划中）**：CoachCard 表 + 周报 cron + 前端展示 + RLHF 反馈 | | |
+| v0.52 | **iCal 导入（导出明确不做）** | 数据可移植性（导入方向）。① **`ImportLog` 表**：userId / source（ical/google/outlook）/ fileName / imported / skipped；② **`import` 模块 + `POST /import/ical`**：上传 .ics 或粘贴内容→`ical.js` 解析 VEVENT→查重（同 UID+userId）→分类映射（标题含"会议/standup"→工作/会议；含"健身/体检"→生活/健康；其余导入前批量确认）→处理 RRULE→recurrence 字段→时区 UTC→Asia/Shanghai→批量创建 TimeBlock（`source='import'`）；③ **前端 `pages/tasks/import-ical/index`**（注：路径待定，可能放 `pages/mine/import-ical`）：文件选择/粘贴→预览解析结果→批量改分类→导入→报告（成功 N，跳过 M 重复）；④ **导入历史**：记录到 ImportLog，避免重复导入。验收：上传 Google Calendar 导出的 .ics→解析→分类映射→导入成功→时间轴出现 | v0.51 | ⭐⭐⭐ |
+| | **v0.52（计划中）**：ImportLog 表 + ical.js 解析 + 分类映射 + 批量导入 + 历史记录 | | |
 
 ---
 
@@ -132,11 +174,59 @@
 | v0.22–v0.26 审批流替代旧共享层 | 原 v0.22–v0.26（可见性/共享/评论/RSVP）全部重排为审批流（发起→通知→同意→同步）。Circle 退化为隐私标签（v0.27 实现）。评论/RSVP 移出 MVP scope |
 | v0.18 防重发 | `updateMany SET status=SENDING WHERE status=PENDING` 作为行锁，确保幂等 |
 | v0.28 全局空状态/错误 | 独立版本交付，避免污染各业务版本的开发焦点 |
-| **Category 树替代硬编码枚举（技术债务记录）** | 当前 category 为 `String` 硬编码（work/life/private），后续需替换为自引用 `Category` 表：id, userId, name, parentId, sortOrder, isDefault, isDeleted。Task + TimeBlock 统一外链到 Category.id。每个新用户初始化 3 个根节点（工作/生活/私有）各带一个 isDefault 子类。v0.13 现有数据通过 migration 脚本迁移。maxDepth=4。默认子类不可删除。该变更涉及前端分类选择器需改为树形选择器 |
+| **Step 表 5 态状态机** | `unscheduled → scheduled → in_progress → done / overdue`。overdue 为系统自动判定（当前时间 > TimeBlock.startTime 且未完成），无需用户操作。`POST /steps/:id/schedule` 原子操作：创建 TimeBlock → 设定 timeBlockId → 更新 status=scheduled |
+| **Category 父子树约束** | 固定 3 大类：工作/生活/私有（`isFixed=true`，不可删/改/移动，`level=1`）+ 用户自建 4 级子类（`level=2/3/4`，每级 ≤ 20 个，同级同名不可重复 `@@unique([userId, name, parentId])`）。`isDefault` 子类（每个大类下各一个）不可删除。新用户注册时自动初始化 3 大类和对应的 `isDefault` 子类。旧 category 枚举字段保留兼容但标记 `@deprecated`，全部读写走 `categoryId` FK。**归集兜底**：创建任务/日程未选分类 → 自动落入"工作/默认" |
+| **Circle 父子树约束** | 固定 3 大类：同事/朋友/亲人（`isFixed=true`，不可删/改/移动，`level=1`）+ 用户自建 3 级子圈（`level=2/3`，每级 ≤ 20 个，同级同名不可重复）。`isDefault` 子圈（每个大类下各一个）不可删除。新用户注册时自动初始化 3 大类和对应的 `isDefault` 子圈。人员可多圈（CircleMember 去重唯一约束 `@@unique([circleId, userId])`）。**归集兜底**：创建日程/邀请未选圈子 → 自动落入"同事/默认" |
+| **来源追踪只写不读（设计先行）** | TimeBlock.source 和 sourceId 在 v0.39 只做实（创建时自动打标），不做展示。来源标签的前端渲染在 v0.41（前端重写）中实现。source 枚举：`manual` / `step` / `approval`。step 来源的 sourceId=Step.id，approval 来源的 sourceId=ApprovalRecipient.id |
 | **v0.37 周起始日影响周视图** | S3 周起始日设置直接影响 `getMonday()` 函数逻辑和 week bar 排列。当前默认周日（JS getDay()=0），改为周一后需同步更新 `weekDays` 起始和日期计算 |
 | **v0.38 重复日程实例为非独立副本** | 后端 cron 生成的未来实例与模板日程通过 `recurrenceGroupId` 关联（新增字段，uuid）。修改全部时根据 `recurrenceGroupId` 更新所有关联实例。实例可独立修改（设 `recurrenceGroupId=null` 脱离分组） |
-| **v0.42 微信转发基于 `onShareAppMessage` 接收** | 用户在聊天中转发消息到小程序时，`App.onShow` 的 `options.path` 可携带参数。约定 URL scheme：`/pages/tasks/index?shareText=xxx`。前端在 `onShow` 中解析 `shareText` 参数并创建任务 |
-| **v0.45+ 步数专注模式无后台保活** | 微信小程序切后台后计时器暂停。专注模式仅记录 `startTime` + `endTime`，不依赖后台计时。切回前台时检查连续时间差，若超过 5 分钟视为"中途离开" |
+| **v0.39 数据迁移顺序** | (1) 先建 Category 表 + 创建默认分类（给每个用户 init 3 大类+子类）→ (2) 建 Step 表 + 迁移 Task.steps JSON → (3) TimeBlock 加 source/sourceId/categoryId → (4) Task 加 categoryId。旧 Task.category/TimeBlock.category 字段保留不删，带 `@deprecated` 注释。每一步独立 deploy，支持增量回滚 |
+| **v0.45 步数专注模式无后台保活** | 微信小程序切后台后计时器暂停。专注模式仅记录 `startTime` + `endTime`，不依赖后台计时。切回前台时检查连续时间差，若超过 5 分钟视为"中途离开" |
+| **委托流后端复用审批流基础** | DelegationPackage/DelegationStep 新实体，但 Scheduler 端空闲校验复用 `TimeBlockService.checkConflicts`（v0.38 已有），接收方排期确认复用 `create` 原子操作模式（类似 Step.schedule）。委托流独立于 Approval 审批流，但后端架构一致（事务+乐观锁+空闲校验）。**委托流不修改已有 TimeBlock/Circle 表结构** |
+| **委托流双向时间线可见** | 发起方确认排期后生成的 TimeBlock 在双方时间线上均可见（nature=PUBLIC + 发起方和接收方各自一条 TimeBlock，通过 `delegationStepId` 关联）。接收方侧的 TimeBlock 带有"来自委托"来源标识（`source=delegation`） |
+| **UX 一体化 Phase 1 话语体系反向兼容** | v0.41 已完成 36 项文案替换（Batch 1-3），仅做 WXML/WXSS/TS 文案替换，不涉及业务逻辑、不涉及 API 契约、不涉及数据模型。可随时回滚。旧入口路径保留不动 |
+| **UX 一体化 Phase 2 关系状态条数据源** | `.visibility-bar` 颜色由 TimeBlock.nature 决定（PUBLIC→绿色/#10B981 / CIRCLE_ONLY→蓝色/#4A6CF7 / PRIVATE→灰色/#9CA3AF）。无需后端新数据，纯前端条件渲染。**右边缘滑出关系面板**数据源来自 `GET /api/v1/circles/my`（圈子列表）+ 各圈 member 忙闲状态（新增空闲聚合端点） |
+| **UX 一体化 Phase 3 信息密度不影响 v0.37 拖拽** | 卡片样式精简不删除 `.resize-handle` 元素，拖拽调时长功能在后续版本仍可用。精简的是展示字段，非交互元素 |
+| **委托流确认排期 = 原子事务** | `PATCH /api/v1/delegations/:stepId/schedule` 必须在同一事务中：① 校验接收方空闲（checkConflicts）→ ② 创建 TimeBlock（附 source=delegation + sourceId=stepId）→ ③ 更新 step.timeBlockId + status=scheduled。任一失败回滚。**创建 TimeBlock 时 recipientId 写入 Recipient.timeBlockId**（与 Approval 审批流一致） |
+| **验证门禁 = 强制停止点** | v0.40 冷启动引擎完成后，v0.41 入口是验证门禁（非功能版本）。必须完成两日实人验证才能决定后续方向。v0.42+ 全部冻结不受 v0.41 实现与否影响。Bug 修复和代码质量改进不受冻结限制 |
+| **已知限制：shareCard 内存存储** | `POST /time-blocks/share-card` 生成的 shareCard 当前存储在 NestJS 进程内存 `Map<string, ShareCardEntry>` 中。**服务器重启后全部丢失，已有分享链接失效**。内测阶段可接受（重启频率极低），**v0.44 需改为数据库持久化** |
+| **v1.3 三路径产品哲学** | 产品核心是"日程如何生成"。三条路径：外部驱动（审批/委托）/ 内部驱动（任务→拆步骤→排时间，心脏）/ 自发驱动（手动/自然语言/模板）。分类脊柱（工作/生活/私有+子类）贯穿三条路径。所有功能取舍围绕三路径：强化路径的做，偏离路径的不做 |
+| **v0.44 Step 线性依赖** | Step 表新增 `dependsOnId`（自关联 FK）。步骤 B `dependsOnId=A.id` 时，A 未 done 则 B.blocked=true，B 无法 schedule。A 变 done 时自动解锁 B 并推送通知（v0.48 真实推送）。5 态状态机：unscheduled(默认)→scheduled→in_progress→done/overdue。向后兼容：旧 `pending` 数据迁移到 `unscheduled` |
+| **v0.45 AI 拆解降级铁律** | AI 失败时**绝对不弹错误 Toast**。MiniMax 超时 8s / 内容安全拦截 / 格式错 → 静默切换"手动添加步骤"输入框。用户感觉不到 AI 失败，只觉得这次得自己写。这是 AI 体验成败的关键 |
+| **v0.46 AI 建议时间段 ≠ 自动排程** | AI 只建议，用户逐个确认。**明确不做 Motion 式自动排程**。建议用纯规则算法（贪心，非 LLM），毫秒级返回，带 `reason` 可解释。用户操作四选项：接受/改时间/跳过/拒绝。接受才生成 TimeBlock |
+| **v0.46 步骤完成不自动标记任务 done** | 全部 Step done 时弹窗询问，用户确认 + 强制填 completedNote + retrospective 才算闭环。步骤完成 ≠ 目标达成 |
+| **v0.47 委托流双场景独立实体** | 场景 A（委托步骤执行）+ 场景 B（委托预约时间）共用 `Delegation` 表（type 区分）。复用审批流的事务/乐观锁/checkConflicts 基础，但**不修改已有 TimeBlock/Circle 表**。确认排期是原子事务 |
+| **v0.48 共享三级 + 透明度面板（PRD §18/§25）** | 三级状态机：不共享→共享中(完整共享/仅空闲/单次邀请)→已撤回。透明度面板：共享对象列表(头像+名字+三级滑块) + 一键隐身 + 恢复上次 + 临时共享管理。**没有透明度面板用户不敢开启共享，路径一无法成立** |
+| **v0.48 推送通知全场景（v0.45 已实现）** | 7 场景订阅消息的 `WxSubscribeService` 已在 v0.45 搭建，v0.48 委托流接入验证 |
+| **v0.49 自然语言建日程复用 /ai/parse** | 首页输入框 + 微信转发升级都走 `POST /ai/parse`。AI 判断 schedule vs task，置信度 <0.7 弹分类选择器。这是 PRD 未规划但高频刚需的功能 |
+| **v0.50 验证门禁不可跳过** | v0.41 曾跳过门禁是错误决策，v0.50 必须真实执行。5-10 种子用户两日使用 + 埋点（D1 留存/路径二使用率/AI 使用率）+ 指标阈值判定 + 方向决议。D1<30% 回路径二打磨，AI<20% 砍 AI 走纯工具 |
+| **v0.52 iCal 只导入不导出** | PRD 战略原则"无导出/备份"。但"无云备份"≠"无本地导入"。iCal 导入解决"换工具数据没了"恐惧，不违背隐私定位（本地解析，不上云）。导出明确不做 |
+| **v0.49.5 刚性锚点 = 旧 priority 语义重表述** | TimeBlock.rigidity = "absolute"（原 high priority）/"relative"（原 medium priority）。bufferBefore/bufferAfter 新增字段，默认 null 向下兼容。anchorType 决定默认缓冲值。**不改变三路径 + 分类脊柱架构，不做调度引擎，不做分级/拆分** |
+| **v0.49.5 弹性任务拖拽 = 纯手动放置，非自动排程** | 系统只做三件事：① 计算锚点间空闲段；② 碰撞检测（拖入时长 vs 空闲段时长）；③ 生成/删除 TimeBlock。**不做 Motion 风格自动排程**——所有插入/取消操作必须用户手指拖拽确认。已放置的弹性任务会占位纳入空闲段计算，确保不重叠 |
+| **v0.49.5 弹性任务放置分离原则** | 弹性任务放置后创建新 TimeBlock（rigidity=relative, source='flexible'），**不修改原 Task**。拖回池时仅删除该 TimeBlock，Task 本身不受影响（保留星标、复盘等独立生命周期） |
+
+---
+
+## 战略原则（产品长期决策，PRD v1.3 对齐）
+
+| 原则 | 说明 |
+|------|------|
+| **核心是"日程如何生成"（v1.3 总纲）** | 产品灵魂是回答"用户的一天怎么被填满的"。三条路径（外部驱动/内部驱动/自发驱动）+ 分类脊柱。所有功能取舍围绕三路径：强化路径的做，偏离路径的不做。路径二（任务→拆步骤→排时间）是心脏 |
+| **追 AI 拆解，不追 AI 排程** | Motion/Reclaim 在自动排程上烧了几千万美元做了 5 年。timeslots 不硬刚这个赛道。核心差异化是 AI 拆解（任务→步骤+预估时长），v0.45 接入；AI 建议时间段（v0.46）是"建议确认"模式，**不是自动排程**。**AI 是拆解引擎+建议引擎，不是调度引擎** |
+| **先基础数据，再社交体验** | v0.39 Category 表 + 来源追踪 + Template + 个人信息 是基础设施。数据层没做好之前不进社交功能 |
+| **隐私信任是社交的前提** | 社交产品的门槛是信任。隐私信任体系（透明度面板、最小化共享、隐身模式、CIRCLE_ONLY 兜底）和效率闭环 UI 同等重要。用户必须看到"我的时间只属于我"才能放心共享 |
+| **微信生态冷启动，不依赖 App Store** | 竞品全是 App 端，下载心理成本高。timeslots 的独有通道：小程序卡片邀请（时间连接器）+ 时间名片海报引流。v0.40 冷启动引擎已铺这个方向 |
+| **UX 一体化：三层同步落地** | 话语体系（文案 ✅ v0.41）→ 交互手势（操作 ✅ v0.43）→ 信息密度（内容，融入后续版本）。三层分阶段交付 |
+| **先验证，后建设** | v0.50 是强制验证门禁。**不要做到 v0.55 才知道产品有没有价值。** 5 个真实用户两日使用 + 观察记录（看他们在哪皱眉）+ 埋点数据 + 指标阈值判定。D1<30% 回路径二打磨，AI<20% 砍 AI。现在的计划是推演，不是决策。「和滴答清单有什么区别」是第一道红线——如果用户第一反应是这个，差异化不成立 |
+| **接受"小而美"也是成功** | 不是所有产品都要改变世界。500 活跃 DAU 的 timeslots 比 0 DAU 的"滴答清单竞品"有价值一万倍。设定现实目标（500 活跃用户），达到了就值得骄傲。这是独立开发者的健康心态，也是长期坚持的前提 |
+| **向后兼容不是可选项** | Step 表迁移：`Task.steps` JSON 字段保留不删、标记 `@deprecated`。旧版本前端不崩、回滚可恢复、数据迁移出错可重跑。v0.44 Step 5 态升级时旧 `pending` 数据迁移到 `unscheduled` |
+| **永久免费、无商业化** | **无付费、无 AI 额度、无充值、无订阅、无导出（导入可做）/备份**。所有功能免费开放，AI 拆解无限制调用（仅做降级兜底），无任何变现路径 |
+| **固定三大类 + 可配置子类** | 分类：固定 工作/生活/私有（不可删/改/移动）+ 4 级子类（每级 ≤ 20）。圈子：固定 同事/朋友/亲人（不可删/改/移动）+ 3 级子圈（每级 ≤ 20，人员可多圈）。**归集兜底**：未选分类 → 工作/默认；未选圈子 → 同事/默认。**管理入口仅在"我的"界面** |
+| **AI 失败必须静默降级（v1.3 新增）** | LLM 超时/拦截/格式错 → 不弹错误 Toast，无缝切换手动输入。用户感觉不到 AI 失败。这是 AI 体验成败的关键 |
+| **不做清单（战略定力，v1.3 新增）** | ❌ AI 自动排程 ❌ 云备份 ❌ 多端同步 ❌ 付费 ❌ AI 聊天助手 ❌ AI 情绪分析 ❌ 多模态拍照 ❌ iCal 导出（现阶段） ❌ Taro/RN 重写 ❌ v0.44+ 继续 UI 微调（v0.33-0.43 已调 11 版，边际递减） |
+| **成功指标（PRD §22，v1.4 新增）** | 单人模式次日留存 ≥ 40%；委托发出→被回应率(24h内) ≥ 70%；**委托用户 vs 非委托 30 日留存 ≥ 1.5x（金标准）**；小程序卡片加载 < 1.5s；时间回应平均耗时 < 45s；模板应用后手动调整量减少 ≥ 50%。金标准是判断路径一是否成立的根本标准 |
+| **发布策略（PRD §20，v1.4 新增）** | 体验版→内测(20人)→小推广(100-500人)→正式版(500+)。配置化要求：shareCard 过期 7 天/模板 3 套/AI 拆解环境变量灰度控制 |
+| **降级预案（PRD §20.3，v1.4 新增）** | AI 不可用→灰色按钮+手动输入；shareCard 重启丢失→提示重生成+DB 持久化(v0.46)；微信审核被拒→H5 备用；DB 故障→PG 备份+RTO<1h |
 
 ---
 
@@ -179,6 +269,12 @@
 | L16 | **路由参数日期未校验**：`:date` 参数直接传给 `new Date()`，非法值（如 `2026-13-01`）产生 `Invalid Date` 导致静默空结果 | Controller/Service | 必须在 Service 层对日期参数做格式校验（`/^\d{4}-\d{2}-\d{2}$/`）+ 语义校验（`isNaN(parsed.getTime())` → throw） |
 | L17 | **DevTools 构建 npm 必须手动执行**：`packNpmManually: true` 配置文件 + `scripts/build-npm.js` 拷贝文件不足以保证模块解析；DevTools 运行时仍报 `module not defined` | `miniprogram_npm/` | npm install 后必须执行 DevTools `cli build-npm --project <path>` 或手动在 DevTools 点"工具 → 构建 npm"；`scripts/build-npm.js` 仅供参考，不能替代 |
 | L18 | **createStoreBindings 的 storeBindings 必须销毁**：`onLoad` 中创建 `storeBindings`，未在 `onUnload` 中 `destroyStoreBindings()` 会导致内存泄漏和重复渲染 | `pages/*/index.ts` | `onLoad` 中 `this.storeBindings = createStoreBindings(...)`，`onUnload` 中 `this.storeBindings!.destroyStoreBindings()`；`storeBindings` 属性必须在 methods 接口声明为 `?` 类型 |
+| L19 | **schema 改动必须同步数据库**：手动改 `schema.prisma` 后必须执行 `npx prisma db push`（开发）或 `npx prisma migrate dev`（正式）。`migrate status` 不可信——它只比对 migration 文件，不比对实际表结构。建议定期跑 `prisma migrate diff` 检测漂移 | Prisma | 手动改 schema 后必须执行 db push 或 migrate dev，定期 migrate diff 检测漂移 |
+| L20 | **软删级联必须先查 ID 再删**：`PrismaService.$extends` 全局给读方法注入 `isDeleted:false`，任何"先删后查"的第二次查询都返回空。模式：`const ids = (await findMany).map(x=>x.id); await updateMany({where:{id:{in:ids}}})` | 所有软删级联 | 先查 ID 再 updateMany，避免中间查询返回空 |
+| L21 | **前后端契约必须同步**：后端 schema/DTO 加字段时，必须同步 (1) 前端 types/api.ts (2) services/api.ts (3) 所有 toResponse() (4) 创建实体的 service 写入逻辑。缺任何一步都算未完成 | 全栈 | 加字段四步同步检查清单 |
+| L22 | **可见性字段必须校验配套字段非空**：`CIRCLE_ONLY` 必须有 `circleId`。可见性默认值必须是最严格的（PRIVATE），而非最宽松的（PUBLIC）| TimeBlock/Circle | create/update 双重校验 CIRCLE_ONLY 配 circleId |
+| L23 | **反范式快照必须复制全部业务字段**：任何"反范式快照"实体（ApprovalRequest 存日程副本、Delegation 存任务副本），必须复制源实体的全部业务字段，尤其可见性字段和来源字段 | ApprovalRequest/Delegation | 反范式快照字段清单 check |
+| L24 | **门禁状态必须实跑验证**：VERSION_PLAN 声称的门禁（eslint 0 错/jest 全绿）必须与实跑结果一致。每次写"0 错"前必须实跑。husky pre-commit 加 `eslint --max-warnings 0` | 全项目 | 每次版本完成时实际跑全部门禁，不依赖声称 |
 
 ---
 
@@ -186,7 +282,7 @@
 
 | 日期 | 变更 |
 |------|------|
-| 2026-06-09 | 初次生成。定位：朋友内测工具，不计费、无 AI、无商业化 |
+| 2026-06-12 | **PRD v2.1 + 用户约束对齐**：核心约束更新——永久免费/无 AI 计费/无导出/备份；Category 固定 3 大类（工作/生活/私有）+ 4 级子类（≤20/级）；Circle 固定 3 大类（同事/朋友/亲人）+ 3 级子圈（≤20/级，多圈）；归集兜底（未选分类→工作/默认，未选圈子→同事/默认）；管理入口仅"我的"界面；个人信息字段（年龄/婚姻/配偶/常住地/单位/职业）用于 AI 推荐；Template 模版系统（任务/日程）。**版本重排**：v0.39 五合一（Step+Category+来源追踪+Template+个人信息+AI stub）；v0.40 冷启动引擎；v0.41 双轨并行（效率闭环+隐私信任，含 CIRCLE_ONLY 兜底修复）；v0.42 社交增强+统计+圈子重构；v0.43 AI 拆解+个人信息上下文；v0.44 内测收尾+E2E。**战略原则新增**：永久免费、固定三大类+可配置子类、管理入口仅"我的"。**设计要点更新**：Category/Circle 父子树约束（isFixed/isDefault/level/唯一约束/归集兜底）。**修复**：CIRCLE_ONLY 无 circleId 隐私 BUG（EventVisibilityService + TimeBlock create/update 双重校验）。tsc 双 0 错 ✅ prisma validate ✅ jest 77/77 ✅ |
 | 2026-06-09 | 修订 4 个硬伤：① TabBar 渐进式开放（v0.9/v0.15/v0.22）；② v0.11 真实登录增加数据过渡迁移脚本；③ v0.16 外键方向修正为 taskId；④ v0.18 cron 防重发行锁。追加 3 个优化：⑤ v0.23 历史数据兼容 migration；⑥ v0.9 跨天/重叠边界约束；⑦ v0.28.5 全局 UX 兜底。追加 AI 编程约束章节 |
 | 2026-06-09 | v0.1 完成：server 7777 + health endpoint + PG 连通。从 `radiant-thunder-newton.md` 审计报告提炼 10 条教训（L1-L10）作为新代码质量门禁 |
 | 2026-06-09 | v0.2 完成：src/ 骨架 + tsconfig + WeUI/mobx/postinstall。WeUI 版本从 2.x 修正为 1.5.6（npm 上不存在 2.x）。ESLint/Husky 暂缺 |
@@ -222,3 +318,14 @@
 | 2026-06-12 | **v0.35.1 ✅ N3 左滑增强完成**：日程卡 `translateX` 动效 + 任务卡完整三件套手势（标记完成/删除）+ 触摸私有变量从 `TasksPageData` 移入 `TasksPageMethods`（与 schedule 页对齐）。`tsc` 双 0 错 ✅ TODO/FIXME 0 命中 ✅ |
 | 2026-06-12 | **v0.36 ✅ N4 + A1 + A2 完成**：今日概览卡片（日程数/时长/空闲/逾期）、月视图（7×6 网格 + 日程点 + 导航）、跨日日程（`getClampedRange` 正确跨天显示 + badge）。品牌色硬编码清理 `#4A6CF7` → `#10B981`。`tsc` 双 0 错 ✅ |
 | 2026-06-12 | **计划重排：7 项提议合并入 v0.37–v0.45+**：拖拽调时长（已规划，保持）；重复日程 cron 生成补入 v0.38；四象限矩阵合并入 v0.39；微信转发创建任务替换 v0.42（原推送/短信后移）；S1-S3 高频设置合并入 v0.37；S4-S7 设置合并入 v0.44；步数联动+S9-S12 压至 v0.45+。VERSION_PLAN.md 版本表 + 设计要点同步更新。 |
+| 2026-06-12 | **v0.37 ✅ 快速创建 + 拖拽调时长 + S1-S3 完成**：① 快速创建独立弹出层（title + 时间 + 时长选择器 + 保存 → `blockStore.createBlock`）；② 每张卡片底部 `.resize-handle` + `catchtouch` 三件套实时调高度 → touchend 算 endTime → `updateBlock`；③ 设置页 S1（默认时长 30min/1h/2h）+ S2（默认分类 工作/生活/私有/记住上次）+ S3（周起始日 周一/周日）；后端 `UpdateSettingsDto` + `DEFAULT_SETTINGS` + merge 全覆盖；S3 联动：`getMonday` → `getWeekStart(dateStr, weekStartsOn)`，`buildWeekDays`/`loadMonth` 参数化；审计 6 项 v0.35–v0.36 品牌色残留/BottomSheet 圆角/block-title 字号全部修复。`tsc` 双 0 错 ✅ `jest` 77/77 ✅ |
+| 2026-06-12 | **v0.38 ✅ 冲突检测 + 重复日程引擎完成**：`POST /time-blocks/check-conflicts` 端点 + 前端提示式冲突弹窗（允许强制保存）；`RecurrenceGeneratorCron` 每日 02:00 生成未来 30 天实例；重复日程编辑弹窗（仅此实例/所有实例）；`updateMode` 参数支持 TimeBlock update/delete 全量/单例模式；Prisma schema 加 `recurrenceGroupId`。`tsc` 双 0 错 ✅ `jest` 77/77 ✅ |
+| 2026-06-12 | **闭环融合重构**：基于 `timeslots-v1-闭环融合开发文档-20260612.md` 重排 v0.39+ 优先级。**核心变化**：v0.39 从"统计+搜索"改为"数据层重构（Step 表 + Category 表 + 来源追踪）"；v0.40 从"共享日历"改为"前端交互重写（任务窗口/来源标识/树形选择器）"；v0.41 恢复为"统计+搜索+矩阵"；v0.42 共享日历+评论+分享；v0.43 AI 步骤拆解；v0.44 E2E+设置；v0.45+ 压入步数联动/微信转发/附件上传/剩余设置。设计要点新增 Step 状态机/Category 约束/来源追踪策略/数据迁移顺序 4 条 |
+| 2026-06-12 | **v0.38 weekdays 补丁修复**：验收报告指出 `weekdays` 未实现，补齐 DTO/两个 isRecurringOnDate 函数/前端标签+按钮+样式。tsc 双 0 错 ✅ jest 77/77 ✅ |
+| 2026-06-12 | **5 条战略原则重排版本优先级**：① 追 AI 拆解不追 AI 排程（差异定位）；② 先手动闭环再 AI（v0.41 先于 v0.44）；③ 来源追溯比 AI 更大差异化；④ 微信转发创建提到 v0.40（拉新优先于排时间交互）；⑤ 向后兼容非可选（旧字段保留不删）。**版本表变化**：v0.40 = 微信转发创建（从 v0.42 提前）；v0.41 = 前端交互重写（手动闭环）；v0.44 = AI 拆解（后移，manual 验证后再上）；v0.45+ 压入附件/步数/剩余设置。新增「战略原则」章节（5 条） |
+| 2026-06-12 | **PRD v2.1 愿景对齐**：基于 `timeslots-v1-PRD-v2.1-20260612.md`（熟人时间社交）重新排 v0.39+ 优先级。**核心变更**：v0.39 补 Category 表 + 来源追踪（回到原始设定）；v0.40 从"微信转发创建"改为"冷启动引擎"（时间连接器+名片+模板，对齐 PRD §4.1）；v0.41 双轨并行（效率闭环前端重写 + 隐私信任体系）；v0.42 合并社交增强+统计洞察+搜索+矩阵（原 v0.42+v0.43）；v0.43 AI 拆解（独立版本）；v0.44 内测收尾+E2E+发布。删除原 v0.45/v0.46+（功能压入 v0.44）。全版本序列从 14 个版本缩减到 7 个（v0.38→v0.44） |
+| 2026-06-12 | **PRD v2.2 + UX 一体化规范扩展至 v0.50**：基于 `timeslots-v1-PRD-v2.2-20260612.md`（熟人时间社交+委托流 §3.3b）+ `timeslots-v1-UX一体化设计规范-20260612.md` 扩展版本计划至 v0.50。**新增版本**：v0.45 UX 话语体系（12 项文案替换）、v0.46 UX 交互手势+关系状态条、v0.47 UX 信息密度+空状态引导、v0.48 委托流后端、v0.49 委托流前端、v0.50 终极内测收尾+发布。**变更**：v0.44 从"最终发布版"改为"阶段性收尾版"（不再代表发布）；v0.45–v0.47 UX 一体化三层分阶段交付（低风险高感知，可反向并入早期版本）；v0.48–v0.49 委托流独立版本（审批流可复用基础但保持独立实体）。**战略原则新增**：UX 一体化三层同步落地。**设计要点新增**：委托流后端复用审批流基础、委托流双向时间线可见、UX 一体化 Phase 1 反向兼容、Phase 2 关系状态条数据源、Phase 3 信息密度不影响拖拽、委托流确认排期原子事务 |
+| 2026-06-12 | **路线重审采纳（验证门禁 + v0.42+ 冻结）**：基于 `timeslots-v1-路线重审-20260612.md` 评估 5 条建议。**采纳**：建议四（v0.40 完成后两日实人验证门禁）+ 建议五（v0.42+ 全部冻结，等验证结果）。**保持**：建议一（v0.38 已照做）+ 建议二（v0.39 已完整交付，不缩减）+ 建议三（v0.40 保持冷启动引擎原计划，不提前委托流）。**版本表变更**：v0.41 改为"验证门禁 + 微信转发+文案替换"（条件分支）；v0.42+ 整体替换为"❄️ 全部冻结"条目；删除 v0.43–v0.50 具体描述。**战略原则新增**：先验证，后建设。**设计要点新增**：验证门禁 = 强制停止点 |
+| 2026-06-12 | **全量代码审查（v0.36–v0.39，4 小版本门禁）**：基于 AGENTS.md §4 "每隔4个小版本做一次全量代码审查规则"。审计 21 项（7 HIGH / 8 MEDIUM / 5 LOW）。**Severity HIGH 修复**：① `TimeBlockService.update` 补 `categoryId` 写入两个分支；② Template DELETE 返回 `{ deleted: true }`（非 void）；③ 前端 `TimeBlock`/`Task` 类型补 `categoryId/source/sourceId`；④ 前端新增 Category/Template/Step 三个模块的 API 函数（缺失 10 个）；⑤ `createBlock`/`updateBlock` 补发新字段；⑥ 重复日程生成实例补 `categoryId` FK。**Severity MEDIUM**：LLM 服务简化（抛 deferred 错误）、`templates` → `sourceBlocks` 重命名（混淆变量）、清除 3 个无用导出（`put`/`updateProfile`/`updateCircle`）、清除 2 个无用类型（`TaskStep`/`CircleMemberEntry`）、补全 `UserSettings` 6 个个人资料字段。**Severity LOW**：死 CSS 清理（3 处强制删除 + 1 处 duplicates）、`.has-handle` 补 CSS 规则、tab bar `setData` 修复。门禁：`tsc` server+frontend 0 错 ✅ / `prisma validate` ✅ |
+| 2026-06-12 | **v0.40 ✅ 冷启动引擎完成**：① 时间连接器（`POST/GET share-card` 端点 + 前端忙闲视图 + 微信转发）；② 时间名片（7 日空闲聚合统计 + Canvas 海报生成 + 前端统计卡/热力图）；③ 场景模板（`POST :id/apply` 端点 + 3 系统模板 seed-script + 前端一键应用页）。`server/scripts/seed-templates.ts` 待运行。`tsc` 双 0 错 ✅ `jest` 77/77 ✅ |
+| 2026-06-14 | **v1.3 产品哲学对齐 + v0.44+ 版本重排**：基于项目负责人核心洞察——"优秀的日程管理软件核心是解决日程如何生成"。**产品哲学确立**：三条路径（外部驱动/内部驱动/自发驱动）+ 分类脊柱。**版本重排**（v0.1–v0.43 已完成保持不变，v0.44 起重排）：删除原 v0.44（UI 全量统一）/v0.45（AI 拆解）/v0.46（信息密度）/v0.47（内测收尾）计划；新增 v0.44（代码质量+路径二地基：P0 BUG 修复+ESLint 清零+Step 线性依赖+5 态+审批副本补全+shareCard 持久化）/v0.45（AI 拆解 SSE 流式+手动降级）/v0.46（AI 建议时间段+步骤联动任务）/v0.47（委托流双场景）/v0.48（微信订阅消息+短信网关 7 场景）/v0.49（AI 自然语言建日程）/v0.50（强制验证门禁）/v0.51（AI 周报+教练卡，条件触发）/v0.52（iCal 导入，条件触发）。**战略原则更新**：删除"熟人时间社交"重定性为"核心是日程如何生成"；AI 接入版本号 v0.43→v0.45；验证门禁 v0.40→v0.50；新增"AI 失败必须静默降级"+"不做清单"（AI 自动排程/云备份/多端同步/付费/AI 聊天/情绪分析/多模态拍照/iCal 导出/Taro 重写/UI 微调）。**设计要点新增 11 条**：三路径哲学/Step 线性依赖/AI 拆解降级铁律/AI 建议≠自动排程/步骤完成不自动 done/委托流双场景/推送 7 场景/自然语言复用 /ai/parse/验证门禁不可跳过/iCal 只导入。**iCal 政策调整**：原"无导出/备份"→"无导出（导入可做）/备份"，v0.52 做导入。**PRD 同步更新至 v1.3**：新增 §0 产品哲学/§13 路径二核心/§14 委托流/§15 自然语言+iCal/§16 通知触达/§17 战略原则；Step 表补线性依赖字段；Delegation/CoachCard/RecurrenceException/ImportLog 4 实体登记 |

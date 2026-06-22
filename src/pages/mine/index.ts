@@ -1,18 +1,18 @@
-
 import { createStoreBindings } from 'mobx-miniprogram-bindings';
 import { authStore } from '../../stores/authStore';
 import { userStore } from '../../stores/userStore';
-import { login, wxLogin, migrateDevData, deleteDevData, deleteAccount, restoreAccount, getTaskStats } from '../../services/api';
 import { storage } from '../../utils/storage';
+import { APP_CONFIG } from '../../utils/config';
+import { errorMsg } from '../../utils/error';
+import { logError } from '../../utils/logError';
+import { login, wxLogin, migrateDevData, deleteDevData, restoreAccount, deleteAccount, getTaskStats, getSettings } from '../../services/api';
 
-
+const APP_VERSION = APP_CONFIG.APP_VERSION;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 
 interface MinePageData {
   userId: string;
   loading: boolean;
-  loggingOut: boolean;
   wxLoading: boolean;
   showMigrationModal: boolean;
   devUserId: string;
@@ -21,32 +21,55 @@ interface MinePageData {
   restoreUserId: string;
   restoring: boolean;
   stats: { total: number; done: number; overdue: number; weekDue: number } | null;
+  personalTags: string[];
+  personalTagsStr: string;
+  appVersion: string;
+  showSubpage: boolean;
+  showLogoutModal: boolean;
+  loggingOut: boolean;
+  showDeleteModal: boolean;
+  deleting: boolean;
 }
 
-
 interface MinePageMethods {
-  onLoginTap: () => void;
-  onLogoutTap: () => void;
-  onWxLoginTap: () => void;
-  onUserIdInput: (e: WechatMiniprogram.Input) => void;
-  onDevUserIdInput: (e: WechatMiniprogram.Input) => void;
-  onMigrateConfirm: () => void;
-  onMigrateSkip: () => void;
-  onDeleteAccountTap: () => void;
-  onSettingsTap: () => void;
-  loadStats: () => Promise<void>;
-  onRestoreTap: () => void;
-  onRestoreCancel: () => void;
-  showMigrationDialog: () => void;
   storeBindings?: { destroyStoreBindings: () => void };
   userBindings?: { destroyStoreBindings: () => void };
+  onLoad: () => void;
+  onShow: () => void;
+  onUnload: () => void;
+  onUserIdInput: (e: WechatMiniprogram.Input) => void;
+  onDevUserIdInput: (e: WechatMiniprogram.Input) => void;
+  onLoginTap: () => Promise<void>;
+  onWxLoginTap: () => Promise<void>;
+  showMigrationDialog: () => void;
+  onMigrateConfirm: () => Promise<void>;
+  onMigrateSkip: () => Promise<void>;
+  onRestoreTap: () => Promise<void>;
+  onRestoreCancel: () => void;
+  noop: () => void;
+  onProfileCardTap: () => void;
+  onBackFromProfile: () => void;
+  onSettingsTap: () => void;
+  onEditProfileTap: () => void;
+  onNamecardTap: () => void;
+  onClassificationsTap: () => void;
+  onTransparencyTap: () => void;
+  onAboutTap: () => void;
+  onLogoutTap: () => void;
+  confirmLogout: () => void;
+  onCloseLogoutModal: () => void;
+  onDeleteAccountTap: () => void;
+  confirmDeleteAccount: () => Promise<void>;
+  onCloseDeleteModal: () => void;
+  onOverlayTap: (e: WechatMiniprogram.TouchEvent) => void;
+  loadStats: () => Promise<void>;
+  loadProfile: () => Promise<void>;
 }
 
 Page<MinePageData, MinePageMethods>({
   data: {
     userId: '',
     loading: false,
-    loggingOut: false,
     wxLoading: false,
     showMigrationModal: false,
     devUserId: '',
@@ -55,6 +78,15 @@ Page<MinePageData, MinePageMethods>({
     restoreUserId: '',
     restoring: false,
     stats: null,
+    personalTags: [],
+    personalTagsStr: '',
+    appVersion: APP_VERSION,
+
+    showSubpage: false,
+    showLogoutModal: false,
+    loggingOut: false,
+    showDeleteModal: false,
+    deleting: false,
   },
 
   onLoad() {
@@ -69,10 +101,10 @@ Page<MinePageData, MinePageMethods>({
   },
 
   onShow() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any  
-    (this as any).getTabBar?.().setData({ selected: 3 });
+    (this as unknown as WechatMiniprogram.Page.TrivialInstance).getTabBar?.().setData({ selected: 3 });
     if (authStore.isLoggedIn) {
       this.loadStats();
+      this.loadProfile();
     }
   },
 
@@ -93,11 +125,11 @@ Page<MinePageData, MinePageMethods>({
     if (this.data.loading) return;
     const id = this.data.userId.trim();
     if (!id) {
-      wx.showToast({ title: '请输入用�?ID', icon: 'none' });
+      wx.showToast({ title: '请输入用户 ID', icon: 'none' });
       return;
     }
     if (!UUID_RE.test(id)) {
-      wx.showToast({ title: '请输入有效的用户 ID（UUID 格式�?, icon: 'none' });
+      wx.showToast({ title: '请输入有效的用户 ID（UUID 格式）', icon: 'none' });
       return;
     }
     this.setData({ loading: true });
@@ -105,11 +137,11 @@ Page<MinePageData, MinePageMethods>({
       const res = await login(id);
       authStore.setToken(res.accessToken);
       userStore.setUser(res.user);
-      wx.showToast({ title: '登录成功', icon: 'success' });
+      wx.showToast({ title: '欢迎回来', icon: 'success' });
       this.setData({ userId: '' });
     } catch (e) {
-      const msg = (e as Error).message || '登录失败';
-      if (msg.includes('账号待删�?)) {
+      const msg = errorMsg(e) || '登录失败';
+      if (msg.includes('账号待删除')) {
         this.setData({ showRestoreModal: true, restoreUserId: id });
       } else {
         wx.showToast({ title: msg, icon: 'none' });
@@ -131,11 +163,11 @@ Page<MinePageData, MinePageMethods>({
       authStore.setToken(res.accessToken);
       userStore.setUser(res.user);
 
-      wx.showToast({ title: '微信登录成功', icon: 'success' });
+      wx.showToast({ title: '欢迎回来', icon: 'success' });
       this.showMigrationDialog();
     } catch (e) {
       const wxErr = e as WechatMiniprogram.GeneralCallbackResult;
-      const msg = wxErr.errMsg || (e as Error).message || '微信登录失败';
+      const msg = wxErr.errMsg || errorMsg(e) || '微信登录失败';
       wx.showToast({ title: msg, icon: 'none' });
     } finally {
       this.setData({ wxLoading: false });
@@ -155,7 +187,7 @@ Page<MinePageData, MinePageMethods>({
       return;
     }
     if (!UUID_RE.test(id)) {
-      wx.showToast({ title: 'UUID 格式不正�?, icon: 'none' });
+      wx.showToast({ title: 'UUID 格式不正确', icon: 'none' });
       return;
     }
     this.setData({ migrating: true });
@@ -165,7 +197,7 @@ Page<MinePageData, MinePageMethods>({
       this.setData({ showMigrationModal: false });
       storage.set('migration_shown', true);
     } catch (e) {
-      wx.showToast({ title: (e as Error).message || '迁移失败', icon: 'none' });
+      wx.showToast({ title: errorMsg(e) || '迁移失败', icon: 'none' });
     } finally {
       this.setData({ migrating: false });
     }
@@ -177,8 +209,8 @@ Page<MinePageData, MinePageMethods>({
       this.setData({ migrating: true });
       try {
         await deleteDevData(id);
-      } catch {
-        // not critical if delete fails
+      } catch (e) {
+        logError('mine deleteDevData', e);
       } finally {
         this.setData({ migrating: false });
       }
@@ -187,34 +219,15 @@ Page<MinePageData, MinePageMethods>({
     storage.set('migration_shown', true);
   },
 
-  onDeleteAccountTap() {
-    wx.showModal({
-      title: '注销账号',
-      content: '确定要注销账号吗？7 天内可以恢复�? 天后账号将永久删除。所有日程数据将被隐藏�?,
-      success: async (res) => {
-        if (!res.confirm) return;
-        try {
-          const result = await deleteAccount();
-          storage.set('restore_token', result.restoreToken);
-          authStore.clearToken();
-          userStore.clearUser();
-          wx.showToast({ title: '账号已注销', icon: 'success' });
-        } catch (e) {
-          wx.showToast({ title: (e as Error).message || '注销失败', icon: 'none' });
-        }
-      },
-    });
-  },
-
   async onRestoreTap() {
     const id = this.data.restoreUserId.trim() || this.data.userId.trim();
     if (!UUID_RE.test(id)) {
-      wx.showToast({ title: '无效的用�?ID', icon: 'none' });
+      wx.showToast({ title: '无效的用户 ID', icon: 'none' });
       return;
     }
     const restoreToken = storage.get('restore_token');
     if (!restoreToken) {
-      wx.showToast({ title: '未找到恢复令牌，请通过管理员恢�?, icon: 'none' });
+      wx.showToast({ title: '未找到恢复令牌，请通过管理员恢复', icon: 'none' });
       return;
     }
     this.setData({ restoring: true });
@@ -223,10 +236,10 @@ Page<MinePageData, MinePageMethods>({
       storage.remove('restore_token');
       authStore.setToken(res.accessToken);
       userStore.setUser(res.user);
-      wx.showToast({ title: '账号已恢�?, icon: 'success' });
+      wx.showToast({ title: '账号已恢复', icon: 'success' });
       this.setData({ showRestoreModal: false, restoreUserId: '' });
     } catch (e) {
-      wx.showToast({ title: (e as Error).message || '恢复失败', icon: 'none' });
+      wx.showToast({ title: errorMsg(e) || '恢复失败', icon: 'none' });
     } finally {
       this.setData({ restoring: false });
     }
@@ -236,37 +249,121 @@ Page<MinePageData, MinePageMethods>({
     this.setData({ showRestoreModal: false, restoreUserId: '' });
   },
 
+  noop() {},
+
+  // ===== 子页导航 =====
+  onProfileCardTap() {
+    this.setData({ showSubpage: true });
+  },
+
+  onBackFromProfile() {
+    this.setData({ showSubpage: false });
+  },
+
+  // ===== 功能入口（直接跳转，无需 ActionSheet） =====
   onSettingsTap() {
     wx.navigateTo({ url: '/pages/mine/settings/index' });
   },
 
+  onEditProfileTap() {
+    wx.navigateTo({ url: '/pages/mine/profile-settings/index' });
+  },
+
+  onNamecardTap() {
+    wx.navigateTo({ url: '/pages/mine/namecard/index' });
+  },
+
+  onClassificationsTap() {
+    wx.navigateTo({ url: '/pages/mine/classifications/index' });
+  },
+
+  onTransparencyTap() {
+    wx.navigateTo({ url: '/pages/mine/transparency/index' });
+  },
+
+  onAboutTap() {
+    wx.navigateTo({ url: '/pages/mine/about/index' });
+  },
+
+  // ===== 退出登录（子页内） =====
+  onLogoutTap() {
+    this.setData({ showSubpage: false, showLogoutModal: true });
+  },
+
+  confirmLogout() {
+    if (this.data.loggingOut) return;
+    this.setData({ loggingOut: true });
+    authStore.clearToken();
+    userStore.clearUser();
+    wx.showToast({ title: '已退出', icon: 'success' });
+    this.setData({ loggingOut: false, showLogoutModal: false });
+  },
+
+  onCloseLogoutModal() {
+    this.setData({ showLogoutModal: false });
+  },
+
+  // ===== 注销账号（子页内） =====
+  onDeleteAccountTap() {
+    this.setData({ showSubpage: false, showDeleteModal: true });
+  },
+
+  async confirmDeleteAccount() {
+    if (this.data.deleting) return;
+    this.setData({ deleting: true });
+    try {
+      const result = await deleteAccount();
+      storage.set('restore_token', result.restoreToken);
+      authStore.clearToken();
+      userStore.clearUser();
+      wx.showToast({ title: '账号已注销', icon: 'success' });
+      this.setData({ showDeleteModal: false, deleting: false });
+    } catch (e) {
+      wx.showToast({ title: errorMsg(e) || '注销失败', icon: 'none' });
+      this.setData({ deleting: false });
+    }
+  },
+
+  onCloseDeleteModal() {
+    this.setData({ showDeleteModal: false });
+  },
+
+  // ===== 遮罩点击关闭 =====
+  onOverlayTap(e: WechatMiniprogram.TouchEvent) {
+    const target = e.currentTarget.dataset.target as string;
+    if (target === 'logout') {
+      this.setData({ showLogoutModal: false });
+    } else if (target === 'delete') {
+      this.setData({ showDeleteModal: false });
+    }
+  },
+
+  // ===== 数据加载 =====
   async loadStats() {
     try {
       const s = await getTaskStats();
       this.setData({
         stats: { total: s.total, done: s.done, overdue: s.overdue, weekDue: s.week },
       });
-    } catch {
-      // stats are non-critical
+    } catch (e) {
+      logError('mine loadStats', e);
     }
   },
 
-  onLogoutTap() {
-    if (this.data.loggingOut) return;
-    this.setData({ loggingOut: true });
-    wx.showModal({
-      title: '退出登�?,
-      content: '确定要退出登录吗�?,
-      success: (res) => {
-        if (res.confirm) {
-          authStore.clearToken();
-          userStore.clearUser();
-          wx.showToast({ title: '已退�?, icon: 'success' });
-        }
-      },
-      complete: () => {
-        this.setData({ loggingOut: false });
-      },
-    });
+  async loadProfile() {
+    try {
+      const settings = await getSettings();
+      const tags: string[] = [];
+      if (settings.occupation) tags.push(settings.occupation);
+      if (settings.company) tags.push(settings.company);
+      if (settings.residence) tags.push(settings.residence);
+      const tagsStr = tags.length > 0 ? tags.join(' · ') : '';
+      this.setData({
+        personalTags: tags,
+        personalTagsStr: tagsStr,
+      });
+    } catch (e) {
+      logError('mine loadProfile', e);
+    }
   },
 });

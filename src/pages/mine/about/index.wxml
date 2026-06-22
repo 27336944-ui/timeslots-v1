@@ -1,0 +1,25 @@
+<view class="page">
+  <privacy-agreement />
+  <view class="about-header">
+    <text class="about-logo">📅</text>
+    <text class="about-name">timeslots</text>
+    <text class="about-version" bindtap="onCopyVersion">v{{appVersion}}</text>
+    <text class="about-desc">基于时间块的小程序日程管理</text>
+  </view>
+
+  <view class="about-section">
+    <view class="about-row" bindtap="onUserAgreementTap">
+      <text class="about-row-text">用户协议</text>
+      <text class="about-row-arrow">›</text>
+    </view>
+    <view class="about-row" bindtap="onPrivacyPolicyTap">
+      <text class="about-row-text">隐私政策</text>
+      <text class="about-row-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="about-footer">
+    <text class="about-footer-text">Made with ❤️ for close friends</text>
+    <text class="about-footer-text">© 2026 timeslots team</text>
+  </view>
+</view>

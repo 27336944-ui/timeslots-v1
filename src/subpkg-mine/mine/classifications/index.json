@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "分类设置",
+  "usingComponents": {
+    "category-picker": "../../../components/category-picker/index"
+  }
+}
