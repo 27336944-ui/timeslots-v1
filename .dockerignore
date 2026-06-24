@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+*.log
+.env
+.env.local
+archive-v1
+bug
+knowledge-base
+skills
+conversations
+.DS_Store

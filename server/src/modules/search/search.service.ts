@@ -38,7 +38,7 @@ export class SearchService {
       where: {
         userId,
         isDeleted: false,
-        title: { contains: q, mode: 'insensitive' },
+        title: { contains: q },
       },
       select: { id: true, title: true },
       take: 20,
@@ -58,8 +58,8 @@ export class SearchService {
         userId,
         isDeleted: false,
         OR: [
-          { title: { contains: q, mode: 'insensitive' } },
-          { goal: { contains: q, mode: 'insensitive' } },
+          { title: { contains: q } },
+          { goal: { contains: q } },
         ],
       },
       select: { id: true, title: true, goal: true },
@@ -78,7 +78,7 @@ export class SearchService {
     const circles = await this.prisma.client.circle.findMany({
       where: {
         isDeleted: false,
-        name: { contains: q, mode: 'insensitive' },
+        name: { contains: q },
         OR: [
           { ownerId: userId },
           { members: { some: { userId, isDeleted: false } } },

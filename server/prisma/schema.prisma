@@ -1,9 +1,9 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -16,13 +16,13 @@ model User {
   password  String?
 
   isDeleted    Boolean          @default(false)
-  deletedAt    DateTime?        @db.Timestamptz
+  deletedAt    DateTime?        
   restoreToken String?
   version      Int              @default(1)
   settings     Json?
 
-  createdAt DateTime         @default(now()) @db.Timestamptz
-  updatedAt DateTime         @updatedAt @db.Timestamptz
+  createdAt DateTime         @default(now()) 
+  updatedAt DateTime         @updatedAt 
 
   timeBlocks    TimeBlock[]
   tasks         Task[]
@@ -56,11 +56,11 @@ model Category {
   color     String   @default("#10B981")
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   user      User       @relation(fields: [userId], references: [id])
   parent    Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
@@ -84,20 +84,20 @@ model Task {
   status      String   @default("pending")
   category    String   @default("life")
   categoryId  String?
-  startDate   DateTime? @db.Timestamptz
-  dueAt       DateTime? @db.Timestamptz
-  triggerTime DateTime? @db.Timestamptz
+  startDate   DateTime? 
+  dueAt       DateTime? 
+  triggerTime DateTime? 
   completedNote String?
   retrospective String?
   improvements  String?
   estimatedDuration Int?
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   user        User       @relation(fields: [userId], references: [id])
   timeBlocks  TimeBlock[]
@@ -141,18 +141,18 @@ model Step {
   estimatedMinutes Int?
   status          StepStatus @default(unscheduled)
   dependsOnId     String?
-  suggestedStart  DateTime? @db.Timestamptz
-  suggestedEnd    DateTime? @db.Timestamptz
+  suggestedStart  DateTime? 
+  suggestedEnd    DateTime? 
   timeBlockId     String?
-  scheduledDate   DateTime? @db.Timestamptz
-  completedAt     DateTime? @db.Timestamptz
+  scheduledDate   DateTime? 
+  completedAt     DateTime? 
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   task       Task?      @relation("TaskSteps", fields: [taskId], references: [id])
   dependsOn  Step?      @relation("StepDependency", fields: [dependsOnId], references: [id])
@@ -170,16 +170,16 @@ model TimeBlock {
   id          String   @id @default(uuid())
   userId      String
   title       String
-  /// @deprecated 长期迁移计划：v1.0 前保持双轨并存，迁移时需先回填 triggerTime/startDate/endDate 数据后再移除 NOT NULL
-  startTime   DateTime @db.Timestamptz
-  /// @deprecated 长期迁移计划：v1.0 前保持双轨并存，迁移时需先回填 triggerTime/startDate/endDate 数据后再移除 NOT NULL
-  endTime     DateTime @db.Timestamptz
-  // 触发时间（替代 startTime/endTime）
-  triggerTime DateTime? @db.Timestamptz
-  // 截止日期（无时间，仅日期）
-  endDate     DateTime? @db.Timestamptz
-  // 开始日期（与 endDate 配合表示双日期范围）
-  startDate   DateTime? @db.Timestamptz
+  /// @deprecated 长期迁移计划：v1.0 前保持双轨并存，迁移时需先回�?triggerTime/startDate/endDate 数据后再移除 NOT NULL
+  startTime   DateTime 
+  /// @deprecated 长期迁移计划：v1.0 前保持双轨并存，迁移时需先回�?triggerTime/startDate/endDate 数据后再移除 NOT NULL
+  endTime     DateTime 
+  // 触发时间（替�?startTime/endTime�?
+  triggerTime DateTime? 
+  // 截止日期（无时间，仅日期�?
+  endDate     DateTime? 
+  // 开始日期（�?endDate 配合表示双日期范围）
+  startDate   DateTime? 
   status      String   @default("todo")
   location    String? 
   description String?
@@ -188,7 +188,7 @@ model TimeBlock {
   source      String?
   sourceId    String?
   recurrence       String     @default("none")
-  recurrenceEndAt  DateTime?  @db.Timestamptz
+  recurrenceEndAt  DateTime?  
   recurrenceGroupId String?
   contacts    String?
   weather     String?
@@ -201,11 +201,11 @@ model TimeBlock {
   anchorType    String?  @default("other")
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   taskId  String?
   task             Task?              @relation(fields: [taskId], references: [id])
@@ -241,11 +241,11 @@ model Circle {
   status      String   @default("active")
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   owner   User           @relation(fields: [ownerId], references: [id])
   parent  Circle?        @relation("CircleChildren", fields: [parentId], references: [id])
@@ -267,11 +267,11 @@ model CircleMember {
   role     String @default("MEMBER")
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   circle Circle @relation(fields: [circleId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
@@ -299,11 +299,11 @@ model Template {
   isSystem        Boolean  @default(false)
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
 
   user User @relation(fields: [userId], references: [id])
 
@@ -315,16 +315,16 @@ model Reminder {
   id        String   @id @default(uuid())
   userId    String
   blockId   String
-  remindAt  DateTime @db.Timestamptz
+  remindAt  DateTime 
   leadMinutes Int    @default(15)
   status    String   @default("PENDING")
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   user  User      @relation(fields: [userId], references: [id])
   block TimeBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
@@ -362,8 +362,8 @@ model ApprovalRequest {
   blockId     String
 
   title       String
-  startTime   DateTime @db.Timestamptz
-  endTime     DateTime @db.Timestamptz
+  startTime   DateTime 
+  endTime     DateTime 
   description String?
   category    String   @default("life")
   nature      String   @default("PUBLIC")
@@ -378,11 +378,11 @@ model ApprovalRequest {
   shareToken  String   @unique
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   initiator   User               @relation(fields: [initiatorId], references: [id])
   block       TimeBlock          @relation(fields: [blockId], references: [id])
@@ -406,15 +406,15 @@ model ApprovalRecipient {
   status   ApprovalRecipientStatus @default(pending)
   blockId  String?
 
-  notifiedAt   DateTime? @db.Timestamptz
-  respondedAt  DateTime? @db.Timestamptz
+  notifiedAt   DateTime? 
+  respondedAt  DateTime? 
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   request   ApprovalRequest @relation(fields: [requestId], references: [id])
   recipient User?           @relation(fields: [userId], references: [id])
@@ -449,16 +449,16 @@ model Delegation {
   candidateSlots  Json?
   status          DelegationStatus @default(pending)
   message         String?
-  deadline        DateTime? @db.Timestamptz
+  deadline        DateTime? 
   acceptedSlot    Json?
   deliverNote     String?
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   initiator     User       @relation("InitiatedDelegations", fields: [initiatorId], references: [id])
   recipient     User?      @relation("ReceivedDelegations", fields: [recipientUserId], references: [id])
@@ -503,14 +503,14 @@ model ShareRecipient {
   targetUserId  String
   level         ShareLevel  @default(freebusy)
   status        ShareStatus @default(active)
-  expiresAt     DateTime?   @db.Timestamptz
+  expiresAt     DateTime?   
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   owner  User @relation("OwnedShareRecipients", fields: [userId], references: [id])
   target User @relation("TargetedShareRecipients", fields: [targetUserId], references: [id])
@@ -533,11 +533,11 @@ model ShareCard {
   responses Json     @default("[]")
 
   isDeleted Boolean  @default(false)
-  deletedAt DateTime? @db.Timestamptz
+  deletedAt DateTime? 
   version   Int      @default(1)
 
-  createdAt DateTime  @default(now()) @db.Timestamptz
-  updatedAt DateTime  @updatedAt @db.Timestamptz
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
 
   user User? @relation(fields: [userId], references: [id])
 
@@ -550,7 +550,7 @@ model EventLog {
   userId    String
   eventType String
   payload   Json     @default("{}")
-  createdAt DateTime @default(now()) @db.Timestamptz
+  createdAt DateTime @default(now()) 
 
   user User @relation(fields: [userId], references: [id])
 
